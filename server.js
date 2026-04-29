@@ -1,16 +1,26 @@
 const express = require("express");
 const app = express();
 
-// esto sirve los archivos como index.html
+let mantenimiento = true;
+
 app.use(express.static(__dirname));
 
-// prueba simple
-app.get("/", (req, res) => {
-  res.send("LOS ANDELEROS FUNCIONA 🔥");
+app.get("/estado", (req, res) => {
+  res.json({ mantenimiento });
+});
+
+app.get("/on", (req, res) => {
+  mantenimiento = true;
+  res.send("ON");
+});
+
+app.get("/off", (req, res) => {
+  mantenimiento = false;
+  res.send("OFF");
 });
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("Servidor corriendo en puerto " + PORT);
+  console.log("Servidor corriendo");
 });

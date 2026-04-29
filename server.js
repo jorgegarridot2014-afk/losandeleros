@@ -2,13 +2,13 @@ const express = require("express");
 const app = express();
 
 
-// 🎮 COMANDO PRINCIPAL
+// ENTRAR DIRECTO AL JUEGO
 app.get("/", (req, res) => {
   res.redirect("/man");
 });
 
 
-// 🎮 /man → TODO EL SISTEMA
+// 🎮 /man
 app.get("/man", (req, res) => {
   res.send(`
   <!DOCTYPE html>
@@ -24,10 +24,9 @@ app.get("/man", (req, res) => {
     overflow:hidden;
   }
 
-  /* IZQUIERDA */
   #left{
     width:50%;
-    background:linear-gradient(180deg,#000,#111);
+    background:linear-gradient(#000,#111);
     color:#0ff;
     display:flex;
     flex-direction:column;
@@ -36,7 +35,6 @@ app.get("/man", (req, res) => {
     text-shadow:0 0 10px #0ff;
   }
 
-  /* DERECHA */
   #game{
     width:50%;
     height:100vh;
@@ -45,13 +43,12 @@ app.get("/man", (req, res) => {
     background:black;
   }
 
-  /* FONDO NEÓN */
   #game::before{
     content:"";
     position:absolute;
     width:200%;
     height:200%;
-    background:linear-gradient(45deg, #0ff, #f0f, #0ff);
+    background:linear-gradient(45deg,#0ff,#f0f,#0ff);
     animation:fondo 10s linear infinite;
     opacity:0.2;
   }
@@ -94,7 +91,6 @@ app.get("/man", (req, res) => {
 
   #timer{
     margin-top:10px;
-    font-size:18px;
   }
 
   </style>
@@ -102,13 +98,11 @@ app.get("/man", (req, res) => {
 
   <body>
 
-  <!-- IZQUIERDA -->
   <div id="left">
     <h1>🚧 MANTENIMIENTO</h1>
     <div id="timer">Cargando...</div>
   </div>
 
-  <!-- DERECHA -->
   <div id="game">
     <button id="startBtn" onclick="startGame()">JUGAR</button>
     <div id="player"></div>
@@ -119,7 +113,6 @@ app.get("/man", (req, res) => {
   // ⏳ TIMER
   function actualizarTimer(){
     const ahora = new Date();
-
     const objetivo = new Date();
     objetivo.setDate(ahora.getDate() + ((6 - ahora.getDay() + 7) % 7));
     objetivo.setHours(17,30,0,0);
@@ -157,24 +150,26 @@ app.get("/man", (req, res) => {
     saltando = true;
     let altura = 0;
 
+    // SUBIDA
     let subir = setInterval(()=>{
-      altura += 15;
+      altura += 12;
       player.style.bottom = (50 + altura) + "px";
 
-      if(altura >= 200){
+      if(altura >= 180){
         clearInterval(subir);
 
+        // BAJADA MÁS SUAVE 👇
         let bajar = setInterval(()=>{
-          altura -= 15;
+          altura -= 6; // más lento (antes era 15)
           player.style.bottom = (50 + altura) + "px";
 
           if(altura <= 0){
             clearInterval(bajar);
             saltando = false;
           }
-        },10);
+        },15);
       }
-    },10);
+    },15);
   }
 
   // CONTROLES
@@ -214,8 +209,7 @@ app.get("/man", (req, res) => {
         p.left < o.right &&
         p.bottom > o.top
       ){
-        alert("💀 PERDISTE");
-        location.reload();
+        morir();
       }
 
       if(pos < -50){
@@ -230,8 +224,18 @@ app.get("/man", (req, res) => {
 
   function dificultad(){
     setInterval(()=>{
-      velocidad += 0.7;
-    },2500);
+      velocidad += 0.5;
+    },3000);
+  }
+
+  // 💀 MUERTE → REINICIO AUTOMÁTICO
+  function morir(){
+    jugando = false;
+    document.body.style.background = "red";
+
+    setTimeout(()=>{
+      location.reload(); // reinicia solo
+    },800);
   }
 
   </script>
@@ -239,12 +243,6 @@ app.get("/man", (req, res) => {
   </body>
   </html>
   `);
-});
-
-
-// 🟡 OPCIONAL /jue
-app.get("/jue", (req, res) => {
-  res.send(`<body style="background:yellow; margin:0;"></body>`);
 });
 
 

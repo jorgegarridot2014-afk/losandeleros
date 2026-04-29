@@ -2,22 +2,7 @@ const express = require("express");
 const app = express();
 
 
-// 🟢 MENÚ PRINCIPAL
-app.get("/", (req, res) => {
-  res.send(`
-    <html>
-    <body style="font-family:Arial; text-align:center; margin-top:50px;">
-      <h1>🎮 Los Andeleros</h1>
-
-      <p><a href="/man">🚧 Mantenimiento + Juego</a></p>
-      <p><a href="/jue">🟡 Pantalla amarilla</a></p>
-    </body>
-    </html>
-  `);
-});
-
-
-// 🎮 + 🚧 + ⏳ COMANDO /man
+// 🎮 /man → MANTENIMIENTO + JUEGO PRO
 app.get("/man", (req, res) => {
   res.send(`
   <!DOCTYPE html>
@@ -29,23 +14,34 @@ app.get("/man", (req, res) => {
     margin:0;
     display:flex;
     font-family:Arial;
+    overflow:hidden;
   }
 
+  /* IZQUIERDA */
   #left{
     width:50%;
-    background:#111;
+    background:linear-gradient(black, #111);
     color:white;
     display:flex;
     flex-direction:column;
     justify-content:center;
     align-items:center;
-    font-size:25px;
   }
 
-  #right{
+  #left h1{
+    font-size:30px;
+  }
+
+  #timer{
+    font-size:20px;
+    margin-top:10px;
+  }
+
+  /* DERECHA */
+  #game{
     width:50%;
     height:100vh;
-    background:#222;
+    background:#1a1a1a;
     position:relative;
     overflow:hidden;
   }
@@ -57,6 +53,7 @@ app.get("/man", (req, res) => {
     position:absolute;
     bottom:50px;
     left:50px;
+    border-radius:5px;
   }
 
   .obs{
@@ -67,6 +64,17 @@ app.get("/man", (req, res) => {
     bottom:50px;
   }
 
+  #startBtn{
+    position:absolute;
+    top:20px;
+    left:20px;
+    padding:10px 20px;
+    font-size:18px;
+    background:#0f0;
+    border:none;
+    cursor:pointer;
+  }
+
   </style>
   </head>
 
@@ -74,18 +82,19 @@ app.get("/man", (req, res) => {
 
   <!-- IZQUIERDA -->
   <div id="left">
-    🚧 MANTENIMIENTO
-    <br><br>
-    ⏳ <span id="timer">Cargando...</span>
+    <h1>🚧 MANTENIMIENTO</h1>
+    <div id="timer">Cargando...</div>
   </div>
 
   <!-- DERECHA -->
-  <div id="right">
+  <div id="game">
+    <button id="startBtn" onclick="startGame()">JUGAR</button>
     <div id="player"></div>
   </div>
 
   <script>
-  // -------- TIMER --------
+
+  // ⏳ TIMER
   function actualizarTimer(){
     const ahora = new Date();
 
@@ -112,27 +121,30 @@ app.get("/man", (req, res) => {
   actualizarTimer();
 
 
-  // -------- JUEGO --------
+  // 🎮 JUEGO PRO
   const player = document.getElementById("player");
-  const game = document.getElementById("right");
+  const game = document.getElementById("game");
 
   let saltando = false;
+  let jugando = false;
+  let velocidad = 6;
 
   function saltar(){
+    if(!jugando) return;
     if(saltando) return;
-    saltando = true;
 
+    saltando = true;
     let altura = 0;
 
     let subir = setInterval(()=>{
-      altura += 10; // MÁS salto
+      altura += 12; // salto rápido
       player.style.bottom = (50 + altura) + "px";
 
       if(altura >= 180){
         clearInterval(subir);
 
         let bajar = setInterval(()=>{
-          altura -= 10;
+          altura -= 12;
           player.style.bottom = (50 + altura) + "px";
 
           if(altura <= 0){
@@ -144,24 +156,30 @@ app.get("/man", (req, res) => {
     },15);
   }
 
-  // PC
+  // controles
   document.addEventListener("keydown", e=>{
     if(e.code === "Space") saltar();
   });
 
-  // móvil + click
   document.addEventListener("click", saltar);
   document.addEventListener("touchstart", saltar);
 
 
+  function startGame(){
+    jugando = true;
+    document.getElementById("startBtn").style.display = "none";
+    crearObs();
+    aumentarDificultad();
+  }
+
   function crearObs(){
+    if(!jugando) return;
+
     const obs = document.createElement("div");
     obs.classList.add("obs");
 
     let pos = window.innerWidth / 2;
     game.appendChild(obs);
-
-    let velocidad = 7;
 
     let mover = setInterval(()=>{
       pos -= velocidad;
@@ -186,10 +204,14 @@ app.get("/man", (req, res) => {
 
     },20);
 
-    setTimeout(crearObs,1000);
+    setTimeout(crearObs, 900);
   }
 
-  crearObs();
+  function aumentarDificultad(){
+    setInterval(()=>{
+      velocidad += 0.5; // cada vez más rápido 🔥
+    },3000);
+  }
 
   </script>
 
@@ -199,11 +221,9 @@ app.get("/man", (req, res) => {
 });
 
 
-// 🟡 COMANDO /jue
+// 🟡 /jue
 app.get("/jue", (req, res) => {
-  res.send(`
-    <body style="background:yellow; margin:0;"></body>
-  `);
+  res.send(`<body style="background:yellow; margin:0;"></body>`);
 });
 
 

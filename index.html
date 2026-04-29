@@ -6,111 +6,183 @@
 
 <style>
 body{
-  text-align:center;
+  margin:0;
   font-family:Arial;
   background:#111;
   color:white;
+  display:flex;
 }
 
+/* IZQUIERDA = JUEGO */
 #game{
-  margin-top:30px;
+  width:70%;
+  height:100vh;
+  background:#222;
+  position:relative;
+  overflow:hidden;
 }
 
-#target{
-  width:80px;
-  height:80px;
-  background:red;
-  border-radius:50%;
+/* DERECHA = TIMER */
+#panel{
+  width:30%;
+  padding:20px;
+  background:#000;
+}
+
+#player{
+  width:40px;
+  height:40px;
+  background:#0f0;
   position:absolute;
-  display:none;
-  cursor:pointer;
+  bottom:50px;
+  left:50px;
 }
 
-button{
-  padding:10px 20px;
-  font-size:18px;
+.obstacle{
+  width:30px;
+  height:50px;
+  background:red;
+  position:absolute;
+  bottom:50px;
 }
+
+/* texto */
+h1{
+  font-size:20px;
+}
+
 </style>
-
 </head>
 
 <body>
 
-<h1>🎮 Los Andeleros</h1>
-
-<h2 id="estado">Cargando...</h2>
-
+<!-- JUEGO -->
 <div id="game">
-  <p>Puntos: <span id="puntos">0</span></p>
-  <button onclick="startGame()">Jugar</button>
+  <div id="player"></div>
 </div>
 
-<div id="target"></div>
+<!-- PANEL DERECHO -->
+<div id="panel">
+  <h1>⏳ Cuenta atrás</h1>
+  <h2 id="timer">Cargando...</h2>
+
+  <hr>
+
+  <h1>🎮 Los Andeleros</h1>
+  <p>Toca la pantalla para saltar</p>
+</div>
 
 <script>
-// ----------- CONTROL MANTENIMIENTO -----------
 
-async function comprobarEstado(){
-  try{
-    const res = await fetch("/estado");
-    const data = await res.json();
+// ----------- TIMER -----------
 
-    if(data.mantenimiento){
-      document.getElementById("estado").innerText =
-      "🚧 En mantenimiento";
-    }else{
-      document.getElementById("estado").innerText =
-      "🎮 ¡Juega ahora!";
-    }
+function actualizarTimer(){
+  const ahora = new Date();
 
-  }catch{
-    document.getElementById("estado").innerText =
-    "❌ Error";
+  const objetivo = new Date();
+  objetivo.setDate(ahora.getDate() + ((6 - ahora.getDay() + 7) % 7));
+  objetivo.setHours(17,30,0,0);
+
+  const diff = objetivo - ahora;
+
+  if(diff <= 0){
+    document.getElementById("timer").innerText = "¡YA ES SÁBADO!";
+    return;
   }
+
+  const horas = Math.floor(diff / (1000*60*60));
+  const minutos = Math.floor((diff / (1000*60)) % 60);
+  const segundos = Math.floor((diff / 1000) % 60);
+
+  document.getElementById("timer").innerText =
+    horas + "h " + minutos + "m " + segundos + "s";
 }
 
-setInterval(comprobarEstado, 2000);
-comprobarEstado();
+setInterval(actualizarTimer, 1000);
+actualizarTimer();
 
 
-// ----------- MINIJUEGO -----------
+// ----------- JUEGO -----------
 
-let puntos = 0;
-let jugando = false;
+const player = document.getElementById("player");
+const game = document.getElementById("game");
 
-const target = document.getElementById("target");
+let saltando = false;
+let velocidad = 5;
+let jugando = true;
 
-function startGame(){
-  puntos = 0;
-  jugando = true;
-  document.getElementById("puntos").innerText = puntos;
-  moverTarget();
+function saltar(){
+  if(saltando) return;
+
+  saltando = true;
+  let altura = 0;
+
+  let subir = setInterval(()=>{
+    altura += 5;
+    player.style.bottom = (50 + altura) + "px";
+
+    if(altura >= 100){
+      clearInterval(subir);
+
+      let bajar = setInterval(()=>{
+        altura -= 5;
+        player.style.bottom = (50 + altura) + "px";
+
+        if(altura <= 0){
+          clearInterval(bajar);
+          saltando = false;
+        }
+      },20);
+
+    }
+  },20);
 }
 
-function moverTarget(){
+// CLICK o TOUCH (móvil)
+document.addEventListener("click", saltar);
+document.addEventListener("touchstart", saltar);
+
+
+// obstáculos
+function crearObstaculo(){
   if(!jugando) return;
 
-  target.style.display = "block";
+  const obs = document.createElement("div");
+  obs.classList.add("obstacle");
 
-  const x = Math.random() * (window.innerWidth - 80);
-  const y = Math.random() * (window.innerHeight - 80);
+  obs.style.left = "100%";
+  game.appendChild(obs);
 
-  target.style.left = x + "px";
-  target.style.top = y + "px";
+  let pos = window.innerWidth * 0.7;
 
-  setTimeout(moverTarget, 1000);
+  let mover = setInterval(()=>{
+    pos -= velocidad;
+    obs.style.left = pos + "px";
+
+    // colisión
+    const playerRect = player.getBoundingClientRect();
+    const obsRect = obs.getBoundingClientRect();
+
+    if(
+      playerRect.right > obsRect.left &&
+      playerRect.left < obsRect.right &&
+      playerRect.bottom > obsRect.top
+    ){
+      alert("💀 PERDISTE");
+      location.reload();
+    }
+
+    if(pos < -50){
+      clearInterval(mover);
+      obs.remove();
+    }
+
+  },20);
+
+  setTimeout(crearObstaculo, 1500);
 }
 
-target.onclick = () => {
-  puntos++;
-  document.getElementById("puntos").innerText = puntos;
-};
-
-// parar a los 10 segundos
-setTimeout(() => {
-  jugando = false;
-  target.style.display = "none";
-}, 10000);
+crearObstaculo();
 
 </script>
 

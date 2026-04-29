@@ -1,252 +1,263 @@
 const express = require("express");
 const app = express();
 
-
-// ENTRAR DIRECTO AL JUEGO
 app.get("/", (req, res) => {
   res.redirect("/man");
 });
 
-
-// 🎮 /man
 app.get("/man", (req, res) => {
   res.send(`
-  <!DOCTYPE html>
-  <html>
-  <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-  body{
-    margin:0;
-    display:flex;
-    font-family:Arial;
-    overflow:hidden;
+<style>
+body{
+  margin:0;
+  display:flex;
+  font-family:Arial;
+  overflow:hidden;
+}
+
+/* IZQUIERDA */
+#left{
+  width:50%;
+  background:linear-gradient(180deg,#000,#111);
+  color:#ff0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-shadow:0 0 10px red, 0 0 20px yellow;
+}
+
+#timer{
+  font-size:20px;
+  margin-top:10px;
+}
+
+#msg{
+  margin-top:20px;
+  color:#f00;
+  text-shadow:0 0 10px red, 0 0 20px yellow;
+}
+
+/* DERECHA */
+#game{
+  width:50%;
+  height:100vh;
+  position:relative;
+  overflow:hidden;
+  background:black;
+}
+
+/* FONDO NEÓN PRO */
+#game::before{
+  content:"";
+  position:absolute;
+  width:200%;
+  height:200%;
+  background:linear-gradient(45deg, red, yellow, red);
+  animation:fondo 6s linear infinite;
+  opacity:0.2;
+}
+
+@keyframes fondo{
+  0%{transform:translate(0,0);}
+  100%{transform:translate(-50%,-50%);}
+}
+
+#player{
+  width:40px;
+  height:40px;
+  background:#0f0;
+  position:absolute;
+  bottom:50px;
+  left:50px;
+  box-shadow:0 0 20px #0f0;
+}
+
+.obs{
+  width:30px;
+  height:60px;
+  background:red;
+  position:absolute;
+  bottom:50px;
+  box-shadow:0 0 20px red;
+}
+
+#startBtn{
+  position:absolute;
+  top:20px;
+  left:20px;
+  padding:10px 20px;
+  font-size:18px;
+  background:yellow;
+  border:none;
+  cursor:pointer;
+  box-shadow:0 0 15px red;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="left">
+  <h1>🚧 MANTENIMIENTO</h1>
+  <div id="timer">Cargando...</div>
+  <div id="msg">Lo sentimos 😔</div>
+</div>
+
+<div id="game">
+  <button id="startBtn" onclick="startGame()">JUGAR</button>
+  <div id="player"></div>
+</div>
+
+<script>
+
+// ⏳ TIMER
+function actualizarTimer(){
+  const ahora = new Date();
+  const objetivo = new Date();
+  objetivo.setDate(ahora.getDate() + ((6 - ahora.getDay() + 7) % 7));
+  objetivo.setHours(17,30,0,0);
+
+  const diff = objetivo - ahora;
+
+  if(diff <= 0){
+    document.getElementById("timer").innerText = "¡YA!";
+    return;
   }
 
-  #left{
-    width:50%;
-    background:linear-gradient(#000,#111);
-    color:#0ff;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    text-shadow:0 0 10px #0ff;
-  }
+  const h = Math.floor(diff / (1000*60*60));
+  const m = Math.floor((diff / (1000*60)) % 60);
+  const s = Math.floor((diff / 1000) % 60);
 
-  #game{
-    width:50%;
-    height:100vh;
-    position:relative;
-    overflow:hidden;
-    background:black;
-  }
+  document.getElementById("timer").innerText =
+    h+"h "+m+"m "+s+"s";
+}
 
-  #game::before{
-    content:"";
-    position:absolute;
-    width:200%;
-    height:200%;
-    background:linear-gradient(45deg,#0ff,#f0f,#0ff);
-    animation:fondo 10s linear infinite;
-    opacity:0.2;
-  }
+setInterval(actualizarTimer,1000);
+actualizarTimer();
 
-  @keyframes fondo{
-    0%{transform:translate(0,0);}
-    100%{transform:translate(-50%,-50%);}
-  }
 
-  #player{
-    width:40px;
-    height:40px;
-    background:#0f0;
-    position:absolute;
-    bottom:50px;
-    left:50px;
-    box-shadow:0 0 20px #0f0;
-  }
+// 🎮 JUEGO ULTRA PRO
+const player = document.getElementById("player");
+const game = document.getElementById("game");
 
-  .obs{
-    width:30px;
-    height:60px;
-    background:red;
-    position:absolute;
-    bottom:50px;
-    box-shadow:0 0 15px red;
-  }
+let saltando = false;
+let jugando = false;
+let velocidad = 6;
+let intervalos = [];
 
-  #startBtn{
-    position:absolute;
-    top:20px;
-    left:20px;
-    padding:10px 20px;
-    font-size:18px;
-    background:#0ff;
-    border:none;
-    cursor:pointer;
-    box-shadow:0 0 10px #0ff;
-  }
+function saltar(){
+  if(!jugando || saltando) return;
 
-  #timer{
-    margin-top:10px;
-  }
+  saltando = true;
+  let altura = 0;
 
-  </style>
-  </head>
+  let subir = setInterval(()=>{
+    altura += 10;
+    player.style.bottom = (50 + altura) + "px";
 
-  <body>
+    if(altura >= 170){
+      clearInterval(subir);
 
-  <div id="left">
-    <h1>🚧 MANTENIMIENTO</h1>
-    <div id="timer">Cargando...</div>
-  </div>
+      let bajar = setInterval(()=>{
+        altura -= 5; // caída suave
+        player.style.bottom = (50 + altura) + "px";
 
-  <div id="game">
-    <button id="startBtn" onclick="startGame()">JUGAR</button>
-    <div id="player"></div>
-  </div>
+        if(altura <= 0){
+          clearInterval(bajar);
+          saltando = false;
+        }
+      },15);
+    }
+  },15);
+}
 
-  <script>
+// CONTROLES
+document.addEventListener("keydown", e=>{
+  if(e.code === "Space") saltar();
+});
+document.addEventListener("click", saltar);
+document.addEventListener("touchstart", saltar);
 
-  // ⏳ TIMER
-  function actualizarTimer(){
-    const ahora = new Date();
-    const objetivo = new Date();
-    objetivo.setDate(ahora.getDate() + ((6 - ahora.getDay() + 7) % 7));
-    objetivo.setHours(17,30,0,0);
 
-    const diff = objetivo - ahora;
+function startGame(){
+  jugando = true;
+  document.getElementById("startBtn").style.display="none";
+  crearObs();
+  dificultad();
+}
 
-    if(diff <= 0){
-      document.getElementById("timer").innerText = "¡YA!";
-      return;
+function crearObs(){
+  if(!jugando) return;
+
+  const obs = document.createElement("div");
+  obs.classList.add("obs");
+
+  let pos = game.offsetWidth;
+  game.appendChild(obs);
+
+  let mover = setInterval(()=>{
+    pos -= velocidad;
+    obs.style.left = pos + "px";
+
+    const p = player.getBoundingClientRect();
+    const o = obs.getBoundingClientRect();
+
+    if(
+      p.right > o.left &&
+      p.left < o.right &&
+      p.bottom > o.top &&
+      p.top < o.bottom
+    ){
+      morir();
     }
 
-    const h = Math.floor(diff / (1000*60*60));
-    const m = Math.floor((diff / (1000*60)) % 60);
-    const s = Math.floor((diff / 1000) % 60);
+    if(pos < -50){
+      clearInterval(mover);
+      obs.remove();
+    }
 
-    document.getElementById("timer").innerText =
-      h+"h "+m+"m "+s+"s";
-  }
+  },16);
 
-  setInterval(actualizarTimer,1000);
-  actualizarTimer();
+  intervalos.push(mover);
 
+  setTimeout(crearObs,800);
+}
 
-  // 🎮 JUEGO
-  const player = document.getElementById("player");
-  const game = document.getElementById("game");
+function dificultad(){
+  let diff = setInterval(()=>{
+    velocidad += 0.5;
+  },3000);
 
-  let saltando = false;
-  let jugando = false;
-  let velocidad = 7;
+  intervalos.push(diff);
+}
 
-  function saltar(){
-    if(!jugando || saltando) return;
+// 💀 MUERTE PRO
+function morir(){
+  jugando = false;
 
-    saltando = true;
-    let altura = 0;
+  intervalos.forEach(i => clearInterval(i));
 
-    // SUBIDA
-    let subir = setInterval(()=>{
-      altura += 12;
-      player.style.bottom = (50 + altura) + "px";
+  document.body.style.background = "red";
 
-      if(altura >= 180){
-        clearInterval(subir);
+  setTimeout(()=>{
+    location.reload();
+  },700);
+}
 
-        // BAJADA MÁS SUAVE 👇
-        let bajar = setInterval(()=>{
-          altura -= 6; // más lento (antes era 15)
-          player.style.bottom = (50 + altura) + "px";
+</script>
 
-          if(altura <= 0){
-            clearInterval(bajar);
-            saltando = false;
-          }
-        },15);
-      }
-    },15);
-  }
-
-  // CONTROLES
-  document.addEventListener("keydown", e=>{
-    if(e.code === "Space") saltar();
-  });
-
-  document.addEventListener("click", saltar);
-  document.addEventListener("touchstart", saltar);
-
-
-  function startGame(){
-    jugando = true;
-    document.getElementById("startBtn").style.display="none";
-    crearObs();
-    dificultad();
-  }
-
-  function crearObs(){
-    if(!jugando) return;
-
-    const obs = document.createElement("div");
-    obs.classList.add("obs");
-
-    let pos = window.innerWidth/2;
-    game.appendChild(obs);
-
-    let mover = setInterval(()=>{
-      pos -= velocidad;
-      obs.style.left = pos + "px";
-
-      const p = player.getBoundingClientRect();
-      const o = obs.getBoundingClientRect();
-
-      if(
-        p.right > o.left &&
-        p.left < o.right &&
-        p.bottom > o.top
-      ){
-        morir();
-      }
-
-      if(pos < -50){
-        clearInterval(mover);
-        obs.remove();
-      }
-
-    },16);
-
-    setTimeout(crearObs,800);
-  }
-
-  function dificultad(){
-    setInterval(()=>{
-      velocidad += 0.5;
-    },3000);
-  }
-
-  // 💀 MUERTE → REINICIO AUTOMÁTICO
-  function morir(){
-    jugando = false;
-    document.body.style.background = "red";
-
-    setTimeout(()=>{
-      location.reload(); // reinicia solo
-    },800);
-  }
-
-  </script>
-
-  </body>
-  </html>
+</body>
+</html>
   `);
 });
 
-
-// 🚀 SERVIDOR
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {

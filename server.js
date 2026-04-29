@@ -1,7 +1,23 @@
 const express = require("express");
 const app = express();
 
-// COMANDO /man
+
+// 🟢 MENÚ PRINCIPAL
+app.get("/", (req, res) => {
+  res.send(`
+    <html>
+    <body style="font-family:Arial; text-align:center; margin-top:50px;">
+      <h1>🎮 Los Andeleros</h1>
+
+      <p><a href="/man">🚧 Mantenimiento + Juego</a></p>
+      <p><a href="/jue">🟡 Pantalla amarilla</a></p>
+    </body>
+    </html>
+  `);
+});
+
+
+// 🎮 + 🚧 + ⏳ COMANDO /man
 app.get("/man", (req, res) => {
   res.send(`
   <!DOCTYPE html>
@@ -20,9 +36,10 @@ app.get("/man", (req, res) => {
     background:#111;
     color:white;
     display:flex;
+    flex-direction:column;
     justify-content:center;
     align-items:center;
-    font-size:30px;
+    font-size:25px;
   }
 
   #right{
@@ -55,21 +72,52 @@ app.get("/man", (req, res) => {
 
   <body>
 
+  <!-- IZQUIERDA -->
   <div id="left">
     🚧 MANTENIMIENTO
+    <br><br>
+    ⏳ <span id="timer">Cargando...</span>
   </div>
 
+  <!-- DERECHA -->
   <div id="right">
     <div id="player"></div>
   </div>
 
   <script>
+  // -------- TIMER --------
+  function actualizarTimer(){
+    const ahora = new Date();
+
+    const objetivo = new Date();
+    objetivo.setDate(ahora.getDate() + ((6 - ahora.getDay() + 7) % 7));
+    objetivo.setHours(17,30,0,0);
+
+    const diff = objetivo - ahora;
+
+    if(diff <= 0){
+      document.getElementById("timer").innerText = "¡YA!";
+      return;
+    }
+
+    const h = Math.floor(diff / (1000*60*60));
+    const m = Math.floor((diff / (1000*60)) % 60);
+    const s = Math.floor((diff / 1000) % 60);
+
+    document.getElementById("timer").innerText =
+      h + "h " + m + "m " + s + "s";
+  }
+
+  setInterval(actualizarTimer, 1000);
+  actualizarTimer();
+
+
+  // -------- JUEGO --------
   const player = document.getElementById("player");
   const game = document.getElementById("right");
 
   let saltando = false;
 
-  // SALTO MEJORADO (más alto)
   function saltar(){
     if(saltando) return;
     saltando = true;
@@ -77,14 +125,14 @@ app.get("/man", (req, res) => {
     let altura = 0;
 
     let subir = setInterval(()=>{
-      altura += 8; // más potente
+      altura += 10; // MÁS salto
       player.style.bottom = (50 + altura) + "px";
 
-      if(altura >= 160){ // salto más alto
+      if(altura >= 180){
         clearInterval(subir);
 
         let bajar = setInterval(()=>{
-          altura -= 8;
+          altura -= 10;
           player.style.bottom = (50 + altura) + "px";
 
           if(altura <= 0){
@@ -96,27 +144,24 @@ app.get("/man", (req, res) => {
     },15);
   }
 
-  // PC (tecla espacio)
-  document.addEventListener("keydown", (e)=>{
-    if(e.code === "Space"){
-      saltar();
-    }
+  // PC
+  document.addEventListener("keydown", e=>{
+    if(e.code === "Space") saltar();
   });
 
   // móvil + click
   document.addEventListener("click", saltar);
   document.addEventListener("touchstart", saltar);
 
-  // obstáculos
+
   function crearObs(){
     const obs = document.createElement("div");
     obs.classList.add("obs");
 
     let pos = window.innerWidth / 2;
-
     game.appendChild(obs);
 
-    let velocidad = 6;
+    let velocidad = 7;
 
     let mover = setInterval(()=>{
       pos -= velocidad;
@@ -141,10 +186,11 @@ app.get("/man", (req, res) => {
 
     },20);
 
-    setTimeout(crearObs,1200);
+    setTimeout(crearObs,1000);
   }
 
   crearObs();
+
   </script>
 
   </body>
@@ -153,7 +199,7 @@ app.get("/man", (req, res) => {
 });
 
 
-// COMANDO /jue (pantalla amarilla)
+// 🟡 COMANDO /jue
 app.get("/jue", (req, res) => {
   res.send(`
     <body style="background:yellow; margin:0;"></body>
@@ -161,7 +207,7 @@ app.get("/jue", (req, res) => {
 });
 
 
-// servidor
+// 🚀 SERVIDOR
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {

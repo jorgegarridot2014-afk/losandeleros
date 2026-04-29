@@ -3,34 +3,115 @@
 <head>
 <meta charset="utf-8">
 <title>Los Andeleros</title>
+
+<style>
+body{
+  text-align:center;
+  font-family:Arial;
+  background:#111;
+  color:white;
+}
+
+#game{
+  margin-top:30px;
+}
+
+#target{
+  width:80px;
+  height:80px;
+  background:red;
+  border-radius:50%;
+  position:absolute;
+  display:none;
+  cursor:pointer;
+}
+
+button{
+  padding:10px 20px;
+  font-size:18px;
+}
+</style>
+
 </head>
 
 <body>
 
-<h1 id="texto">Cargando...</h1>
+<h1>🎮 Los Andeleros</h1>
+
+<h2 id="estado">Cargando...</h2>
+
+<div id="game">
+  <p>Puntos: <span id="puntos">0</span></p>
+  <button onclick="startGame()">Jugar</button>
+</div>
+
+<div id="target"></div>
 
 <script>
+// ----------- CONTROL MANTENIMIENTO -----------
+
 async function comprobarEstado(){
   try{
     const res = await fetch("/estado");
     const data = await res.json();
 
     if(data.mantenimiento){
-      document.getElementById("texto").innerText =
-      "🚧 Los Andeleros - En mantenimiento";
+      document.getElementById("estado").innerText =
+      "🚧 En mantenimiento";
     }else{
-      document.getElementById("texto").innerText =
-      "🎮 Los Andeleros - Ya puedes jugar";
+      document.getElementById("estado").innerText =
+      "🎮 ¡Juega ahora!";
     }
 
   }catch{
-    document.getElementById("texto").innerText =
+    document.getElementById("estado").innerText =
     "❌ Error";
   }
 }
 
 setInterval(comprobarEstado, 2000);
 comprobarEstado();
+
+
+// ----------- MINIJUEGO -----------
+
+let puntos = 0;
+let jugando = false;
+
+const target = document.getElementById("target");
+
+function startGame(){
+  puntos = 0;
+  jugando = true;
+  document.getElementById("puntos").innerText = puntos;
+  moverTarget();
+}
+
+function moverTarget(){
+  if(!jugando) return;
+
+  target.style.display = "block";
+
+  const x = Math.random() * (window.innerWidth - 80);
+  const y = Math.random() * (window.innerHeight - 80);
+
+  target.style.left = x + "px";
+  target.style.top = y + "px";
+
+  setTimeout(moverTarget, 1000);
+}
+
+target.onclick = () => {
+  puntos++;
+  document.getElementById("puntos").innerText = puntos;
+};
+
+// parar a los 10 segundos
+setTimeout(() => {
+  jugando = false;
+  target.style.display = "none";
+}, 10000);
+
 </script>
 
 </body>

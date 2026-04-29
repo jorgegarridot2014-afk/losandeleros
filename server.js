@@ -1,10 +1,12 @@
 const express = require("express");
 const app = express();
 
+// esto sirve los archivos como index.html
 app.use(express.static(__dirname));
 
+// prueba simple
 app.get("/", (req, res) => {
-  res.send("Servidor funcionando 🔥");
+  res.send("LOS ANDELEROS FUNCIONA 🔥");
 });
 
 const PORT = process.env.PORT || 3000;

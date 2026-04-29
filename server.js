@@ -2,13 +2,20 @@ const express = require("express");
 const app = express();
 
 
-// 🎮 /man → MANTENIMIENTO + JUEGO PRO
+// 🎮 COMANDO PRINCIPAL
+app.get("/", (req, res) => {
+  res.redirect("/man");
+});
+
+
+// 🎮 /man → TODO EL SISTEMA
 app.get("/man", (req, res) => {
   res.send(`
   <!DOCTYPE html>
   <html>
   <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
   body{
     margin:0;
@@ -20,30 +27,38 @@ app.get("/man", (req, res) => {
   /* IZQUIERDA */
   #left{
     width:50%;
-    background:linear-gradient(black, #111);
-    color:white;
+    background:linear-gradient(180deg,#000,#111);
+    color:#0ff;
     display:flex;
     flex-direction:column;
     justify-content:center;
     align-items:center;
-  }
-
-  #left h1{
-    font-size:30px;
-  }
-
-  #timer{
-    font-size:20px;
-    margin-top:10px;
+    text-shadow:0 0 10px #0ff;
   }
 
   /* DERECHA */
   #game{
     width:50%;
     height:100vh;
-    background:#1a1a1a;
     position:relative;
     overflow:hidden;
+    background:black;
+  }
+
+  /* FONDO NEÓN */
+  #game::before{
+    content:"";
+    position:absolute;
+    width:200%;
+    height:200%;
+    background:linear-gradient(45deg, #0ff, #f0f, #0ff);
+    animation:fondo 10s linear infinite;
+    opacity:0.2;
+  }
+
+  @keyframes fondo{
+    0%{transform:translate(0,0);}
+    100%{transform:translate(-50%,-50%);}
   }
 
   #player{
@@ -53,7 +68,7 @@ app.get("/man", (req, res) => {
     position:absolute;
     bottom:50px;
     left:50px;
-    border-radius:5px;
+    box-shadow:0 0 20px #0f0;
   }
 
   .obs{
@@ -62,6 +77,7 @@ app.get("/man", (req, res) => {
     background:red;
     position:absolute;
     bottom:50px;
+    box-shadow:0 0 15px red;
   }
 
   #startBtn{
@@ -70,9 +86,15 @@ app.get("/man", (req, res) => {
     left:20px;
     padding:10px 20px;
     font-size:18px;
-    background:#0f0;
+    background:#0ff;
     border:none;
     cursor:pointer;
+    box-shadow:0 0 10px #0ff;
+  }
+
+  #timer{
+    margin-top:10px;
+    font-size:18px;
   }
 
   </style>
@@ -114,49 +136,48 @@ app.get("/man", (req, res) => {
     const s = Math.floor((diff / 1000) % 60);
 
     document.getElementById("timer").innerText =
-      h + "h " + m + "m " + s + "s";
+      h+"h "+m+"m "+s+"s";
   }
 
-  setInterval(actualizarTimer, 1000);
+  setInterval(actualizarTimer,1000);
   actualizarTimer();
 
 
-  // 🎮 JUEGO PRO
+  // 🎮 JUEGO
   const player = document.getElementById("player");
   const game = document.getElementById("game");
 
   let saltando = false;
   let jugando = false;
-  let velocidad = 6;
+  let velocidad = 7;
 
   function saltar(){
-    if(!jugando) return;
-    if(saltando) return;
+    if(!jugando || saltando) return;
 
     saltando = true;
     let altura = 0;
 
     let subir = setInterval(()=>{
-      altura += 12; // salto rápido
+      altura += 15;
       player.style.bottom = (50 + altura) + "px";
 
-      if(altura >= 180){
+      if(altura >= 200){
         clearInterval(subir);
 
         let bajar = setInterval(()=>{
-          altura -= 12;
+          altura -= 15;
           player.style.bottom = (50 + altura) + "px";
 
           if(altura <= 0){
             clearInterval(bajar);
             saltando = false;
           }
-        },15);
+        },10);
       }
-    },15);
+    },10);
   }
 
-  // controles
+  // CONTROLES
   document.addEventListener("keydown", e=>{
     if(e.code === "Space") saltar();
   });
@@ -167,9 +188,9 @@ app.get("/man", (req, res) => {
 
   function startGame(){
     jugando = true;
-    document.getElementById("startBtn").style.display = "none";
+    document.getElementById("startBtn").style.display="none";
     crearObs();
-    aumentarDificultad();
+    dificultad();
   }
 
   function crearObs(){
@@ -178,7 +199,7 @@ app.get("/man", (req, res) => {
     const obs = document.createElement("div");
     obs.classList.add("obs");
 
-    let pos = window.innerWidth / 2;
+    let pos = window.innerWidth/2;
     game.appendChild(obs);
 
     let mover = setInterval(()=>{
@@ -202,15 +223,15 @@ app.get("/man", (req, res) => {
         obs.remove();
       }
 
-    },20);
+    },16);
 
-    setTimeout(crearObs, 900);
+    setTimeout(crearObs,800);
   }
 
-  function aumentarDificultad(){
+  function dificultad(){
     setInterval(()=>{
-      velocidad += 0.5; // cada vez más rápido 🔥
-    },3000);
+      velocidad += 0.7;
+    },2500);
   }
 
   </script>
@@ -221,7 +242,7 @@ app.get("/man", (req, res) => {
 });
 
 
-// 🟡 /jue
+// 🟡 OPCIONAL /jue
 app.get("/jue", (req, res) => {
   res.send(`<body style="background:yellow; margin:0;"></body>`);
 });

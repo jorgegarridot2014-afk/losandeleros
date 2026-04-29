@@ -1,6 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Los Andeleros</title>
+</head>
+
 <body>
-<h1>LOS ANDELEROS 🔥</h1>
+
+<h1 id="texto">Cargando...</h1>
+
+<script>
+async function comprobarEstado(){
+  try{
+    const res = await fetch("/estado");
+    const data = await res.json();
+
+    if(data.mantenimiento){
+      document.getElementById("texto").innerText =
+      "🚧 Los Andeleros - En mantenimiento";
+    }else{
+      document.getElementById("texto").innerText =
+      "🎮 Los Andeleros - Ya puedes jugar";
+    }
+
+  }catch{
+    document.getElementById("texto").innerText =
+    "❌ Error";
+  }
+}
+
+setInterval(comprobarEstado, 2000);
+comprobarEstado();
+</script>
+
 </body>
 </html>

@@ -1,12 +1,11 @@
 const express = require("express");
 const app = express();
 
-app.get("/", (req, res) => {
-  res.redirect("/man");
-});
+app.get("/", (req, res) => res.redirect("/man"));
 
 app.get("/man", (req, res) => {
-  res.send(`
+res.send(`
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -17,55 +16,68 @@ body{
   margin:0;
   display:flex;
   font-family:Arial;
-  overflow:hidden;
+  background:black;
 }
 
 /* IZQUIERDA */
 #left{
   width:50%;
-  background:linear-gradient(180deg,#000,#111);
-  color:#ff0;
+  background:#3a3a00;
+  color:#ffd700;
   display:flex;
   flex-direction:column;
   justify-content:center;
   align-items:center;
-  text-shadow:0 0 10px red, 0 0 20px yellow;
+  text-align:center;
 }
 
-#timer{
-  font-size:20px;
-  margin-top:10px;
-}
-
+/* TEXTO */
 #msg{
-  margin-top:20px;
-  color:#f00;
-  text-shadow:0 0 10px red, 0 0 20px yellow;
+  margin-top:15px;
 }
 
-/* DERECHA */
+/* RUEDA */
+#loader{
+  margin-top:20px;
+  width:40px;
+  height:40px;
+  border:5px solid #444;
+  border-top:5px solid yellow;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+  100%{transform:rotate(360deg);}
+}
+
+/* JUEGO */
 #game{
-  width:50%;
-  height:100vh;
+  width:45%;
+  height:80vh;
+  margin:auto;
   position:relative;
   overflow:hidden;
   background:black;
+  border:2px solid #333;
 }
 
-/* FONDO NEÓN PRO */
-#game::before{
-  content:"";
+/* HUD */
+#hud{
   position:absolute;
-  width:200%;
-  height:200%;
-  background:linear-gradient(45deg, red, yellow, red);
-  animation:fondo 6s linear infinite;
-  opacity:0.2;
+  top:10px;
+  right:10px;
+  color:white;
+  font-size:14px;
 }
 
-@keyframes fondo{
-  0%{transform:translate(0,0);}
-  100%{transform:translate(-50%,-50%);}
+/* SUELO */
+#ground{
+  position:absolute;
+  bottom:0;
+  width:100%;
+  height:50px;
+  background:#222;
 }
 
 #player{
@@ -73,32 +85,30 @@ body{
   height:40px;
   background:#0f0;
   position:absolute;
-  bottom:50px;
   left:50px;
-  box-shadow:0 0 20px #0f0;
+  bottom:50px;
 }
 
-.obs{
-  width:30px;
-  height:60px;
-  background:red;
+/* PINCHOS */
+.spike{
+  width:0;
+  height:0;
+  border-left:15px solid transparent;
+  border-right:15px solid transparent;
+  border-bottom:40px solid red;
   position:absolute;
   bottom:50px;
-  box-shadow:0 0 20px red;
 }
 
 #startBtn{
   position:absolute;
-  top:20px;
-  left:20px;
+  top:10px;
+  left:10px;
   padding:10px 20px;
-  font-size:18px;
   background:yellow;
   border:none;
   cursor:pointer;
-  box-shadow:0 0 15px red;
 }
-
 </style>
 </head>
 
@@ -106,76 +116,102 @@ body{
 
 <div id="left">
   <h1>🚧 MANTENIMIENTO</h1>
-  <div id="timer">Cargando...</div>
-  <div id="msg">Lo sentimos 😔</div>
+  <div id="msg">
+    Lo sentimos, pero estamos en mantenimiento<br>
+    mejorando los servidores
+  </div>
+  <div id="loader"></div>
 </div>
 
 <div id="game">
   <button id="startBtn" onclick="startGame()">JUGAR</button>
+  <div id="hud">0 pts | 0%</div>
   <div id="player"></div>
+  <div id="ground"></div>
 </div>
 
 <script>
 
-// ⏳ TIMER
-function actualizarTimer(){
-  const ahora = new Date();
-  const objetivo = new Date();
-  objetivo.setDate(ahora.getDate() + ((6 - ahora.getDay() + 7) % 7));
-  objetivo.setHours(17,30,0,0);
-
-  const diff = objetivo - ahora;
-
-  if(diff <= 0){
-    document.getElementById("timer").innerText = "¡YA!";
-    return;
-  }
-
-  const h = Math.floor(diff / (1000*60*60));
-  const m = Math.floor((diff / (1000*60)) % 60);
-  const s = Math.floor((diff / 1000) % 60);
-
-  document.getElementById("timer").innerText =
-    h+"h "+m+"m "+s+"s";
-}
-
-setInterval(actualizarTimer,1000);
-actualizarTimer();
-
-
-// 🎮 JUEGO ULTRA PRO
 const player = document.getElementById("player");
 const game = document.getElementById("game");
+const hud = document.getElementById("hud");
 
-let saltando = false;
+let y = 50;
+let velocidadY = 0;
+let gravedad = -0.7;
+let fuerzaSalto = 13;
+let rotacion = 0;
+
 let jugando = false;
 let velocidad = 6;
-let intervalos = [];
+let spikes = [];
 
-function saltar(){
-  if(!jugando || saltando) return;
+let puntos = 0;
+let tiempoInicio = 0;
 
-  saltando = true;
-  let altura = 0;
 
-  let subir = setInterval(()=>{
-    altura += 10;
-    player.style.bottom = (50 + altura) + "px";
+// LOOP SUAVE
+function loop(){
+  if(jugando){
 
-    if(altura >= 170){
-      clearInterval(subir);
+    velocidadY += gravedad;
+    y += velocidadY;
 
-      let bajar = setInterval(()=>{
-        altura -= 5; // caída suave
-        player.style.bottom = (50 + altura) + "px";
-
-        if(altura <= 0){
-          clearInterval(bajar);
-          saltando = false;
-        }
-      },15);
+    if(y <= 50){
+      y = 50;
+      velocidadY = 0;
+      rotacion = 0;
+    } else {
+      rotacion += 10;
     }
-  },15);
+
+    player.style.bottom = y + "px";
+    player.style.transform = "rotate(" + rotacion + "deg)";
+
+    // recorrer al revés (sin bugs)
+    for(let i = spikes.length - 1; i >= 0; i--){
+      let spike = spikes[i];
+
+      spike.pos -= velocidad;
+      spike.el.style.left = spike.pos + "px";
+
+      const p = player.getBoundingClientRect();
+      const o = spike.el.getBoundingClientRect();
+
+      // colisión mejorada
+      if(
+        p.right - 10 > o.left &&
+        p.left + 10 < o.right &&
+        p.bottom > o.top
+      ){
+        morir();
+      }
+
+      if(spike.pos < -50){
+        spike.el.remove();
+        spikes.splice(i,1);
+        puntos += 10;
+      }
+    }
+
+    // HUD
+    let tiempo = (Date.now() - tiempoInicio)/1000;
+    let porcentaje = Math.min(100, Math.floor(tiempo * 5));
+
+    hud.innerText = puntos + " pts | " + porcentaje + "%";
+  }
+
+  requestAnimationFrame(loop);
+}
+
+loop();
+
+
+// SALTO
+function saltar(){
+  if(jugando && y === 50){
+    velocidadY = fuerzaSalto;
+  }
 }
 
 // CONTROLES
@@ -186,76 +222,72 @@ document.addEventListener("click", saltar);
 document.addEventListener("touchstart", saltar);
 
 
+// START
 function startGame(){
+  resetGame();
   jugando = true;
   document.getElementById("startBtn").style.display="none";
+  tiempoInicio = Date.now();
   crearObs();
-  dificultad();
 }
 
+
+// CREAR PINCHOS
 function crearObs(){
   if(!jugando) return;
 
-  const obs = document.createElement("div");
-  obs.classList.add("obs");
+  const spike = document.createElement("div");
+  spike.classList.add("spike");
 
   let pos = game.offsetWidth;
-  game.appendChild(obs);
 
-  let mover = setInterval(()=>{
-    pos -= velocidad;
-    obs.style.left = pos + "px";
+  game.appendChild(spike);
+  spikes.push({el: spike, pos: pos});
 
-    const p = player.getBoundingClientRect();
-    const o = obs.getBoundingClientRect();
-
-    if(
-      p.right > o.left &&
-      p.left < o.right &&
-      p.bottom > o.top &&
-      p.top < o.bottom
-    ){
-      morir();
-    }
-
-    if(pos < -50){
-      clearInterval(mover);
-      obs.remove();
-    }
-
-  },16);
-
-  intervalos.push(mover);
-
-  setTimeout(crearObs,800);
+  let tiempo = 800 + Math.random()*800;
+  setTimeout(crearObs, tiempo);
 }
 
-function dificultad(){
-  let diff = setInterval(()=>{
-    velocidad += 0.5;
-  },3000);
 
-  intervalos.push(diff);
-}
-
-// 💀 MUERTE PRO
+// MUERTE
 function morir(){
   jugando = false;
 
-  intervalos.forEach(i => clearInterval(i));
+  spikes.forEach(s => s.el.remove());
+  spikes = [];
 
-  document.body.style.background = "red";
+  document.getElementById("startBtn").style.display="block";
 
-  setTimeout(()=>{
-    location.reload();
-  },700);
+  y = 50;
+  velocidadY = 0;
+  rotacion = 0;
+  velocidad = 6;
+  puntos = 0;
+
+  player.style.bottom = "50px";
+  player.style.transform = "rotate(0deg)";
 }
+
+
+// RESET
+function resetGame(){
+  spikes = [];
+}
+
+
+// DIFICULTAD SUAVE
+setInterval(()=>{
+  if(jugando){
+    velocidad += 0.25;
+  }
+},3000);
 
 </script>
 
 </body>
 </html>
-  `);
+
+`);
 });
 
 const PORT = process.env.PORT || 3000;

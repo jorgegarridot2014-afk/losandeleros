@@ -1,10 +1,9 @@
-
 const express = require("express");
 const app = express();
 
 app.get("/", (req, res) => {
 
-const mantenimiento = req.query.modo === "man";
+const mantenimiento = true; // 👈 siempre en mantenimiento
 
 res.send(`
 <!DOCTYPE html>
@@ -115,24 +114,17 @@ button{
 
 <div id="container">
 
-<!-- IZQUIERDA (MANTENIMIENTO) -->
+<!-- IZQUIERDA -->
 <div id="left">
-  ${
-  mantenimiento
-  ? `
-  <h2>🔧 MANTENIMIENTO</h2>
-  <p>Estamos mejorando el juego...</p>
+  <h2>🔧 SERVIDORES EN MANTENIMIENTO</h2>
+  <p>Estamos mejorando los servidores...</p>
+
   <div class="loader"></div>
+
   <div id="timer"></div>
-  `
-  : `
-  <h2>✅ SERVIDOR ACTIVO</h2>
-  <p>Todo funciona correctamente</p>
-  `
-  }
 </div>
 
-<!-- DERECHA (JUEGO) -->
+<!-- DERECHA -->
 <div id="right">
   <h3>🎮 Minijuego</h3>
 
@@ -152,11 +144,8 @@ button{
 // ⏱️ TEMPORIZADOR
 //////////////////////
 
-${mantenimiento ? `
-
 const timerEl = document.getElementById("timer");
 
-// sábado 17:30
 function getNextSaturday(){
   const now = new Date();
   const day = now.getDay();
@@ -187,8 +176,6 @@ function actualizarTimer(){
 
 setInterval(actualizarTimer,1000);
 actualizarTimer();
-
-` : ``}
 
 //////////////////////
 // 🎮 JUEGO
@@ -294,6 +281,7 @@ document.addEventListener("keydown", (e)=>{
 </html>
 `);
 });
+
 app.listen(3000, ()=>{
-  console.log("Servidor listo");
+  console.log("🔥 servidor funcionando");
 });

@@ -139,7 +139,7 @@ button{
 
 let y = 0;
 let vel = 0;
-let gravedad = -0.6;
+let gravedad = -0.7;
 let spikes = [];
 let jugando = false;
 let tiempo = 0;
@@ -153,7 +153,7 @@ function startGame(){
   document.querySelectorAll(".spike").forEach(e=>e.remove());
   spikes = [];
 
-  setTimeout(spawn, 2200); // 🔺 MÁS SEPARADOS
+  setTimeout(spawn, 1800);
 }
 
 function loop(){
@@ -162,8 +162,15 @@ function loop(){
 
     tiempo += 0.016;
 
-    let progreso = Math.min(100, tiempo * 4);
+    // PROGRESO
+    let progreso = Math.min(100, tiempo * 5);
     percentGame.innerText = Math.floor(progreso) + "%";
+
+    // GANAR
+    if(progreso >= 100){
+      jugando = false;
+      alert("🏆 ¡HAS GANADO!");
+    }
 
     vel += gravedad;
     y += vel;
@@ -176,7 +183,7 @@ function loop(){
     player.style.bottom = y + "px";
 
     spikes.forEach((s,i)=>{
-      s.x -= 8; // ⚡ MÁS RÁPIDO
+      s.x -= 10; // MÁS DIFÍCIL
       s.el.style.left = s.x + "px";
 
       if(s.x < 110 && s.x > 60 && y < 35){
@@ -206,13 +213,13 @@ function spawn(){
 
   spikes.push({el:s, x:500});
 
-  setTimeout(spawn, 2200); // 🔺 MÁS SEPARADOS
+  setTimeout(spawn, 1800); // MENOS TIEMPO = MÁS DIFÍCIL
 }
 
-// SALTO MÁS RÁPIDO
+// SALTO
 function saltar(){
   if(jugando && y === 0){
-    vel = 14; // 🟩 MÁS POTENTE
+    vel = 15;
   }
 }
 
@@ -234,5 +241,5 @@ document.addEventListener("keydown", (e)=>{
 });
 
 app.listen(3000, ()=>{
-  console.log("🔥 servidor funcionando perfecto");
+  console.log("🔥 servidor PRO funcionando");
 });

@@ -1,15 +1,15 @@
 const express = require("express");
 const app = express();
 
-let mantenimiento = false; // 👈 estado global
+let mantenimiento = false;
 
-// COMANDO DESDE CMD
+// COMANDO CMD
 process.stdin.on("data", (data) => {
   const cmd = data.toString().trim();
 
   if(cmd === "man on"){
     mantenimiento = true;
-    console.log("🔧 MODO MANTENIMIENTO ACTIVADO");
+    console.log("🔧 MANTENIMIENTO ACTIVADO");
   }
 
   if(cmd === "man off"){
@@ -72,6 +72,12 @@ header{
   100%{transform:rotate(360deg);}
 }
 
+#timer{
+  font-size:22px;
+  color:cyan;
+  margin-top:15px;
+}
+
 /* juego */
 #game{
   position:relative;
@@ -123,10 +129,14 @@ button{
 <div id="container">
 
 <div id="left">
-  <h2>🔧 ${mantenimiento ? "Mantenimiento ACTIVO" : "Servidor activo"}</h2>
-  <p>${mantenimiento ? "Estamos trabajando..." : "Todo funciona correctamente"}</p>
+  <h2>🔧 ${mantenimiento ? "Mantenimiento en curso" : "Servidor activo"}</h2>
+  <p>${mantenimiento ? "Estamos trabajando en mejoras..." : "Todo funciona correctamente"}</p>
 
   <div class="loader"></div>
+
+  ${mantenimiento ? `<div id="timer"></div>` : ``}
+
+  <img src="https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif" width="250">
 </div>
 
 <div id="right">
@@ -144,6 +154,45 @@ button{
 
 <script>
 
+// ⏱️ SOLO SI HAY MANTENIMIENTO
+${mantenimiento ? `
+
+const timerEl = document.getElementById("timer");
+
+function getNextSaturday(){
+  const now = new Date();
+  const day = now.getDay();
+  const diff = (6 - day + 7) % 7 || 7;
+  const saturday = new Date(now);
+  saturday.setDate(now.getDate() + diff);
+  saturday.setHours(17,30,0,0);
+  return saturday;
+}
+
+const objetivo = getNextSaturday();
+
+function actualizarTimer(){
+  const ahora = new Date();
+  let diff = objetivo - ahora;
+
+  if(diff <= 0){
+    timerEl.innerText = "✅ Mantenimiento terminado";
+    return;
+  }
+
+  let h = Math.floor(diff / 3600000);
+  let m = Math.floor((diff % 3600000) / 60000);
+  let s = Math.floor((diff % 60000) / 1000);
+
+  timerEl.innerText = "⏱️ " + h+"h "+m+"m "+s+"s";
+}
+
+setInterval(actualizarTimer,1000);
+actualizarTimer();
+
+` : ``}
+
+// 🎮 JUEGO
 let y=0;
 let vel=0;
 let gravedad=-0.7;
@@ -207,7 +256,6 @@ function loop(){
 loop();
 
 function spawn(){
-
   if(!jugando) return;
 
   let s=document.createElement("div");
@@ -247,6 +295,6 @@ document.addEventListener("keydown", (e)=>{
 });
 
 app.listen(3000, ()=>{
-  console.log("🔥 servidor iniciado");
-  console.log("👉 escribe 'man on' o 'man off'");
+  console.log("🔥 servidor listo");
+  console.log("👉 usa: man on / man off");
 });

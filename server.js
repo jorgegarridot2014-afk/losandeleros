@@ -3,6 +3,9 @@ const app = express();
 
 app.get("/", (req, res) => {
 
+const modo = req.query.modo;
+const conJuego = modo !== "man";
+
 res.send(`
 <!DOCTYPE html>
 <html>
@@ -40,28 +43,14 @@ header{
   #container{flex-direction:column;}
 }
 
-#gif{
-  width:100%;
-  max-width:320px;
-  border-radius:10px;
-  margin-top:20px;
+/* temporizador */
+#timer{
+  font-size:20px;
+  color:cyan;
+  margin-top:10px;
 }
 
-.loader{
-  border:6px solid #333;
-  border-top:6px solid gold;
-  border-radius:50%;
-  width:60px;
-  height:60px;
-  margin:auto;
-  animation:spin 1s linear infinite;
-}
-
-@keyframes spin{
-  0%{transform:rotate(0);}
-  100%{transform:rotate(360deg);}
-}
-
+/* juego */
 #game{
   position:relative;
   width:500px;
@@ -95,7 +84,6 @@ header{
   height:40px;
   background:red;
   position:absolute;
-  bottom:0;
   clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
 }
 
@@ -104,12 +92,30 @@ button{
   padding:10px 20px;
   font-size:16px;
 }
+
+.loader{
+  border:6px solid #333;
+  border-top:6px solid gold;
+  border-radius:50%;
+  width:60px;
+  height:60px;
+  margin:auto;
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+  0%{transform:rotate(0);}
+  100%{transform:rotate(360deg);}
+}
 </style>
 </head>
 
 <body>
 
-<header>🏆 LOS ANDELEROS 🏆</header>
+<header>
+🏆 LOS ANDELEROS 🏆
+<div id="timer">⏱️ 0.0s</div>
+</header>
 
 <div id="container">
 
@@ -119,9 +125,10 @@ button{
 
   <div class="loader"></div>
 
-  <img id="gif" src="https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif">
+  <img src="https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif" width="250">
 </div>
 
+${conJuego ? `
 <div id="right">
   <h3>🎮 Minijuego</h3>
 
@@ -132,44 +139,50 @@ button{
 
   <button onclick="startGame()">JUGAR</button>
 </div>
+` : ''}
 
 </div>
 
 <script>
 
-let y = 0;
-let vel = 0;
-let gravedad = -0.7;
-let spikes = [];
-let jugando = false;
-let tiempo = 0;
+let y=0;
+let vel=0;
+let gravedad=-0.7;
+let spikes=[];
+let jugando=false;
+let tiempo=0;
 
+// INICIAR
 function startGame(){
-  jugando = true;
-  y = 0;
-  vel = 0;
-  tiempo = 0;
+  jugando=true;
+  y=0;
+  vel=0;
+  tiempo=0;
 
   document.querySelectorAll(".spike").forEach(e=>e.remove());
-  spikes = [];
+  spikes=[];
 
-  setTimeout(spawn, 1800);
+  setTimeout(spawn,1500);
 }
 
+// LOOP
 function loop(){
 
   if(jugando){
 
     tiempo += 0.016;
 
-    // PROGRESO
-    let progreso = Math.min(100, tiempo * 5);
+    // temporizador
+    timer.innerText = "⏱️ " + tiempo.toFixed(1) + "s";
+
+    // porcentaje
+    let progreso = Math.min(100, tiempo*5);
     percentGame.innerText = Math.floor(progreso) + "%";
 
-    // GANAR
+    // GANAR → reinicia solo
     if(progreso >= 100){
-      jugando = false;
-      alert("🏆 ¡HAS GANADO!");
+      alert("🏆 GANASTE");
+      startGame();
     }
 
     vel += gravedad;
@@ -180,14 +193,15 @@ function loop(){
       vel = 0;
     }
 
-    player.style.bottom = y + "px";
+    player.style.bottom = y+"px";
 
     spikes.forEach((s,i)=>{
-      s.x -= 10; // MÁS DIFÍCIL
-      s.el.style.left = s.x + "px";
+      s.x -= 10;
+      s.el.style.left = s.x+"px";
 
-      if(s.x < 110 && s.x > 60 && y < 35){
-        jugando = false;
+      // colisión
+      if(s.x < 110 && s.x > 60 && y < s.altura + 20){
+        jugando=false;
         alert("💀 Has muerto - dale a JUGAR");
       }
 
@@ -202,23 +216,28 @@ function loop(){
 }
 loop();
 
+// SPAWN CON ALTURA RANDOM
 function spawn(){
+
   if(!jugando) return;
 
-  let s = document.createElement("div");
-  s.className = "spike";
-  s.style.left = "500px";
+  let s=document.createElement("div");
+  s.className="spike";
+
+  // altura aleatoria
+  let altura = Math.random() * 80;
+  s.style.bottom = altura + "px";
 
   game.appendChild(s);
 
-  spikes.push({el:s, x:500});
+  spikes.push({el:s,x:500,altura:altura});
 
-  setTimeout(spawn, 1800); // MENOS TIEMPO = MÁS DIFÍCIL
+  setTimeout(spawn,1200);
 }
 
 // SALTO
 function saltar(){
-  if(jugando && y === 0){
+  if(jugando && y===0){
     vel = 15;
   }
 }
@@ -227,7 +246,7 @@ document.addEventListener("click", saltar);
 document.addEventListener("touchstart", saltar);
 
 document.addEventListener("keydown", (e)=>{
-  if(e.code === "Space"){
+  if(e.code==="Space"){
     e.preventDefault();
     saltar();
   }
@@ -241,5 +260,5 @@ document.addEventListener("keydown", (e)=>{
 });
 
 app.listen(3000, ()=>{
-  console.log("🔥 servidor PRO funcionando");
+  console.log("🔥 servidor PRO++ funcionando");
 });

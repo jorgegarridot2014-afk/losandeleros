@@ -31,12 +31,11 @@ body{
   text-align:center;
 }
 
-/* TEXTO */
 #msg{
   margin-top:15px;
 }
 
-/* RUEDA */
+/* loader */
 #loader{
   margin-top:20px;
   width:40px;
@@ -62,16 +61,13 @@ body{
   border:2px solid #333;
 }
 
-/* HUD */
 #hud{
   position:absolute;
   top:10px;
   right:10px;
   color:white;
-  font-size:14px;
 }
 
-/* SUELO */
 #ground{
   position:absolute;
   bottom:0;
@@ -89,7 +85,6 @@ body{
   bottom:50px;
 }
 
-/* PINCHOS */
 .spike{
   width:0;
   height:0;
@@ -116,10 +111,14 @@ body{
 
 <div id="left">
   <h1>🚧 MANTENIMIENTO</h1>
+
   <div id="msg">
     Lo sentimos, pero estamos en mantenimiento<br>
     mejorando los servidores
+    <br><br>
+    ⏳ <span id="countdown">Cargando...</span>
   </div>
+
   <div id="loader"></div>
 </div>
 
@@ -132,6 +131,33 @@ body{
 
 <script>
 
+// ===== TEMPORIZADOR =====
+function actualizarContador(){
+  const ahora = new Date();
+
+  const objetivo = new Date();
+  objetivo.setDate(ahora.getDate() + (6 - ahora.getDay()));
+  objetivo.setHours(17,30,0,0);
+
+  if(objetivo < ahora){
+    objetivo.setDate(objetivo.getDate() + 7);
+  }
+
+  const diff = objetivo - ahora;
+
+  const horas = Math.floor(diff / (1000*60*60));
+  const minutos = Math.floor((diff % (1000*60*60)) / (1000*60));
+  const segundos = Math.floor((diff % (1000*60)) / 1000);
+
+  document.getElementById("countdown").innerText =
+    horas + "h " + minutos + "m " + segundos + "s";
+}
+
+setInterval(actualizarContador, 1000);
+actualizarContador();
+
+
+// ===== JUEGO =====
 const player = document.getElementById("player");
 const game = document.getElementById("game");
 const hud = document.getElementById("hud");
@@ -150,7 +176,7 @@ let puntos = 0;
 let tiempoInicio = 0;
 
 
-// LOOP SUAVE
+// LOOP
 function loop(){
   if(jugando){
 
@@ -168,7 +194,6 @@ function loop(){
     player.style.bottom = y + "px";
     player.style.transform = "rotate(" + rotacion + "deg)";
 
-    // recorrer al revés (sin bugs)
     for(let i = spikes.length - 1; i >= 0; i--){
       let spike = spikes[i];
 
@@ -178,7 +203,6 @@ function loop(){
       const p = player.getBoundingClientRect();
       const o = spike.el.getBoundingClientRect();
 
-      // colisión mejorada
       if(
         p.right - 10 > o.left &&
         p.left + 10 < o.right &&
@@ -194,7 +218,6 @@ function loop(){
       }
     }
 
-    // HUD
     let tiempo = (Date.now() - tiempoInicio)/1000;
     let porcentaje = Math.min(100, Math.floor(tiempo * 5));
 
@@ -214,7 +237,6 @@ function saltar(){
   }
 }
 
-// CONTROLES
 document.addEventListener("keydown", e=>{
   if(e.code === "Space") saltar();
 });
@@ -232,7 +254,7 @@ function startGame(){
 }
 
 
-// CREAR PINCHOS
+// OBSTÁCULOS
 function crearObs(){
   if(!jugando) return;
 
@@ -275,7 +297,7 @@ function resetGame(){
 }
 
 
-// DIFICULTAD SUAVE
+// DIFICULTAD
 setInterval(()=>{
   if(jugando){
     velocidad += 0.25;

@@ -3,12 +3,10 @@ const app = express();
 
 app.get("/", (req, res) => {
 
-  const modo = req.query.modo;
+const modo = req.query.modo;
+const conJuego = modo !== "man";
 
-  // true = con juego
-  const conJuego = modo !== "man";
-
-  res.send(`
+res.send(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -45,9 +43,56 @@ header{
   #container{flex-direction:column;}
 }
 
-#timer{font-size:30px;}
-#percent{font-size:40px;color:lime;}
+/* juego */
+#game{
+  position:relative;
+  width:500px;
+  height:320px;
+  background:black;
+  margin:auto;
+  overflow:hidden;
+  border:2px solid gold;
+}
 
+/* porcentaje dentro del juego */
+#percentGame{
+  position:absolute;
+  top:10px;
+  right:15px;
+  font-size:26px;
+  color:lime;
+  font-weight:bold;
+}
+
+/* jugador */
+#player{
+  width:40px;
+  height:40px;
+  background:lime;
+  position:absolute;
+  bottom:0;
+  left:80px;
+}
+
+/* pinchos */
+.spike{
+  width:0;
+  height:0;
+  border-left:15px solid transparent;
+  border-right:15px solid transparent;
+  border-bottom:40px solid red;
+  position:absolute;
+  bottom:0;
+}
+
+/* botón */
+button{
+  margin-top:10px;
+  padding:10px 20px;
+  font-size:16px;
+}
+
+/* loader */
 .loader{
   border:6px solid #333;
   border-top:6px solid gold;
@@ -63,40 +108,13 @@ header{
   100%{transform:rotate(360deg);}
 }
 
-#game{
-  position:relative;
-  width:450px;
-  height:300px;
-  background:black;
-  margin:auto;
-  overflow:hidden;
-  border:2px solid gold;
-}
-
-#player{
-  width:40px;
-  height:40px;
-  background:lime;
-  position:absolute;
-  bottom:0;
-  left:80px;
-}
-
-.spike{
-  width:0;
-  height:0;
-  border-left:15px solid transparent;
-  border-right:15px solid transparent;
-  border-bottom:40px solid red;
-  position:absolute;
-  bottom:0;
-}
-
+/* eventos */
 #eventos{
   margin-top:20px;
   background:#222;
-  padding:10px;
+  padding:15px;
   border-radius:10px;
+  text-align:left;
 }
 </style>
 </head>
@@ -111,26 +129,29 @@ header{
   <h2>🔧 Servidores en mantenimiento</h2>
   <p>Lo sentimos, estamos mejorando el sistema</p>
 
-  ${conJuego ? '<div id="timer"></div>' : ''}
-
-  <div id="percent">0%</div>
-
   <div class="loader"></div>
 
   <div id="eventos">
-    <h3>🏆 Eventos</h3>
-    <p>Brawl Stars</p>
-    <p>Clash Royale</p>
-    <p>Clash of Clans</p>
+    <h3>🏆 EVENTOS</h3>
+    <p>🟣 Brawl Stars - partidas ganadas</p>
+    <p>⚽ 1v1 balón brawl</p>
+    <p>🟡 Clash of Clans - super luchador</p>
+    <p>⚔️ 1v1 desafíos</p>
+    <p>🔵 Clash Royale - 1v1</p>
+    <p>🎁 Premios: Andelcoins, chuches, póster</p>
   </div>
 </div>
 
 ${conJuego ? `
 <div id="right">
   <h3>🎮 Minijuego</h3>
+
   <div id="game">
+    <div id="percentGame">0%</div>
     <div id="player"></div>
   </div>
+
+  <button onclick="startGame()">JUGAR</button>
 </div>
 ` : ''}
 
@@ -140,39 +161,13 @@ ${conJuego ? `
 
 // ===== PORCENTAJE =====
 let progreso = 0;
-setInterval(()=>{
+function subirPorcentaje(){
   if(progreso < 100){
-    progreso += Math.random()*4;
+    progreso += Math.random()*3;
     if(progreso > 100) progreso = 100;
-    percent.innerText = Math.floor(progreso) + "%";
+    percentGame.innerText = Math.floor(progreso) + "%";
   }
-},500);
-
-// ===== TEMPORIZADOR =====
-${conJuego ? `
-let objetivo = new Date();
-objetivo.setDate(objetivo.getDate() + ((6 - objetivo.getDay() + 7) % 7));
-objetivo.setHours(17,30,0);
-
-function actualizarTimer(){
-  let ahora = new Date();
-  let diff = objetivo - ahora;
-
-  if(diff <= 0){
-    timer.innerText = "YA DISPONIBLE 🔥";
-    return;
-  }
-
-  let h = Math.floor(diff / 1000 / 60 / 60);
-  let m = Math.floor(diff / 1000 / 60) % 60;
-  let s = Math.floor(diff / 1000) % 60;
-
-  timer.innerText = h+"h "+m+"m "+s+"s";
 }
-
-setInterval(actualizarTimer,1000);
-actualizarTimer();
-` : ''}
 
 // ===== JUEGO =====
 ${conJuego ? `
@@ -181,38 +176,53 @@ let vel=0;
 let gravedad=-0.4;
 let spikes=[];
 let tiempo=0;
+let jugando=false;
 
-// NO pinchos al inicio
-setTimeout(spawn,2000);
+function startGame(){
+  jugando = true;
+  y=0;
+  vel=0;
+  tiempo=0;
+  progreso=0;
+
+  document.querySelectorAll(".spike").forEach(e=>e.remove());
+  spikes=[];
+
+  setTimeout(spawn,2000);
+}
 
 function loop(){
 
-  tiempo += 0.016;
+  if(jugando){
 
-  vel += gravedad;
-  y += vel;
+    tiempo += 0.016;
+    subirPorcentaje();
 
-  if(y < 0){
-    y = 0;
-    vel = 0;
+    vel += gravedad;
+    y += vel;
+
+    if(y < 0){
+      y = 0;
+      vel = 0;
+    }
+
+    player.style.bottom = y+"px";
+
+    spikes.forEach((s,i)=>{
+      s.x -= velocidad();
+      s.el.style.left = s.x+"px";
+
+      if(s.x < 80){
+        jugando = false;
+        alert("💀 Has perdido - dale a JUGAR");
+      }
+
+      if(s.x < -20){
+        s.el.remove();
+        spikes.splice(i,1);
+      }
+    });
   }
-
-  player.style.bottom = y+"px";
-
-  spikes.forEach((s,i)=>{
-    s.x -= velocidad();
-    s.el.style.left = s.x+"px";
-
-    if(s.x < 80){
-      alert("💀 Game Over");
-      location.reload();
-    }
-
-    if(s.x < -20){
-      s.el.remove();
-      spikes.splice(i,1);
-    }
-  });
 
   requestAnimationFrame(loop);
 }
@@ -227,11 +237,13 @@ function velocidad(){
 
 function spawn(){
 
+  if(!jugando) return;
+
   let s=document.createElement("div");
   s.className="spike";
   game.appendChild(s);
 
-  spikes.push({el:s,x:450});
+  spikes.push({el:s,x:500});
 
   let delay = 2000;
   if(tiempo>5) delay=1500;
@@ -241,15 +253,15 @@ function spawn(){
   setTimeout(spawn, delay);
 }
 
-// SALTO MANUAL
+// salto manual
 document.addEventListener("click", ()=>{
-  if(y === 0){
+  if(jugando && y === 0){
     vel = 8;
   }
 });
 
 document.addEventListener("touchstart", ()=>{
-  if(y === 0){
+  if(jugando && y === 0){
     vel = 8;
   }
 });
@@ -265,5 +277,5 @@ document.addEventListener("touchstart", ()=>{
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, ()=>{
-  console.log("🔥 servidor con comandos listo");
+  console.log("🔥 servidor final PRO");
 });

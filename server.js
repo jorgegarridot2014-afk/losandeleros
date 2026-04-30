@@ -40,7 +40,6 @@ header{
   #container{flex-direction:column;}
 }
 
-/* GIF */
 #gif{
   width:100%;
   max-width:320px;
@@ -48,7 +47,6 @@ header{
   margin-top:20px;
 }
 
-/* loader */
 .loader{
   border:6px solid #333;
   border-top:6px solid gold;
@@ -64,7 +62,6 @@ header{
   100%{transform:rotate(360deg);}
 }
 
-/* juego */
 #game{
   position:relative;
   width:500px;
@@ -75,7 +72,6 @@ header{
   border:2px solid gold;
 }
 
-/* porcentaje */
 #percentGame{
   position:absolute;
   top:10px;
@@ -85,7 +81,6 @@ header{
   font-weight:bold;
 }
 
-/* jugador */
 #player{
   width:40px;
   height:40px;
@@ -95,7 +90,6 @@ header{
   left:80px;
 }
 
-/* pinchos */
 .spike{
   width:30px;
   height:40px;
@@ -105,7 +99,6 @@ header{
   clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
 }
 
-/* botón */
 button{
   margin-top:10px;
   padding:10px 20px;
@@ -160,7 +153,7 @@ function startGame(){
   document.querySelectorAll(".spike").forEach(e=>e.remove());
   spikes = [];
 
-  setTimeout(spawn, 1500);
+  setTimeout(spawn, 2200); // 🔺 MÁS SEPARADOS
 }
 
 function loop(){
@@ -183,7 +176,7 @@ function loop(){
     player.style.bottom = y + "px";
 
     spikes.forEach((s,i)=>{
-      s.x -= 6;
+      s.x -= 8; // ⚡ MÁS RÁPIDO
       s.el.style.left = s.x + "px";
 
       if(s.x < 110 && s.x > 60 && y < 35){
@@ -213,13 +206,13 @@ function spawn(){
 
   spikes.push({el:s, x:500});
 
-  setTimeout(spawn, 1400);
+  setTimeout(spawn, 2200); // 🔺 MÁS SEPARADOS
 }
 
-// SALTO
+// SALTO MÁS RÁPIDO
 function saltar(){
   if(jugando && y === 0){
-    vel = 11;
+    vel = 14; // 🟩 MÁS POTENTE
   }
 }
 

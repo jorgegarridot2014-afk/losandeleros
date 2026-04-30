@@ -43,11 +43,25 @@ header{
   #container{flex-direction:column;}
 }
 
-/* temporizador */
 #timer{
-  font-size:20px;
+  font-size:22px;
   color:cyan;
   margin-top:10px;
+}
+
+.loader{
+  border:6px solid #333;
+  border-top:6px solid gold;
+  border-radius:50%;
+  width:60px;
+  height:60px;
+  margin:auto;
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+  0%{transform:rotate(0);}
+  100%{transform:rotate(360deg);}
 }
 
 /* juego */
@@ -84,6 +98,7 @@ header{
   height:40px;
   background:red;
   position:absolute;
+  bottom:0; /* 👈 SIEMPRE EN EL SUELO */
   clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
 }
 
@@ -92,38 +107,22 @@ button{
   padding:10px 20px;
   font-size:16px;
 }
-
-.loader{
-  border:6px solid #333;
-  border-top:6px solid gold;
-  border-radius:50%;
-  width:60px;
-  height:60px;
-  margin:auto;
-  animation:spin 1s linear infinite;
-}
-
-@keyframes spin{
-  0%{transform:rotate(0);}
-  100%{transform:rotate(360deg);}
-}
 </style>
 </head>
 
 <body>
 
-<header>
-🏆 LOS ANDELEROS 🏆
-<div id="timer">⏱️ 0.0s</div>
-</header>
+<header>🏆 LOS ANDELEROS 🏆</header>
 
 <div id="container">
 
 <div id="left">
   <h2>🔧 Mantenimiento</h2>
-  <p>Estamos mejorando los servidores</p>
+  <p>Estamos mejorando servidores</p>
 
   <div class="loader"></div>
+
+  <div id="timer"></div>
 
   <img src="https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif" width="250">
 </div>
@@ -145,6 +144,30 @@ ${conJuego ? `
 
 <script>
 
+// ⏱️ CUENTA ATRÁS HASTA SÁBADO 17:30
+const objetivo = new Date();
+objetivo.setDate(objetivo.getDate() + (6 - objetivo.getDay())); // sábado
+objetivo.setHours(17,30,0,0);
+
+function actualizarTimer(){
+  const ahora = new Date();
+  let diff = objetivo - ahora;
+
+  if(diff < 0){
+    timer.innerText = "✅ Mantenimiento terminado";
+    return;
+  }
+
+  let h = Math.floor(diff / 3600000);
+  let m = Math.floor((diff % 3600000) / 60000);
+  let s = Math.floor((diff % 60000) / 1000);
+
+  timer.innerText = "⏱️ " + h+"h "+m+"m "+s+"s";
+}
+
+setInterval(actualizarTimer,1000);
+actualizarTimer();
+
 let y=0;
 let vel=0;
 let gravedad=-0.7;
@@ -152,7 +175,6 @@ let spikes=[];
 let jugando=false;
 let tiempo=0;
 
-// INICIAR
 function startGame(){
   jugando=true;
   y=0;
@@ -162,26 +184,19 @@ function startGame(){
   document.querySelectorAll(".spike").forEach(e=>e.remove());
   spikes=[];
 
-  setTimeout(spawn,1500);
+  setTimeout(spawn,1200);
 }
 
-// LOOP
 function loop(){
 
   if(jugando){
 
     tiempo += 0.016;
 
-    // temporizador
-    timer.innerText = "⏱️ " + tiempo.toFixed(1) + "s";
-
-    // porcentaje
     let progreso = Math.min(100, tiempo*5);
-    percentGame.innerText = Math.floor(progreso) + "%";
+    percentGame.innerText = Math.floor(progreso)+"%";
 
-    // GANAR → reinicia solo
     if(progreso >= 100){
-      alert("🏆 GANASTE");
       startGame();
     }
 
@@ -199,8 +214,7 @@ function loop(){
       s.x -= 10;
       s.el.style.left = s.x+"px";
 
-      // colisión
-      if(s.x < 110 && s.x > 60 && y < s.altura + 20){
+      if(s.x < 110 && s.x > 60 && y < 35){
         jugando=false;
         alert("💀 Has muerto - dale a JUGAR");
       }
@@ -216,29 +230,28 @@ function loop(){
 }
 loop();
 
-// SPAWN CON ALTURA RANDOM
+// 🔺 PINCHOS CON DISTANCIA VARIABLE (NO JUNTOS)
 function spawn(){
 
   if(!jugando) return;
 
   let s=document.createElement("div");
   s.className="spike";
-
-  // altura aleatoria
-  let altura = Math.random() * 80;
-  s.style.bottom = altura + "px";
+  s.style.left="500px";
 
   game.appendChild(s);
 
-  spikes.push({el:s,x:500,altura:altura});
+  spikes.push({el:s,x:500});
 
-  setTimeout(spawn,1200);
+  // distancia random
+  let delay = 1000 + Math.random()*1200;
+
+  setTimeout(spawn, delay);
 }
 
-// SALTO
 function saltar(){
   if(jugando && y===0){
-    vel = 15;
+    vel=15;
   }
 }
 
@@ -260,5 +273,5 @@ document.addEventListener("keydown", (e)=>{
 });
 
 app.listen(3000, ()=>{
-  console.log("🔥 servidor PRO++ funcionando");
+  console.log("🔥 servidor PERFECTO");
 });

@@ -1,24 +1,10 @@
+
 const express = require("express");
 const app = express();
 
-let mantenimiento = false;
-
-// COMANDO CMD
-process.stdin.on("data", (data) => {
-  const cmd = data.toString().trim();
-
-  if(cmd === "man on"){
-    mantenimiento = true;
-    console.log("🔧 MANTENIMIENTO ACTIVADO");
-  }
-
-  if(cmd === "man off"){
-    mantenimiento = false;
-    console.log("✅ MANTENIMIENTO DESACTIVADO");
-  }
-});
-
 app.get("/", (req, res) => {
+
+const mantenimiento = req.query.modo === "man";
 
 res.send(`
 <!DOCTYPE html>
@@ -57,13 +43,14 @@ header{
   #container{flex-direction:column;}
 }
 
+/* mantenimiento */
 .loader{
   border:6px solid #333;
   border-top:6px solid gold;
   border-radius:50%;
-  width:60px;
-  height:60px;
-  margin:auto;
+  width:70px;
+  height:70px;
+  margin:20px auto;
   animation:spin 1s linear infinite;
 }
 
@@ -75,7 +62,7 @@ header{
 #timer{
   font-size:22px;
   color:cyan;
-  margin-top:15px;
+  margin-top:10px;
 }
 
 /* juego */
@@ -128,17 +115,24 @@ button{
 
 <div id="container">
 
+<!-- IZQUIERDA (MANTENIMIENTO) -->
 <div id="left">
-  <h2>🔧 ${mantenimiento ? "Mantenimiento en curso" : "Servidor activo"}</h2>
-  <p>${mantenimiento ? "Estamos trabajando en mejoras..." : "Todo funciona correctamente"}</p>
-
+  ${
+  mantenimiento
+  ? `
+  <h2>🔧 MANTENIMIENTO</h2>
+  <p>Estamos mejorando el juego...</p>
   <div class="loader"></div>
-
-  ${mantenimiento ? `<div id="timer"></div>` : ``}
-
-  <img src="https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif" width="250">
+  <div id="timer"></div>
+  `
+  : `
+  <h2>✅ SERVIDOR ACTIVO</h2>
+  <p>Todo funciona correctamente</p>
+  `
+  }
 </div>
 
+<!-- DERECHA (JUEGO) -->
 <div id="right">
   <h3>🎮 Minijuego</h3>
 
@@ -154,11 +148,15 @@ button{
 
 <script>
 
-// ⏱️ SOLO SI HAY MANTENIMIENTO
+//////////////////////
+// ⏱️ TEMPORIZADOR
+//////////////////////
+
 ${mantenimiento ? `
 
 const timerEl = document.getElementById("timer");
 
+// sábado 17:30
 function getNextSaturday(){
   const now = new Date();
   const day = now.getDay();
@@ -192,7 +190,10 @@ actualizarTimer();
 
 ` : ``}
 
+//////////////////////
 // 🎮 JUEGO
+//////////////////////
+
 let y=0;
 let vel=0;
 let gravedad=-0.7;
@@ -222,6 +223,7 @@ function loop(){
     percentGame.innerText = Math.floor(progreso)+"%";
 
     if(progreso >= 100){
+      alert("🏆 GANASTE");
       startGame();
     }
 
@@ -241,7 +243,7 @@ function loop(){
 
       if(s.x < 110 && s.x > 60 && y < 35){
         jugando=false;
-        alert("💀 Has muerto - dale a JUGAR");
+        alert("💀 Has muerto");
       }
 
       if(s.x < -40){
@@ -267,7 +269,6 @@ function spawn(){
   spikes.push({el:s,x:500});
 
   let delay = 1000 + Math.random()*1500;
-
   setTimeout(spawn, delay);
 }
 
@@ -293,8 +294,6 @@ document.addEventListener("keydown", (e)=>{
 </html>
 `);
 });
-
 app.listen(3000, ()=>{
-  console.log("🔥 servidor listo");
-  console.log("👉 usa: man on / man off");
+  console.log("Servidor listo");
 });

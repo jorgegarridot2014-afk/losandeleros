@@ -25,7 +25,6 @@ header{
   color:gold;
 }
 
-/* layout */
 #container{
   display:flex;
   flex-wrap:wrap;
@@ -39,6 +38,14 @@ header{
 
 @media(max-width:700px){
   #container{flex-direction:column;}
+}
+
+/* GIF */
+#gif{
+  width:100%;
+  max-width:320px;
+  border-radius:10px;
+  margin-top:20px;
 }
 
 /* loader */
@@ -88,7 +95,7 @@ header{
   left:80px;
 }
 
-/* pinchos correctos */
+/* pinchos */
 .spike{
   width:30px;
   height:40px;
@@ -104,15 +111,6 @@ button{
   padding:10px 20px;
   font-size:16px;
 }
-
-/* eventos */
-#eventos{
-  margin-top:20px;
-  background:#222;
-  padding:15px;
-  border-radius:10px;
-  text-align:left;
-}
 </style>
 </head>
 
@@ -124,17 +122,11 @@ button{
 
 <div id="left">
   <h2>🔧 Mantenimiento</h2>
-  <p>Lo sentimos, estamos mejorando los servidores</p>
+  <p>Estamos mejorando los servidores</p>
 
   <div class="loader"></div>
 
-  <div id="eventos">
-    <h3>EVENTOS</h3>
-    <p>🟣 Brawl Stars</p>
-    <p>⚽ 1v1 Balón Brawl</p>
-    <p>🟡 Clash of Clans</p>
-    <p>🔵 Clash Royale</p>
-  </div>
+  <img id="gif" src="https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif">
 </div>
 
 <div id="right">
@@ -152,7 +144,6 @@ button{
 
 <script>
 
-// ===== VARIABLES =====
 let y = 0;
 let vel = 0;
 let gravedad = -0.6;
@@ -160,7 +151,6 @@ let spikes = [];
 let jugando = false;
 let tiempo = 0;
 
-// ===== INICIAR =====
 function startGame(){
   jugando = true;
   y = 0;
@@ -173,18 +163,15 @@ function startGame(){
   setTimeout(spawn, 1500);
 }
 
-// ===== LOOP =====
 function loop(){
 
   if(jugando){
 
     tiempo += 0.016;
 
-    // porcentaje real
     let progreso = Math.min(100, tiempo * 4);
     percentGame.innerText = Math.floor(progreso) + "%";
 
-    // física
     vel += gravedad;
     y += vel;
 
@@ -195,12 +182,10 @@ function loop(){
 
     player.style.bottom = y + "px";
 
-    // pinchos
     spikes.forEach((s,i)=>{
       s.x -= 6;
       s.el.style.left = s.x + "px";
 
-      // colisión correcta
       if(s.x < 110 && s.x > 60 && y < 35){
         jugando = false;
         alert("💀 Has muerto - dale a JUGAR");
@@ -217,7 +202,6 @@ function loop(){
 }
 loop();
 
-// ===== SPAWN =====
 function spawn(){
   if(!jugando) return;
 
@@ -232,23 +216,20 @@ function spawn(){
   setTimeout(spawn, 1400);
 }
 
-// ===== SALTO =====
-document.addEventListener("click", ()=>{
+// SALTO
+function saltar(){
   if(jugando && y === 0){
     vel = 11;
   }
-});
+}
 
-document.addEventListener("touchstart", ()=>{
-  if(jugando && y === 0){
-    vel = 11;
-  }
-});
+document.addEventListener("click", saltar);
+document.addEventListener("touchstart", saltar);
 
-// bloquear espacio
 document.addEventListener("keydown", (e)=>{
   if(e.code === "Space"){
     e.preventDefault();
+    saltar();
   }
 });
 

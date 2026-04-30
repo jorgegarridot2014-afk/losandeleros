@@ -1,10 +1,24 @@
 const express = require("express");
 const app = express();
 
-app.get("/", (req, res) => {
+let mantenimiento = false; // 👈 estado global
 
-const modo = req.query.modo;
-const conJuego = modo !== "man";
+// COMANDO DESDE CMD
+process.stdin.on("data", (data) => {
+  const cmd = data.toString().trim();
+
+  if(cmd === "man on"){
+    mantenimiento = true;
+    console.log("🔧 MODO MANTENIMIENTO ACTIVADO");
+  }
+
+  if(cmd === "man off"){
+    mantenimiento = false;
+    console.log("✅ MANTENIMIENTO DESACTIVADO");
+  }
+});
+
+app.get("/", (req, res) => {
 
 res.send(`
 <!DOCTYPE html>
@@ -43,12 +57,6 @@ header{
   #container{flex-direction:column;}
 }
 
-#timer{
-  font-size:22px;
-  color:cyan;
-  margin-top:10px;
-}
-
 .loader{
   border:6px solid #333;
   border-top:6px solid gold;
@@ -81,7 +89,6 @@ header{
   right:15px;
   font-size:26px;
   color:lime;
-  font-weight:bold;
 }
 
 #player{
@@ -98,14 +105,13 @@ header{
   height:40px;
   background:red;
   position:absolute;
-  bottom:0; /* 👈 SIEMPRE EN EL SUELO */
+  bottom:0;
   clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
 }
 
 button{
   margin-top:10px;
   padding:10px 20px;
-  font-size:16px;
 }
 </style>
 </head>
@@ -117,17 +123,12 @@ button{
 <div id="container">
 
 <div id="left">
-  <h2>🔧 Mantenimiento</h2>
-  <p>Estamos mejorando servidores</p>
+  <h2>🔧 ${mantenimiento ? "Mantenimiento ACTIVO" : "Servidor activo"}</h2>
+  <p>${mantenimiento ? "Estamos trabajando..." : "Todo funciona correctamente"}</p>
 
   <div class="loader"></div>
-
-  <div id="timer"></div>
-
-  <img src="https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif" width="250">
 </div>
 
-${conJuego ? `
 <div id="right">
   <h3>🎮 Minijuego</h3>
 
@@ -138,35 +139,10 @@ ${conJuego ? `
 
   <button onclick="startGame()">JUGAR</button>
 </div>
-` : ''}
 
 </div>
 
 <script>
-
-// ⏱️ CUENTA ATRÁS HASTA SÁBADO 17:30
-const objetivo = new Date();
-objetivo.setDate(objetivo.getDate() + (6 - objetivo.getDay())); // sábado
-objetivo.setHours(17,30,0,0);
-
-function actualizarTimer(){
-  const ahora = new Date();
-  let diff = objetivo - ahora;
-
-  if(diff < 0){
-    timer.innerText = "✅ Mantenimiento terminado";
-    return;
-  }
-
-  let h = Math.floor(diff / 3600000);
-  let m = Math.floor((diff % 3600000) / 60000);
-  let s = Math.floor((diff % 60000) / 1000);
-
-  timer.innerText = "⏱️ " + h+"h "+m+"m "+s+"s";
-}
-
-setInterval(actualizarTimer,1000);
-actualizarTimer();
 
 let y=0;
 let vel=0;
@@ -230,7 +206,6 @@ function loop(){
 }
 loop();
 
-// 🔺 PINCHOS CON DISTANCIA VARIABLE (NO JUNTOS)
 function spawn(){
 
   if(!jugando) return;
@@ -243,8 +218,7 @@ function spawn(){
 
   spikes.push({el:s,x:500});
 
-  // distancia random
-  let delay = 1000 + Math.random()*1200;
+  let delay = 1000 + Math.random()*1500;
 
   setTimeout(spawn, delay);
 }
@@ -273,5 +247,6 @@ document.addEventListener("keydown", (e)=>{
 });
 
 app.listen(3000, ()=>{
-  console.log("🔥 servidor PERFECTO");
+  console.log("🔥 servidor iniciado");
+  console.log("👉 escribe 'man on' o 'man off'");
 });

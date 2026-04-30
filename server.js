@@ -138,7 +138,7 @@ button{
     <p>🟡 Clash of Clans - super luchador</p>
     <p>⚔️ 1v1 desafíos</p>
     <p>🔵 Clash Royale - 1v1</p>
-    <p>🎁 Premios: Andelcoins, chuches, póster</p>
+    <p>🎁 Premios: cuches, diploma, póster</p>
   </div>
 </div>
 

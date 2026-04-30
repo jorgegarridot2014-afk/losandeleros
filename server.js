@@ -1,10 +1,14 @@
 const express = require("express");
 const app = express();
 
-// RUTA PRINCIPAL
 app.get("/", (req, res) => {
-res.send(`
 
+  const modo = req.query.modo;
+
+  // true = con juego
+  const conJuego = modo !== "man";
+
+  res.send(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -14,15 +18,16 @@ res.send(`
 body{
   margin:0;
   font-family:Arial;
-  background:#1a1a1a;
+  background:#111;
   color:white;
 }
 
 header{
-  background:#333;
+  background:#222;
   padding:15px;
   text-align:center;
-  font-size:20px;
+  font-size:22px;
+  color:gold;
 }
 
 #container{
@@ -30,109 +35,121 @@ header{
   flex-wrap:wrap;
 }
 
-#left, #right{
+#left,#right{
   flex:1;
   padding:20px;
   text-align:center;
 }
 
-/* móvil */
 @media(max-width:700px){
-  #container{
-    flex-direction:column;
-  }
+  #container{flex-direction:column;}
 }
 
-/* temporizador */
-#timer{
-  font-size:28px;
-  margin:20px 0;
-}
+#timer{font-size:30px;}
+#percent{font-size:40px;color:lime;}
 
-/* rueda */
 .loader{
-  border:6px solid #444;
-  border-top:6px solid yellow;
+  border:6px solid #333;
+  border-top:6px solid gold;
   border-radius:50%;
-  width:50px;
-  height:50px;
+  width:60px;
+  height:60px;
   margin:auto;
   animation:spin 1s linear infinite;
 }
 
 @keyframes spin{
-  0%{transform:rotate(0deg);}
+  0%{transform:rotate(0);}
   100%{transform:rotate(360deg);}
 }
 
-/* juego */
 #game{
   position:relative;
-  width:300px;
-  height:200px;
+  width:450px;
+  height:300px;
   background:black;
   margin:auto;
   overflow:hidden;
+  border:2px solid gold;
 }
 
 #player{
-  width:30px;
-  height:30px;
-  background:yellow;
+  width:40px;
+  height:40px;
+  background:lime;
   position:absolute;
   bottom:0;
-  left:50px;
+  left:80px;
 }
 
 .spike{
   width:0;
   height:0;
-  border-left:10px solid transparent;
-  border-right:10px solid transparent;
-  border-bottom:30px solid red;
+  border-left:15px solid transparent;
+  border-right:15px solid transparent;
+  border-bottom:40px solid red;
   position:absolute;
   bottom:0;
 }
 
-button{
+#eventos{
+  margin-top:20px;
+  background:#222;
   padding:10px;
-  margin-top:10px;
+  border-radius:10px;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-🔧 Mantenimiento - Andeleros
-</header>
+<header>🔥 ANDEROS 🔥</header>
 
 <div id="container">
 
 <div id="left">
-  <h2>🔧 En mantenimiento</h2>
-  <p>Lo sentimos, pero estamos en mantenimiento mejorando los servidores</p>
+  <h2>🔧 Servidores en mantenimiento</h2>
+  <p>Lo sentimos, estamos mejorando el sistema</p>
 
-  <div id="timer"></div>
+  ${conJuego ? '<div id="timer"></div>' : ''}
+
+  <div id="percent">0%</div>
 
   <div class="loader"></div>
+
+  <div id="eventos">
+    <h3>🏆 Eventos</h3>
+    <p>Brawl Stars</p>
+    <p>Clash Royale</p>
+    <p>Clash of Clans</p>
+  </div>
 </div>
 
+${conJuego ? `
 <div id="right">
   <h3>🎮 Minijuego</h3>
-
   <div id="game">
     <div id="player"></div>
   </div>
-
-  <button onclick="startGame()">Jugar</button>
 </div>
+` : ''}
 
 </div>
 
 <script>
 
+// ===== PORCENTAJE =====
+let progreso = 0;
+setInterval(()=>{
+  if(progreso < 100){
+    progreso += Math.random()*4;
+    if(progreso > 100) progreso = 100;
+    percent.innerText = Math.floor(progreso) + "%";
+  }
+},500);
+
 // ===== TEMPORIZADOR =====
+${conJuego ? `
 let objetivo = new Date();
 objetivo.setDate(objetivo.getDate() + ((6 - objetivo.getDay() + 7) % 7));
 objetivo.setHours(17,30,0);
@@ -155,60 +172,47 @@ function actualizarTimer(){
 
 setInterval(actualizarTimer,1000);
 actualizarTimer();
-
+` : ''}
 
 // ===== JUEGO =====
-let jugando=false;
+${conJuego ? `
 let y=0;
 let vel=0;
 let gravedad=-0.4;
 let spikes=[];
 let tiempo=0;
 
-function startGame(){
-  jugando=true;
-  y=0;
-  vel=8;
-  spikes=[];
-  tiempo=0;
-
-  document.querySelectorAll(".spike").forEach(e=>e.remove());
-
-  setTimeout(spawn,2000); // NO pinchos al inicio
-}
+// NO pinchos al inicio
+setTimeout(spawn,2000);
 
 function loop(){
 
-  if(jugando){
+  tiempo += 0.016;
 
-    tiempo += 0.016;
+  vel += gravedad;
+  y += vel;
 
-    vel += gravedad;
-    y += vel;
+  if(y < 0){
+    y = 0;
+    vel = 0;
+  }
 
-    if(y < 0){
-      y = 0;
-      vel = 8;
+  player.style.bottom = y+"px";
+
+  spikes.forEach((s,i)=>{
+    s.x -= velocidad();
+    s.el.style.left = s.x+"px";
+
+    if(s.x < 80){
+      alert("💀 Game Over");
+      location.reload();
     }
 
-    player.style.bottom = y+"px";
-
-    spikes.forEach((s,i)=>{
-      s.x -= velocidad();
-
-      s.el.style.left = s.x+"px";
-
-      if(s.x < 60){
-        alert("💀 Game Over");
-        jugando=false;
-      }
-
-      if(s.x < -20){
-        s.el.remove();
-        spikes.splice(i,1);
-      }
-    });
-  }
+    if(s.x < -20){
+      s.el.remove();
+      spikes.splice(i,1);
+    }
+  });
 
   requestAnimationFrame(loop);
 }
@@ -223,42 +227,43 @@ function velocidad(){
 
 function spawn(){
 
-  if(!jugando) return;
-
-  let s = document.createElement("div");
+  let s=document.createElement("div");
   s.className="spike";
-
   game.appendChild(s);
 
-  spikes.push({
-    el:s,
-    x:300
-  });
+  spikes.push({el:s,x:450});
 
   let delay = 2000;
-
-  if(tiempo > 5) delay = 1500;
-  if(tiempo > 10) delay = 1200;
-  if(tiempo > 20) delay = 900;
+  if(tiempo>5) delay=1500;
+  if(tiempo>10) delay=1200;
+  if(tiempo>20) delay=900;
 
   setTimeout(spawn, delay);
 }
 
-// controles móvil + pc
-document.addEventListener("click", ()=> vel=8);
-document.addEventListener("touchstart", ()=> vel=8);
+// SALTO MANUAL
+document.addEventListener("click", ()=>{
+  if(y === 0){
+    vel = 8;
+  }
+});
+
+document.addEventListener("touchstart", ()=>{
+  if(y === 0){
+    vel = 8;
+  }
+});
+` : ''}
 
 </script>
 
 </body>
 </html>
-
 `);
 });
 
-// PUERTO
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log("🔥 Servidor funcionando");
+app.listen(PORT, ()=>{
+  console.log("🔥 servidor con comandos listo");
 });

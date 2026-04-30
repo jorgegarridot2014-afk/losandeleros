@@ -3,9 +3,6 @@ const app = express();
 
 app.get("/", (req, res) => {
 
-const modo = req.query.modo;
-const conJuego = modo !== "man";
-
 res.send(`
 <!DOCTYPE html>
 <html>
@@ -24,10 +21,11 @@ header{
   background:#222;
   padding:15px;
   text-align:center;
-  font-size:22px;
+  font-size:24px;
   color:gold;
 }
 
+/* layout */
 #container{
   display:flex;
   flex-wrap:wrap;
@@ -43,6 +41,22 @@ header{
   #container{flex-direction:column;}
 }
 
+/* loader */
+.loader{
+  border:6px solid #333;
+  border-top:6px solid gold;
+  border-radius:50%;
+  width:60px;
+  height:60px;
+  margin:auto;
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+  0%{transform:rotate(0);}
+  100%{transform:rotate(360deg);}
+}
+
 /* juego */
 #game{
   position:relative;
@@ -54,7 +68,7 @@ header{
   border:2px solid gold;
 }
 
-/* porcentaje dentro del juego */
+/* porcentaje */
 #percentGame{
   position:absolute;
   top:10px;
@@ -74,15 +88,14 @@ header{
   left:80px;
 }
 
-/* pinchos */
+/* pinchos correctos */
 .spike{
-  width:0;
-  height:0;
-  border-left:15px solid transparent;
-  border-right:15px solid transparent;
-  border-bottom:40px solid red;
+  width:30px;
+  height:40px;
+  background:red;
   position:absolute;
   bottom:0;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
 }
 
 /* botón */
@@ -90,22 +103,6 @@ button{
   margin-top:10px;
   padding:10px 20px;
   font-size:16px;
-}
-
-/* loader */
-.loader{
-  border:6px solid #333;
-  border-top:6px solid gold;
-  border-radius:50%;
-  width:60px;
-  height:60px;
-  margin:auto;
-  animation:spin 1s linear infinite;
-}
-
-@keyframes spin{
-  0%{transform:rotate(0);}
-  100%{transform:rotate(360deg);}
 }
 
 /* eventos */
@@ -121,28 +118,25 @@ button{
 
 <body>
 
-<header>🔥 ANDEROS 🔥</header>
+<header>🏆 LOS ANDELEROS 🏆</header>
 
 <div id="container">
 
 <div id="left">
-  <h2>🔧 Servidores en mantenimiento</h2>
-  <p>Lo sentimos, estamos mejorando el sistema</p>
+  <h2>🔧 Mantenimiento</h2>
+  <p>Lo sentimos, estamos mejorando los servidores</p>
 
   <div class="loader"></div>
 
   <div id="eventos">
-    <h3>🏆 EVENTOS</h3>
-    <p>🟣 Brawl Stars - partidas ganadas</p>
-    <p>⚽ 1v1 balón brawl</p>
-    <p>🟡 Clash of Clans - super luchador</p>
-    <p>⚔️ 1v1 desafíos</p>
-    <p>🔵 Clash Royale - 1v1</p>
-    <p>🎁 Premios: cuches, diploma, póster</p>
+    <h3>EVENTOS</h3>
+    <p>🟣 Brawl Stars</p>
+    <p>⚽ 1v1 Balón Brawl</p>
+    <p>🟡 Clash of Clans</p>
+    <p>🔵 Clash Royale</p>
   </div>
 </div>
 
-${conJuego ? `
 <div id="right">
   <h3>🎮 Minijuego</h3>
 
@@ -153,51 +147,44 @@ ${conJuego ? `
 
   <button onclick="startGame()">JUGAR</button>
 </div>
-` : ''}
 
 </div>
 
 <script>
 
-// ===== PORCENTAJE =====
-let progreso = 0;
-function subirPorcentaje(){
-  if(progreso < 100){
-    progreso += Math.random()*3;
-    if(progreso > 100) progreso = 100;
-    percentGame.innerText = Math.floor(progreso) + "%";
-  }
-}
+// ===== VARIABLES =====
+let y = 0;
+let vel = 0;
+let gravedad = -0.6;
+let spikes = [];
+let jugando = false;
+let tiempo = 0;
 
-// ===== JUEGO =====
-${conJuego ? `
-let y=0;
-let vel=0;
-let gravedad=-0.4;
-let spikes=[];
-let tiempo=0;
-let jugando=false;
-
+// ===== INICIAR =====
 function startGame(){
   jugando = true;
-  y=0;
-  vel=0;
-  tiempo=0;
-  progreso=0;
+  y = 0;
+  vel = 0;
+  tiempo = 0;
 
   document.querySelectorAll(".spike").forEach(e=>e.remove());
-  spikes=[];
+  spikes = [];
 
-  setTimeout(spawn,2000);
+  setTimeout(spawn, 1500);
 }
 
+// ===== LOOP =====
 function loop(){
 
   if(jugando){
 
     tiempo += 0.016;
-    subirPorcentaje();
 
+    // porcentaje real
+    let progreso = Math.min(100, tiempo * 4);
+    percentGame.innerText = Math.floor(progreso) + "%";
+
+    // física
     vel += gravedad;
     y += vel;
 
@@ -206,18 +193,20 @@ function loop(){
       vel = 0;
     }
 
-    player.style.bottom = y+"px";
+    player.style.bottom = y + "px";
 
+    // pinchos
     spikes.forEach((s,i)=>{
-      s.x -= velocidad();
-      s.el.style.left = s.x+"px";
+      s.x -= 6;
+      s.el.style.left = s.x + "px";
 
-      if(s.x < 80){
+      // colisión correcta
+      if(s.x < 110 && s.x > 60 && y < 35){
         jugando = false;
-        alert("💀 Has perdido - dale a JUGAR");
+        alert("💀 Has muerto - dale a JUGAR");
       }
 
-      if(s.x < -20){
+      if(s.x < -40){
         s.el.remove();
         spikes.splice(i,1);
       }
@@ -228,44 +217,40 @@ function loop(){
 }
 loop();
 
-function velocidad(){
-  if(tiempo < 5) return 3;
-  if(tiempo < 10) return 4;
-  if(tiempo < 20) return 5;
-  return 6;
-}
-
+// ===== SPAWN =====
 function spawn(){
-
   if(!jugando) return;
 
-  let s=document.createElement("div");
-  s.className="spike";
+  let s = document.createElement("div");
+  s.className = "spike";
+  s.style.left = "500px";
+
   game.appendChild(s);
 
-  spikes.push({el:s,x:500});
+  spikes.push({el:s, x:500});
 
-  let delay = 2000;
-  if(tiempo>5) delay=1500;
-  if(tiempo>10) delay=1200;
-  if(tiempo>20) delay=900;
-
-  setTimeout(spawn, delay);
+  setTimeout(spawn, 1400);
 }
 
-// salto manual
+// ===== SALTO =====
 document.addEventListener("click", ()=>{
   if(jugando && y === 0){
-    vel = 8;
+    vel = 11;
   }
 });
 
 document.addEventListener("touchstart", ()=>{
   if(jugando && y === 0){
-    vel = 8;
+    vel = 11;
   }
 });
-` : ''}
+
+// bloquear espacio
+document.addEventListener("keydown", (e)=>{
+  if(e.code === "Space"){
+    e.preventDefault();
+  }
+});
 
 </script>
 
@@ -274,8 +259,6 @@ document.addEventListener("touchstart", ()=>{
 `);
 });
 
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, ()=>{
-  console.log("🔥 servidor final PRO");
+app.listen(3000, ()=>{
+  console.log("🔥 servidor funcionando perfecto");
 });

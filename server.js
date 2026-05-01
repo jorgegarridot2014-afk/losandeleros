@@ -1,3 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#111;
+  color:white;
+}
+
+header{
+  background:#222;
+  padding:15px;
+  text-align:center;
+  font-size:24px;
+  color:gold;
+}
+
+#container{
+  display:flex;
+  flex-wrap:wrap;
+}
+
+#left,#right{
+  flex:1;
+  padding:20px;
+  text-align:center;
+}
+
+@media(max-width:700px){
+  #container{flex-direction:column;}
+}
+
+/* mantenimiento */
+.loader{
+  border:6px solid #333;
+  border-top:6px solid gold;
+  border-radius:50%;
+  width:70px;
+  height:70px;
+  margin:20px auto;
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+  0%{transform:rotate(0);}
+  100%{transform:rotate(360deg);}
+}
+
+#timer{
+  font-size:22px;
+  color:cyan;
+  margin-top:10px;
+}
+
+/* juego */
+#game{
+  position:relative;
+  width:500px;
+  height:320px;
+  background:black;
+  margin:auto;
+  overflow:hidden;
+  border:2px solid gold;
+}
+
+#percentGame{
+  position:absolute;
+  top:10px;
+  right:15px;
+  font-size:26px;
+  color:lime;
+}
+
+#player{
+  width:40px;
+  height:40px;
+  background:lime;
+  position:absolute;
+  bottom:0;
+  left:80px;
+}
+
+.spike{
+  width:30px;
+  height:40px;
+  background:red;
+  position:absolute;
+  bottom:0;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+button{
+  margin-top:10px;
+  padding:10px 20px;
+}
+</style>
+</head>
+
+<body>
+
+<header>🏆 LOS ANDELEROS 🏆</header>
+
+<div id="container">
+
+  <!-- IZQUIERDA -->
+  <div id="left">
+    <h2>🔧 SERVIDORES EN MANTENIMIENTO</h2>
+    <p>Estamos mejorando los servidores...</p>
+
+    <div class="loader"></div>
+
+    <div id="timer"></div>
+    <!-- 👇 AQUI VA EL MENSAJE 3D -->
+    <p id="mensaje3d" style="color:orange; font-size:20px; margin-top:10px;">
+      El siguiente sábado a las 5:30 PM el juego estará en 3D
+    </p>
+  </div>
+
+  <!-- DERECHA -->
+  <div id="right">
+    <h3>🎮 Minijuego</h3>
+
+    <div id="game">
+      <div id="percentGame">0%</div>
+      <div id="player"></div>
+    </div>
+
+    <button onclick="startGame()">JUGAR</button>
+  </div>
+
+</div>
+
 <script>
 
 //////////////////////
@@ -5,16 +141,8 @@
 //////////////////////
 
 const timerEl = document.getElementById("timer");
+const mensaje3d = document.getElementById("mensaje3d");
 
-// Crear mensaje dinámico debajo del temporizador
-const mensaje3d = document.createElement("p");
-mensaje3d.style.color = "orange";
-mensaje3d.style.fontSize = "20px";
-mensaje3d.style.marginTop = "10px";
-mensaje3d.innerText = "El siguiente sábado a las 5:30 PM el juego estará en 3D";
-timerEl.insertAdjacentElement("afterend", mensaje3d);
-
-// Calcula el próximo sábado a las 17:30
 function getNextSaturday(){
   const now = new Date();
   const day = now.getDay();
@@ -58,6 +186,10 @@ let gravedad=-0.7;
 let spikes=[];
 let jugando=false;
 let tiempo=0;
+
+const game = document.getElementById("game");
+const player = document.getElementById("player");
+const percentGame = document.getElementById("percentGame");
 
 function startGame(){
   jugando=true;
@@ -147,4 +279,7 @@ document.addEventListener("keydown", (e)=>{
 });
 
 </script>
+
+</body>
+</html>
 

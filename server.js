@@ -1,3 +1,9 @@
+const express = require("express");
+const app = express();
+
+app.get("/", (req, res) => {
+
+res.send(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -114,7 +120,8 @@ button{
     <div class="loader"></div>
 
     <div id="timer"></div>
-    <!-- 👇 AQUI VA EL MENSAJE 3D -->
+
+    <!-- MENSAJE 3D -->
     <p id="mensaje3d" style="color:orange; font-size:20px; margin-top:10px;">
       El siguiente sábado a las 5:30 PM el juego estará en 3D
     </p>
@@ -282,4 +289,9 @@ document.addEventListener("keydown", (e)=>{
 
 </body>
 </html>
+`);
+});
 
+// PUERTO CORRECTO PARA DEPLOY
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("🔥 Servidor funcionando en puerto " + PORT));

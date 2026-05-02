@@ -1,10 +1,7 @@
 const express = require("express");
 const app = express();
 
-app.get("/", (req, res) => {
-
-res.send(`
-<!DOCTYPE html>
+const html = `<!DOCTYPE html>
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -112,14 +109,13 @@ button{
 
   <div id="left">
     <h2>🔧 SERVIDORES EN MANTENIMIENTO</h2>
-    <p>Estamos mejorando los servidores...</p>
 
     <div class="loader"></div>
 
     <div id="timer"></div>
 
-    <p id="mensaje3d" style="color:orange; font-size:20px; margin-top:10px; display:none;">
-      El juego estará disponible pronto 🚀
+    <p id="mensaje3d" style="color:orange; display:none;">
+      Listo pronto 🚀
     </p>
   </div>
 
@@ -138,159 +134,69 @@ button{
 
 <script>
 
-//////////////////////
-// ⏱️ TEMPORIZADOR (ARREGLADO)
-//////////////////////
-
 const timerEl = document.getElementById("timer");
-const mensaje3d = document.getElementById("mensaje3d");
 
-function getObjetivoHoy(){
+function getObjetivo(){
   const ahora = new Date();
   const objetivo = new Date();
-
-  objetivo.setHours(18, 30, 0, 0);
-
-  if (ahora > objetivo) {
-    objetivo.setDate(objetivo.getDate() + 1);
+  objetivo.setHours(18,30,0,0);
+  if(ahora > objetivo){
+    objetivo.setDate(objetivo.getDate()+1);
   }
-
   return objetivo;
 }
 
-let objetivo = getObjetivoHoy();
+let objetivo = getObjetivo();
 
-function actualizarTimer(){
+function actualizar(){
   const ahora = new Date();
   let diff = objetivo - ahora;
 
-  if (diff <= 0) {
-    objetivo = getObjetivoHoy();
-    return;
-  }
+  const h = Math.floor(diff/3600000);
+  const m = Math.floor((diff%3600000)/60000);
+  const s = Math.floor((diff%60000)/1000);
 
-  const horas = Math.floor(diff / (1000 * 60 * 60));
-  const minutos = Math.floor((diff / (1000 * 60)) % 60);
-  const segundos = Math.floor((diff / 1000) % 60);
-
-  // ❌ SIN ${} (esto era el error)
-  timerEl.innerText = horas + "h " + minutos + "m " + segundos + "s";
-
-  if (diff < 60000) {
-    mensaje3d.style.display = "block";
-  }
+  timerEl.innerText = h + "h " + m + "m " + s + "s";
 }
 
-setInterval(actualizarTimer, 1000);
-actualizarTimer();
+setInterval(actualizar,1000);
+actualizar();
 
-//////////////////////
-// 🎮 JUEGO (SIN CAMBIOS)
-//////////////////////
+let y=0,vel=0,gravedad=-0.7,jugando=false;
 
-let y=0;
-let vel=0;
-let gravedad=-0.7;
-let spikes=[];
-let jugando=false;
-let tiempo=0;
-
-const game = document.getElementById("game");
 const player = document.getElementById("player");
 const percentGame = document.getElementById("percentGame");
+const game = document.getElementById("game");
+let spikes=[];
 
 function startGame(){
   jugando=true;
-  y=0;
-  vel=0;
-  tiempo=0;
-
-  document.querySelectorAll(".spike").forEach(e=>e.remove());
-  spikes=[];
-
-  setTimeout(spawn,1200);
+  y=0;vel=0;
 }
 
 function loop(){
-
   if(jugando){
-
-    tiempo += 0.016;
-
-    let progreso = Math.min(100, tiempo*5);
-    percentGame.innerText = Math.floor(progreso)+"%";
-
-    if(progreso >= 100){
-      alert("🏆 GANASTE");
-      startGame();
-    }
-
-    vel += gravedad;
-    y += vel;
-
-    if(y < 0){
-      y = 0;
-      vel = 0;
-    }
-
-    player.style.bottom = y+"px";
-
-    spikes.forEach((s,i)=>{
-      s.x -= 10;
-      s.el.style.left = s.x+"px";
-
-      if(s.x < 110 && s.x > 60 && y < 35){
-        jugando=false;
-        alert("💀 Has muerto");
-      }
-
-      if(s.x < -40){
-        s.el.remove();
-        spikes.splice(i,1);
-      }
-    });
+    vel+=gravedad;
+    y+=vel;
+    if(y<0){y=0;vel=0;}
+    player.style.bottom=y+"px";
   }
-
   requestAnimationFrame(loop);
 }
 loop();
 
-function spawn(){
-  if(!jugando) return;
-
-  let s=document.createElement("div");
-  s.className="spike";
-  s.style.left="500px";
-
-  game.appendChild(s);
-
-  spikes.push({el:s,x:500});
-
-  let delay = 1000 + Math.random()*1500;
-  setTimeout(spawn, delay);
-}
-
-function saltar(){
-  if(jugando && y===0){
-    vel=15;
-  }
-}
-
-document.addEventListener("click", saltar);
-document.addEventListener("touchstart", saltar);
-
-document.addEventListener("keydown", (e)=>{
-  if(e.code==="Space"){
-    e.preventDefault();
-    saltar();
-  }
+document.addEventListener("click",()=>{
+  if(jugando && y===0) vel=15;
 });
 
 </script>
 
 </body>
-</html>
-`);
+</html>`;
+
+app.get("/", (req, res) => {
+  res.setHeader("Content-Type", "text/html");
+  res.send(html);
 });
 
 const PORT = process.env.PORT || 3000;

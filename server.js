@@ -153,7 +153,7 @@ const mensaje3d = document.getElementById("mensaje3d");
 function getNextSaturday(){
   const now = new Date();
   const day = now.getDay();
-  const diff = (6 - day + 7) % 7 || 7;
+  const diff = (0 - day + 7) % 7 || 7;
   const saturday = new Date(now);
   saturday.setDate(now.getDate() + diff);
   saturday.setHours(17,30,0,0);

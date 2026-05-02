@@ -1,7 +1,12 @@
 const express = require("express");
 const app = express();
 
-const html = `<!DOCTYPE html>
+app.get("/", (req, res) => {
+
+res.setHeader("Content-Type", "text/html");
+
+res.send(`
+<!DOCTYPE html>
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,6 +27,7 @@ header{
   color:gold;
 }
 
+/* layout */
 #container{
   display:flex;
   flex-wrap:wrap;
@@ -37,6 +43,7 @@ header{
   #container{flex-direction:column;}
 }
 
+/* rueda */
 .loader{
   border:6px solid #333;
   border-top:6px solid gold;
@@ -52,12 +59,14 @@ header{
   100%{transform:rotate(360deg);}
 }
 
+/* temporizador */
 #timer{
   font-size:22px;
   color:cyan;
   margin-top:10px;
 }
 
+/* juego */
 #game{
   position:relative;
   width:500px;
@@ -107,18 +116,26 @@ button{
 
 <div id="container">
 
+  <!-- MANTENIMIENTO -->
   <div id="left">
     <h2>🔧 SERVIDORES EN MANTENIMIENTO</h2>
+
+    <p>Lo sentimos, estamos en mantenimiento.</p>
 
     <div class="loader"></div>
 
     <div id="timer"></div>
 
-    <p id="mensaje3d" style="color:orange; display:none;">
-      Listo pronto 🚀
+    <p style="color:orange; margin-top:15px;">
+      Lo sentimos pero estamos en mantenimiento 🚧
+    </p>
+
+    <p style="color:#aaa; margin-top:10px; font-size:14px;">
+      No sabemos cuándo podrá estar la página web al 100% funcional por temas de copyright.
     </p>
   </div>
 
+  <!-- JUEGO -->
   <div id="right">
     <h3>🎮 Minijuego</h3>
 
@@ -134,15 +151,21 @@ button{
 
 <script>
 
+//////////////////////
+// ⏱️ TEMPORIZADOR (+1 día)
+//////////////////////
+
 const timerEl = document.getElementById("timer");
 
 function getObjetivo(){
   const ahora = new Date();
   const objetivo = new Date();
+
   objetivo.setHours(18,30,0,0);
-  if(ahora > objetivo){
-    objetivo.setDate(objetivo.getDate()+1);
-  }
+
+  // 🔥 +1 día SIEMPRE
+  objetivo.setDate(objetivo.getDate() + 1);
+
   return objetivo;
 }
 
@@ -162,41 +185,111 @@ function actualizar(){
 setInterval(actualizar,1000);
 actualizar();
 
-let y=0,vel=0,gravedad=-0.7,jugando=false;
+//////////////////////
+// 🎮 MINIJUEGO
+//////////////////////
 
+let y=0;
+let vel=0;
+let gravedad=-0.7;
+let spikes=[];
+let jugando=false;
+let tiempo=0;
+
+const game = document.getElementById("game");
 const player = document.getElementById("player");
 const percentGame = document.getElementById("percentGame");
-const game = document.getElementById("game");
-let spikes=[];
 
 function startGame(){
-  jugando=true;
-  y=0;vel=0;
+  jugando = true;
+  y = 0;
+  vel = 0;
+  tiempo = 0;
+
+  spikes.forEach(s => s.el.remove());
+  spikes = [];
+
+  spawn();
 }
 
 function loop(){
-  if(jugando){
-    vel+=gravedad;
-    y+=vel;
-    if(y<0){y=0;vel=0;}
-    player.style.bottom=y+"px";
-  }
   requestAnimationFrame(loop);
+
+  if(!jugando) return;
+
+  tiempo += 0.016;
+
+  let progreso = Math.min(100, tiempo*5);
+  percentGame.innerText = Math.floor(progreso) + "%";
+
+  if(progreso >= 100){
+    jugando = false;
+    alert("🏆 GANASTE");
+  }
+
+  vel += gravedad;
+  y += vel;
+
+  if(y < 0){
+    y = 0;
+    vel = 0;
+  }
+
+  player.style.bottom = y + "px";
+
+  spikes.forEach((s,i)=>{
+    s.x -= 8;
+    s.el.style.left = s.x + "px";
+
+    if(s.x < 110 && s.x > 60 && y < 35){
+      jugando = false;
+      alert("💀 Has muerto");
+    }
+
+    if(s.x < -50){
+      s.el.remove();
+      spikes.splice(i,1);
+    }
+  });
 }
 loop();
 
-document.addEventListener("click",()=>{
-  if(jugando && y===0) vel=15;
+function spawn(){
+  if(!jugando) return;
+
+  let s = document.createElement("div");
+  s.className = "spike";
+  s.style.left = "500px";
+
+  game.appendChild(s);
+
+  spikes.push({el:s,x:500});
+
+  setTimeout(spawn, 1200 + Math.random()*1200);
+}
+
+function saltar(){
+  if(jugando && y === 0){
+    vel = 14;
+  }
+}
+
+document.addEventListener("click", saltar);
+document.addEventListener("touchstart", saltar);
+
+document.addEventListener("keydown",(e)=>{
+  if(e.code==="Space"){
+    e.preventDefault();
+    saltar();
+  }
 });
 
 </script>
 
 </body>
-</html>`;
+</html>
+`);
 
-app.get("/", (req, res) => {
-  res.setHeader("Content-Type", "text/html");
-  res.send(html);
 });
 
 const PORT = process.env.PORT || 3000;

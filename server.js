@@ -143,6 +143,7 @@ button{
 
 <script>
 
+
 //////////////////////
 // ⏱️ TEMPORIZADOR + MENSAJE 3D
 //////////////////////
@@ -150,37 +151,47 @@ button{
 const timerEl = document.getElementById("timer");
 const mensaje3d = document.getElementById("mensaje3d");
 
-function getNextSaturday(){
-  const now = new Date();
-  const day = now.getDay();
-  const diff = (0 - day + 7) % 7 || 7;
-  const saturday = new Date(now);
-  saturday.setDate(now.getDate() + diff);
-  saturday.setHours(17,30,0,0);
-  return saturday;
+function getObjetivoHoy(){
+  const ahora = new Date();
+  const objetivo = new Date();
+
+  // Hoy a las 18:30
+  objetivo.setHours(18, 30, 0, 0);
+
+  // Si ya pasó, lo ponemos para mañana
+  if (ahora > objetivo) {
+    objetivo.setDate(objetivo.getDate() + 1);
+  }
+
+  return objetivo;
 }
 
-const objetivo = getNextSaturday();
+let objetivo = getObjetivoHoy();
 
 function actualizarTimer(){
   const ahora = new Date();
   let diff = objetivo - ahora;
 
-  if(diff <= 0){
-    timerEl.innerText = "✅ Mantenimiento terminado";
-    mensaje3d.innerText = "🎉 El juego ya está en 3D";
-    mensaje3d.style.color = "lime";
+  // Si llega a 0, recalculamos para el siguiente día
+  if (diff <= 0) {
+    objetivo = getObjetivoHoy();
     return;
   }
 
-  let h = Math.floor(diff / 3600000);
-  let m = Math.floor((diff % 3600000) / 60000);
-  let s = Math.floor((diff % 60000) / 1000);
+  const horas = Math.floor(diff / (1000 * 60 * 60));
+  const minutos = Math.floor((diff / (1000 * 60)) % 60);
+  const segundos = Math.floor((diff / 1000) % 60);
 
-  timerEl.innerText = "⏱️ " + h+"h "+m+"m "+s+"s";
+  timerEl.innerText = `${horas}h ${minutos}m ${segundos}s`;
+
+  // Mostrar mensaje cuando quede poco (opcional)
+  if (diff < 60000) {
+    mensaje3d.style.display = "block";
+  }
 }
 
-setInterval(actualizarTimer,1000);
+// Actualiza cada segundo
+setInterval(actualizarTimer, 1000);
 actualizarTimer();
 
 //////////////////////

@@ -40,7 +40,6 @@ header{
   #container{flex-direction:column;}
 }
 
-/* mantenimiento */
 .loader{
   border:6px solid #333;
   border-top:6px solid gold;
@@ -62,7 +61,6 @@ header{
   margin-top:10px;
 }
 
-/* juego */
 #game{
   position:relative;
   width:500px;
@@ -112,7 +110,6 @@ button{
 
 <div id="container">
 
-  <!-- IZQUIERDA -->
   <div id="left">
     <h2>🔧 SERVIDORES EN MANTENIMIENTO</h2>
     <p>Estamos mejorando los servidores...</p>
@@ -121,13 +118,11 @@ button{
 
     <div id="timer"></div>
 
-    <!-- MENSAJE 3D -->
-    <p id="mensaje3d" style="color:orange; font-size:20px; margin-top:10px;">
-      El siguiente sábado a las 5:30 PM el juego estará en 3D
+    <p id="mensaje3d" style="color:orange; font-size:20px; margin-top:10px; display:none;">
+      El juego estará disponible pronto 🚀
     </p>
   </div>
 
-  <!-- DERECHA -->
   <div id="right">
     <h3>🎮 Minijuego</h3>
 
@@ -143,9 +138,8 @@ button{
 
 <script>
 
-
 //////////////////////
-// ⏱️ TEMPORIZADOR + MENSAJE 3D
+// ⏱️ TEMPORIZADOR (ARREGLADO)
 //////////////////////
 
 const timerEl = document.getElementById("timer");
@@ -155,10 +149,8 @@ function getObjetivoHoy(){
   const ahora = new Date();
   const objetivo = new Date();
 
-  // Hoy a las 18:30
   objetivo.setHours(18, 30, 0, 0);
 
-  // Si ya pasó, lo ponemos para mañana
   if (ahora > objetivo) {
     objetivo.setDate(objetivo.getDate() + 1);
   }
@@ -172,7 +164,6 @@ function actualizarTimer(){
   const ahora = new Date();
   let diff = objetivo - ahora;
 
-  // Si llega a 0, recalculamos para el siguiente día
   if (diff <= 0) {
     objetivo = getObjetivoHoy();
     return;
@@ -182,20 +173,19 @@ function actualizarTimer(){
   const minutos = Math.floor((diff / (1000 * 60)) % 60);
   const segundos = Math.floor((diff / 1000) % 60);
 
-  timerEl.innerText = `${horas}h ${minutos}m ${segundos}s`;
+  // ❌ SIN ${} (esto era el error)
+  timerEl.innerText = horas + "h " + minutos + "m " + segundos + "s";
 
-  // Mostrar mensaje cuando quede poco (opcional)
   if (diff < 60000) {
     mensaje3d.style.display = "block";
   }
 }
 
-// Actualiza cada segundo
 setInterval(actualizarTimer, 1000);
 actualizarTimer();
 
 //////////////////////
-// 🎮 JUEGO
+// 🎮 JUEGO (SIN CAMBIOS)
 //////////////////////
 
 let y=0;
@@ -303,6 +293,5 @@ document.addEventListener("keydown", (e)=>{
 `);
 });
 
-// PUERTO CORRECTO PARA DEPLOY
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("🔥 Servidor funcionando en puerto " + PORT));
+app.listen(PORT, () => console.log("Servidor en puerto " + PORT));

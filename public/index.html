@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>AndeBrawl</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<button id="volverBtn" onclick="volver()" style="display:none;">Volver</button>
+
+<!-- ===== MENU ===== -->
+<div id="menu">
+
+  <div class="topBar">
+    <button onclick="mostrarCrear()">Crear cuenta</button>
+    <button onclick="mostrarLogin()">Iniciar sesión</button>
+  </div>
+
+  <h2 id="tituloCuentas">Cuentas guardadas</h2>
+  <div id="cuentas"></div>
+
+  <div id="crearPanel" style="display:none;">
+    <input id="apodo" placeholder="Apodo">
+    <button onclick="crear()">Crear</button>
+  </div>
+
+  <div id="loginPanel" style="display:none;">
+    <input id="ide" placeholder="ID">
+    <button onclick="login()">Entrar</button>
+  </div>
+
+</div>
+
+<!-- ===== APP ===== -->
+<div id="app">
+  <h2 id="usuarioTexto"></h2>
+  <button onclick="abrirCarga()">Entrar</button>
+  <button onclick="logout()">Cerrar sesión</button>
+</div>
+
+<!-- ===== PANTALLA CARGA ===== -->
+<div id="cargando">
+  <h1>⏳ Ya queda poco...</h1>
+  <div class="ruedaFull"></div>
+  <button onclick="volverApp()">Volver</button>
+</div>
+
+<!-- ===== PERFIL ===== -->
+<div id="perfil">
+  <h2>Perfil</h2>
+
+  <img id="perfilImg" width="100"><br>
+  <b id="perfilApodo"></b><br>
+  <span id="perfilID"></span>
+
+  <button onclick="volver()">Volver</button>
+</div>
+
+<!-- BOTONES FIJOS -->
+<button id="btnModo" onclick="toggleModo()">Modo</button>
+<button id="btnPerfil" onclick="abrirPerfil()">Perfil</button>
+
+<script src="login.js"></script>
+
+<script>
+// CREAR
+function mostrarCrear(){
+  crearPanel.style.display="block";
+  loginPanel.style.display="none";
+  cuentas.style.display="none";
+  tituloCuentas.style.display="none";
+  volverBtn.style.display="block";
+}
+
+// LOGIN
+function mostrarLogin(){
+  loginPanel.style.display="block";
+  crearPanel.style.display="none";
+  cuentas.style.display="none";
+  tituloCuentas.style.display="none";
+  volverBtn.style.display="block";
+}
+
+// VOLVER
+function volver(){
+  crearPanel.style.display="none";
+  loginPanel.style.display="none";
+  cuentas.style.display="block";
+  tituloCuentas.style.display="block";
+  volverBtn.style.display="none";
+
+  perfil.style.display="none";
+  menu.style.display="flex";
+}
+
+// MODO
+function toggleModo(){
+  document.body.classList.toggle("claro");
+}
+
+// ENTRAR (pantalla carga)
+function abrirCarga(){
+  app.style.display="none";
+  cargando.style.display="flex";
+}
+
+function volverApp(){
+  cargando.style.display="none";
+  app.style.display="flex";
+}
+</script>
+
+</body>
+</html>

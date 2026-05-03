@@ -1,239 +1,95 @@
 const express = require("express");
+const fs = require("fs");
 const app = express();
 
-app.get("/", (req, res) => {
+app.use(express.json());
+app.use(express.static("public"));
 
-res.setHeader("Content-Type", "text/html");
+let users = [];
 
-res.send(`
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body{margin:0;font-family:Arial;background:#111;color:white;}
-header{background:#222;padding:15px;text-align:center;font-size:24px;color:gold;}
-#container{display:flex;flex-wrap:wrap;}
-#left,#right{flex:1;padding:20px;text-align:center;}
-@media(max-width:700px){#container{flex-direction:column;}}
-
-.loader{
-border:6px solid #333;
-border-top:6px solid gold;
-border-radius:50%;
-width:70px;height:70px;
-margin:20px auto;
-animation:spin 1s linear infinite;
+// CARGAR USUARIOS
+if (fs.existsSync("users.json")) {
+  users = JSON.parse(fs.readFileSync("users.json"));
 }
 
-@keyframes spin{
-0%{transform:rotate(0);}
-100%{transform:rotate(360deg);}
+// 🔥 ASEGURAR FOTO SIEMPRE
+users = users.map(u => ({
+  ...u,
+  foto: u.foto || "https://i.pravatar.cc/150?img=1"
+}));
+
+function guardar(){
+  fs.writeFileSync("users.json", JSON.stringify(users,null,2));
 }
 
-#timer{font-size:22px;color:cyan;margin-top:10px;}
+// OBTENER CUENTAS
+app.get("/cuentas",(req,res)=>{
+  res.json(users);
+});
 
-#game{
-position:relative;
-width:500px;height:320px;
-background:black;
-margin:auto;
-overflow:hidden;
-border:2px solid gold;
-}
+// LOGIN / CREAR
+app.post("/login",(req,res)=>{
+  const {ide, apodo} = req.body;
 
-#percentGame{
-position:absolute;
-top:10px;right:15px;
-font-size:26px;color:lime;
-}
+  // LOGIN
+  if(ide){
+    const u = users.find(x=>x.ide == ide);
+    if(!u) return res.json({error:true});
+    return res.json(u);
+  }
 
-#player{
-width:40px;height:40px;
-background:lime;
-position:absolute;
-bottom:0;left:80px;
-}
-
-.spike{
-width:30px;height:40px;
-background:red;
-position:absolute;
-bottom:0;
-clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-}
-
-button{margin-top:10px;padding:10px 20px;}
-</style>
-</head>
-
-<body>
-
-<header>🏆 LOS ANDELEROS 🏆</header>
-
-<div id="container">
-
-<div id="left">
-<h2>🔧 SERVIDORES EN MANTENIMIENTO</h2>
-<p>Lo sentimos, estamos en mantenimiento.</p>
-
-<div class="loader"></div>
-
-<div id="timer"></div>
-
-<p style="color:orange;margin-top:15px;">
-Lo sentimos pero estamos en mantenimiento 🚧
-</p>
-
-<p style="color:#aaa;margin-top:10px;font-size:14px;">
-No sabemos cuándo podrá estar la página web al 100% funcional por temas de copyright.
-</p>
-</div>
-
-<div id="right">
-<h3>🎮 Minijuego</h3>
-
-<div id="game">
-<div id="percentGame">0%</div>
-<div id="player"></div>
-</div>
-
-<button onclick="startGame()">JUGAR</button>
-</div>
-
-</div>
-
-<script>
-
-//////////////////////
-// ⏱️ TEMPORIZADOR (HOY A LAS 10:15)
-//////////////////////
-
-const timerEl = document.getElementById("timer");
-
-function getObjetivo(){
-    const objetivo = new Date();
-    objetivo.setHours(10, 15, 0, 0); // Hoy a las 10:15
-    return objetivo;
-}
-
-let objetivo = getObjetivo();
-
-function actualizar(){
-    const ahora = new Date();
-    let diff = objetivo - ahora;
-
-    if(diff <= 0){
-        timerEl.innerHTML = "⏳ Ya queda poco... sigue esperando y obtendrás tu recompensa";
-        return;
+  // CREAR
+  if(apodo){
+    if(users.length >= 5){
+      return res.json({error:"max"});
     }
 
-    const h = Math.floor(diff / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    const s = Math.floor((diff % 60000) / 1000);
+    let id;
+    do{
+      id = Math.floor(Math.random()*2000)+1;
+    }while(users.find(x=>x.ide == id));
 
-    timerEl.innerText = h + "h " + m + "m " + s + "s";
-}
+    const nuevo = {
+      apodo,
+      ide: id,
+      coins: 100,
+      foto: "https://i.pravatar.cc/150?img=3"
+    };
 
-setInterval(actualizar, 1000);
-actualizar();
+    users.push(nuevo);
+    guardar();
 
-//////////////////////
-// 🎮 MINIJUEGO
-//////////////////////
+    return res.json(nuevo);
+  }
 
-let y=0, vel=0, gravedad=-0.7;
-let spikes=[], jugando=false, tiempo=0;
-
-const game = document.getElementById("game");
-const player = document.getElementById("player");
-const percentGame = document.getElementById("percentGame");
-
-function startGame(){
-jugando=true;
-y=0; vel=0; tiempo=0;
-
-spikes.forEach(s=>s.el.remove());
-spikes=[];
-
-spawn();
-}
-
-function loop(){
-requestAnimationFrame(loop);
-if(!jugando) return;
-
-tiempo += 0.016;
-
-let progreso = Math.min(100, tiempo*5);
-percentGame.innerText = Math.floor(progreso)+"%";
-
-if(progreso>=100){
-jugando=false;
-alert("🏆 GANASTE");
-}
-
-vel += gravedad;
-y += vel;
-
-if(y<0){y=0;vel=0;}
-player.style.bottom=y+"px";
-
-spikes.forEach((s,i)=>{
-s.x -= 8;
-s.el.style.left = s.x+"px";
-
-if(s.x<110 && s.x>60 && y<35){
-jugando=false;
-alert("💀 Has muerto");
-}
-
-if(s.x<-50){
-s.el.remove();
-spikes.splice(i,1);
-}
-});
-}
-loop();
-
-function spawn(){
-if(!jugando) return;
-
-let s=document.createElement("div");
-s.className="spike";
-s.style.left="500px";
-
-game.appendChild(s);
-spikes.push({el:s,x:500});
-
-setTimeout(spawn,1200+Math.random()*1200);
-}
-
-function saltar(){
-if(jugando && y===0){
-vel=14;
-}
-}
-
-game.addEventListener("click", saltar);
-game.addEventListener("touchstart", saltar);
-
-document.addEventListener("keydown",(e)=>{
-if(e.code==="Space"){
-e.preventDefault();
-saltar();
-}
+  res.json({error:true});
 });
 
-</script>
+// ELIMINAR CUENTAS
+app.post("/eliminar",(req,res)=>{
+  const {ids} = req.body;
 
-</body>
-</html>
-`);
+  users = users.filter(u => !ids.includes(u.ide));
+  guardar();
 
+  res.json({ok:true});
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Servidor en puerto " + PORT));
+// CAMBIAR FOTO
+app.post("/guardarPerfil",(req,res)=>{
+  const {ide, foto} = req.body;
 
+  const u = users.find(x=>x.ide == ide);
+
+  if(u){
+    u.foto = foto;
+    guardar();
+    return res.json({ok:true});
+  }
+
+  res.json({error:true});
+});
+
+app.listen(3000,()=>{
+  console.log("Servidor en http://localhost:3000");
+});

@@ -14,7 +14,7 @@ Estas son las versiones que reciben actualizaciones de seguridad:
 Si encuentras una vulnerabilidad en este proyecto:
 
 1. **No abras un issue público.**
-2. Envíame un mensaje privado a: **magomagioso@gmail.com**
+2. Envíame un mensaje privado a: **jorgegarridot2014@gmail.com**
 3. Incluye:
    - Descripción del problema  
    - Cómo reproducirlo  

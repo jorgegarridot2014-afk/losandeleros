@@ -107,37 +107,40 @@ No sabemos cuándo podrá estar la página web al 100% funcional por temas de co
 <script>
 
 //////////////////////
-// ⏱️ TEMPORIZADOR (+1 día)
+// ⏱️ TEMPORIZADOR (HOY A LAS 10:15)
 //////////////////////
 
 const timerEl = document.getElementById("timer");
 
 function getObjetivo(){
-const ahora = new Date();
-const objetivo = new Date();
-objetivo.setHours(18,30,0,0);
-objetivo.setDate(objetivo.getDate()+1);
-return objetivo;
+    const objetivo = new Date();
+    objetivo.setHours(10, 15, 0, 0); // Hoy a las 10:15
+    return objetivo;
 }
 
 let objetivo = getObjetivo();
 
 function actualizar(){
-const ahora = new Date();
-let diff = objetivo - ahora;
+    const ahora = new Date();
+    let diff = objetivo - ahora;
 
-const h = Math.floor(diff/3600000);
-const m = Math.floor((diff%3600000)/60000);
-const s = Math.floor((diff%60000)/1000);
+    if(diff <= 0){
+        timerEl.innerHTML = "⏳ Ya queda poco... sigue esperando y obtendrás tu recompensa";
+        return;
+    }
 
-timerEl.innerText = h+"h "+m+"m "+s+"s";
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+
+    timerEl.innerText = h + "h " + m + "m " + s + "s";
 }
 
-setInterval(actualizar,1000);
+setInterval(actualizar, 1000);
 actualizar();
 
 //////////////////////
-// 🎮 MINIJUEGO (FIX REAL)
+// 🎮 MINIJUEGO
 //////////////////////
 
 let y=0, vel=0, gravedad=-0.7;
@@ -207,7 +210,6 @@ spikes.push({el:s,x:500});
 setTimeout(spawn,1200+Math.random()*1200);
 }
 
-/* 🔥 SOLO DENTRO DEL JUEGO */
 function saltar(){
 if(jugando && y===0){
 vel=14;
@@ -234,3 +236,4 @@ saltar();
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Servidor en puerto " + PORT));
+

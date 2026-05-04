@@ -1,95 +1,99 @@
 const express = require("express");
 const fs = require("fs");
+const cors = require("cors");
+const path = require("path");
+
 const app = express();
 
 app.use(express.json());
-app.use(express.static("public"));
+app.use(cors());
+app.use(express.static(path.join(__dirname, "public")));
 
-let users = [];
+const FILE = path.join(__dirname, "users.json");
 
-// CARGAR USUARIOS
-if (fs.existsSync("users.json")) {
-  users = JSON.parse(fs.readFileSync("users.json"));
+// 🔧 Crear archivo si no existe
+if (!fs.existsSync(FILE)) {
+  fs.writeFileSync(FILE, "[]");
 }
 
-// 🔥 ASEGURAR FOTO SIEMPRE
-users = users.map(u => ({
-  ...u,
-  foto: u.foto || "https://i.pravatar.cc/150?img=1"
-}));
-
-function guardar(){
-  fs.writeFileSync("users.json", JSON.stringify(users,null,2));
+// 📥 Leer usuarios
+function leerUsuarios() {
+  try {
+    const data = fs.readFileSync(FILE, "utf8");
+    return JSON.parse(data);
+  } catch (e) {
+    return [];
+  }
 }
 
-// OBTENER CUENTAS
-app.get("/cuentas",(req,res)=>{
-  res.json(users);
-});
+// 💾 Guardar usuarios
+function guardarUsuarios(data) {
+  fs.writeFileSync(FILE, JSON.stringify(data, null, 2));
+}
 
-// LOGIN / CREAR
-app.post("/login",(req,res)=>{
-  const {ide, apodo} = req.body;
+// 🔢 Generar ID único
+function generarID(usuarios) {
+  let id = usuarios.length + 1;
+  return id.toString().padStart(4, "0");
+}
 
-  // LOGIN
-  if(ide){
-    const u = users.find(x=>x.ide == ide);
-    if(!u) return res.json({error:true});
-    return res.json(u);
+// 🆕 CREAR CUENTA
+app.post("/crear", (req, res) => {
+  const { apodo } = req.body;
+
+  if (!apodo) {
+    return res.status(400).json({ error: "Falta apodo" });
   }
 
-  // CREAR
-  if(apodo){
-    if(users.length >= 5){
-      return res.json({error:"max"});
-    }
+  const usuarios = leerUsuarios();
 
-    let id;
-    do{
-      id = Math.floor(Math.random()*2000)+1;
-    }while(users.find(x=>x.ide == id));
+  const nuevo = {
+    apodo: apodo,
+    ide: generarID(usuarios),
+    foto: ""
+  };
 
-    const nuevo = {
-      apodo,
-      ide: id,
-      coins: 100,
-      foto: "https://i.pravatar.cc/150?img=3"
-    };
+  usuarios.push(nuevo);
+  guardarUsuarios(usuarios);
 
-    users.push(nuevo);
-    guardar();
+  res.json(nuevo);
+});
 
-    return res.json(nuevo);
+// 🔑 LOGIN
+app.post("/login", (req, res) => {
+  const { ide } = req.body;
+
+  if (!ide) {
+    return res.status(400).json({ error: "Falta ID" });
   }
 
-  res.json({error:true});
-});
+  const usuarios = leerUsuarios();
 
-// ELIMINAR CUENTAS
-app.post("/eliminar",(req,res)=>{
-  const {ids} = req.body;
+  const user = usuarios.find(u => u.ide === ide);
 
-  users = users.filter(u => !ids.includes(u.ide));
-  guardar();
-
-  res.json({ok:true});
-});
-
-// CAMBIAR FOTO
-app.post("/guardarPerfil",(req,res)=>{
-  const {ide, foto} = req.body;
-
-  const u = users.find(x=>x.ide == ide);
-
-  if(u){
-    u.foto = foto;
-    guardar();
-    return res.json({ok:true});
+  if (!user) {
+    return res.status(404).json({ error: "No existe" });
   }
 
-  res.json({error:true});
+  res.json(user);
 });
 
-app.listen(3000,()=>{
-  console.log("Servidor en http://localhost:3000");
+// 🔍 RECUPERAR CUENTA (GLOBAL)
+app.get("/recuperar/:texto", (req, res) => {
+  const texto = req.params.texto.toLowerCase();
+
+  const usuarios = leerUsuarios();
+
+  const resultados = usuarios.filter(u =>
+    u.apodo.toLowerCase().includes(texto)
+  );
+
+  res.json(resultados);
+});
+
+// 🚀 INICIAR SERVIDOR
+const PORT = 3000;
+
+app.listen(PORT, () => {
+  console.log(`Servidor funcionando en http://localhost:${PORT}`);
 });

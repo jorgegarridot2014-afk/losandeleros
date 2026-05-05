@@ -1,7 +1,7 @@
 let usuario = null;
 
-// 🚀 INICIO AUTOMÁTICO
-window.onload = () => {
+// 🚀 AL CARGAR
+window.onload = function () {
   const guardado = localStorage.getItem("user");
 
   if (guardado) {
@@ -10,32 +10,29 @@ window.onload = () => {
   }
 };
 
-// 🔄 MOSTRAR MENÚS
-function mostrar(tipo){
+// 📂 MOSTRAR MENÚ
+function mostrar(tipo) {
   const panel = document.getElementById("panel");
 
-  if(tipo === "crear"){
+  if (tipo === "crear") {
     panel.innerHTML = `
-      <input id="apodo" placeholder="Apodo">
-      <br>
+      <input id="apodo" placeholder="Apodo"><br>
       <button onclick="crear()">Crear cuenta</button>
       <button onclick="volver()">Volver</button>
     `;
   }
 
-  if(tipo === "login"){
+  if (tipo === "login") {
     panel.innerHTML = `
-      <input id="ide" placeholder="ID">
-      <br>
+      <input id="ide" placeholder="ID"><br>
       <button onclick="login()">Entrar</button>
       <button onclick="volver()">Volver</button>
     `;
   }
 
-  if(tipo === "buscar"){
+  if (tipo === "buscar") {
     panel.innerHTML = `
-      <input id="buscar" placeholder="Buscar cuenta">
-      <br>
+      <input id="buscar" placeholder="Buscar"><br>
       <button onclick="recuperar()">Buscar</button>
       <button onclick="volver()">Volver</button>
     `;
@@ -43,65 +40,64 @@ function mostrar(tipo){
 }
 
 // 🔙 VOLVER
-function volver(){
+function volver() {
   document.getElementById("panel").innerHTML = "";
 }
 
 // 🆕 CREAR CUENTA
-async function crear(){
+async function crear() {
   const apodo = document.getElementById("apodo").value;
 
-  if(!apodo){
+  if (!apodo) {
     alert("Pon un apodo");
     return;
   }
 
-  try{
-    const res = await fetch("/crear",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({apodo})
+  try {
+    const res = await fetch("/crear", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ apodo })
     });
 
     const data = await res.json();
-
     const user = data.user || data;
 
-    if(user && user.ide){
-      alert("✅ Cuenta creada\nTu ID: " + user.ide);
+    if (user && user.ide) {
+      alert("Tu ID es: " + user.ide);
 
       usuario = user;
       guardar();
       actualizarSesion();
       volver();
     } else {
-      alert(data.error || "Error al crear cuenta");
+      alert(data.error || "Error");
     }
 
-  } catch(e){
-    alert("Error de conexión con el servidor");
+  } catch (e) {
+    alert("Error servidor");
   }
 }
 
 // 🔑 LOGIN
-async function login(){
+async function login() {
   const ide = document.getElementById("ide").value;
 
-  if(!ide){
+  if (!ide) {
     alert("Pon un ID");
     return;
   }
 
-  try{
-    const res = await fetch("/login",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ide})
+  try {
+    const res = await fetch("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ide })
     });
 
     const data = await res.json();
 
-    if(data && data.ide){
+    if (data && data.ide) {
       usuario = data;
 
       guardar();
@@ -111,80 +107,84 @@ async function login(){
       alert(data.error || "No existe");
     }
 
-  } catch(e){
-    alert("Error de conexión con el servidor");
+  } catch (e) {
+    alert("Error servidor");
   }
 }
 
-// 🔍 RECUPERAR CUENTA
-async function recuperar(){
+// 🔍 RECUPERAR
+async function recuperar() {
   const texto = document.getElementById("buscar").value;
 
-  if(!texto){
+  if (!texto) {
     alert("Escribe algo");
     return;
   }
 
-  try{
-    const res = await fetch("/recuperar/"+texto);
+  try {
+    const res = await fetch("/recuperar/" + texto);
     const data = await res.json();
 
-    if(data.length === 0){
-      alert("No se encontraron cuentas");
+    if (data.length === 0) {
+      alert("Nada encontrado");
     } else {
-      let lista = data.map(u => `${u.apodo} (ID: ${u.ide})`).join("\n");
-      alert("Resultados:\n\n" + lista);
+      let lista = data.map(u => u.apodo + " (ID: " + u.ide + ")").join("\n");
+      alert(lista);
     }
 
-  } catch(e){
-    alert("Error de conexión");
+  } catch (e) {
+    alert("Error servidor");
   }
 }
 
-// 💾 GUARDAR SESIÓN
-function guardar(){
+// 💾 GUARDAR
+function guardar() {
   localStorage.setItem("user", JSON.stringify(usuario));
 }
 
 // 🔝 TEXTO SESIÓN
-function actualizarSesion(){
+function actualizarSesion() {
   const txt = document.getElementById("sesion");
 
-  if(usuario){
-    txt.innerText = "👤 " + usuario.apodo + " | Conectado";
+  if (usuario) {
+    txt.innerText = "👤 " + usuario.apodo;
   } else {
-    txt.innerText = "❌ No has iniciado sesión";
+    txt.innerText = "No has iniciado sesión";
   }
 }
 
 // 🚪 LOGOUT
-function logout(){
+function logout() {
   localStorage.removeItem("user");
   location.reload();
 }
 
 // 👤 PERFIL
-function abrirPerfil(){
-  if(!usuario){
+function abrirPerfil() {
+  if (!usuario) {
     alert("No has iniciado sesión");
     return;
   }
 
   const box = document.getElementById("perfilBox");
 
-  box.style.display = box.style.display === "block" ? "none" : "block";
+  if (box.style.display === "block") {
+    box.style.display = "none";
+  } else {
+    box.style.display = "block";
+  }
 
   document.getElementById("nombre").innerText = usuario.apodo;
   document.getElementById("miID").innerText = usuario.ide;
   document.getElementById("avatarGrande").innerText = usuario.avatar || "😎";
 }
 
-// 🎮 BOTÓN ENTRAR
-function entrar(){
-  alert("🔥 Ya queda poco... preparando juego");
+// 🎮 ENTRAR
+function entrar() {
+  alert("Ya queda poco...");
 }
 
 // 🌙 MODO
-function cambiarModo(){
+function cambiarModo() {
   document.body.classList.toggle("light");
 }

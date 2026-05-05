@@ -1,125 +1,168 @@
-const express = require("express");
-const fs = require("fs");
-const cors = require("cors");
-const path = require("path");
+let usuario = null;
 
-const app = express();
+// INICIO
+window.onload = () => {
+  const guardado = localStorage.getItem("user");
 
-app.use(express.json());
-app.use(cors());
-app.use(express.static(path.join(__dirname, "public")));
+  if (guardado) {
+    usuario = JSON.parse(guardado);
+    actualizarSesion();
+  }
+};
 
-const FILE = path.join(__dirname, "users.json");
+// MOSTRAR OPCIONES
+function mostrar(tipo){
+  const panel = document.getElementById("panel");
 
-// 📁 Crear users.json si no existe
-if (!fs.existsSync(FILE)) {
-  fs.writeFileSync(FILE, "[]");
-}
+  if(tipo === "crear"){
+    panel.innerHTML = `
+      <input id="apodo" placeholder="Apodo">
+      <button onclick="crear()">Crear</button>
+      <button onclick="volver()">Volver</button>
+    `;
+  }
 
-// 📥 Leer usuarios
-function leerUsuarios() {
-  try {
-    const data = fs.readFileSync(FILE, "utf8");
-    return JSON.parse(data);
-  } catch (e) {
-    return [];
+  if(tipo === "login"){
+    panel.innerHTML = `
+      <input id="ide" placeholder="ID">
+      <button onclick="login()">Entrar</button>
+      <button onclick="volver()">Volver</button>
+    `;
+  }
+
+  if(tipo === "buscar"){
+    panel.innerHTML = `
+      <input id="buscar" placeholder="Buscar">
+      <button onclick="recuperar()">Buscar</button>
+      <button onclick="volver()">Volver</button>
+    `;
   }
 }
 
-// 💾 Guardar usuarios
-function guardarUsuarios(usuarios) {
-  fs.writeFileSync(FILE, JSON.stringify(usuarios, null, 2));
+// VOLVER
+function volver(){
+  document.getElementById("panel").innerHTML = "";
 }
 
-// 🔢 Generar ID único
-function generarID(usuarios) {
-  let id;
-  let existe = true;
+// CREAR CUENTA (SIN ERRORES)
+async function crear(){
+  const apodo = document.getElementById("apodo").value;
 
-  while (existe) {
-    id = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
-    existe = usuarios.some(u => u.ide === id.toString());
+  if(!apodo){
+    alert("Pon un apodo");
+    return;
   }
 
-  return id.toString();
+  const res = await fetch("/crear",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({apodo})
+  });
+
+  const data = await res.json();
+
+  // 🔥 ACEPTA AMBOS FORMATOS
+  const user = data.user || data;
+
+  if(user && user.ide){
+    alert("Tu ID: " + user.ide);
+
+    usuario = user;
+    guardar();
+    actualizarSesion();
+    volver();
+  } else {
+    alert(data.error || "Error al crear cuenta");
+  }
 }
 
-// 🆕 CREAR CUENTA
-app.post("/crear", (req, res) => {
-  const { apodo } = req.body;
+// LOGIN (ARREGLADO DEFINITIVO)
+async function login(){
+  const ide = document.getElementById("ide").value;
 
-  if (!apodo) {
-    return res.json({ error: "Falta apodo" });
+  if(!ide){
+    alert("Pon un ID");
+    return;
   }
 
-  const usuarios = leerUsuarios();
+  const res = await fetch("/login",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ide})
+  });
 
-  const nuevo = {
-    apodo: apodo,
-    ide: generarID(usuarios),
-    avatar: "😎"
-  };
+  const data = await res.json();
 
-  usuarios.push(nuevo);
-  guardarUsuarios(usuarios);
+  // 🔥 FIX REAL
+  if(data && data.ide){
+    usuario = data;
 
-  res.json({ user: nuevo }); // 🔥 IMPORTANTE
-});
+    guardar();
+    actualizarSesion();
+    volver();
+  } else {
+    alert(data.error || "No existe");
+  }
+}
 
-// 🔑 LOGIN
-app.post("/login", (req, res) => {
-  const { ide } = req.body;
+// RECUPERAR
+async function recuperar(){
+  const texto = document.getElementById("buscar").value;
 
-  if (!ide) {
-    return res.json({ error: "Falta ID" });
+  const res = await fetch("/recuperar/"+texto);
+  const data = await res.json();
+
+  if(data.length === 0){
+    alert("Nada");
+  } else {
+    alert(data.map(u => u.apodo+" ("+u.ide+")").join("\n"));
+  }
+}
+
+// GUARDAR SESIÓN
+function guardar(){
+  localStorage.setItem("user", JSON.stringify(usuario));
+}
+
+// TEXTO SESIÓN
+function actualizarSesion(){
+  const txt = document.getElementById("sesion");
+
+  if(usuario){
+    txt.innerText = "Sesión: " + usuario.apodo + " ✔";
+  } else {
+    txt.innerText = "No has iniciado sesión";
+  }
+}
+
+// LOGOUT
+function logout(){
+  localStorage.removeItem("user");
+  location.reload();
+}
+
+// PERFIL
+function abrirPerfil(){
+  if(!usuario){
+    alert("No has iniciado sesión");
+    return;
   }
 
-  const usuarios = leerUsuarios();
+  const box = document.getElementById("perfilBox");
 
-  const user = usuarios.find(u => u.ide === ide);
+  box.style.display = box.style.display === "block" ? "none" : "block";
 
-  if (!user) {
-    return res.json({ error: "No existe" });
-  }
+  document.getElementById("nombre").innerText = usuario.apodo;
+  document.getElementById("miID").innerText = usuario.ide;
+  document.getElementById("avatarGrande").innerText = usuario.avatar || "😎";
+}
 
-  res.json(user);
-});
+// ENTRAR
+function entrar(){
+  alert("🔥 Ya queda poco...");
+}
 
-// 🔍 RECUPERAR CUENTA
-app.get("/recuperar/:texto", (req, res) => {
-  const texto = req.params.texto.toLowerCase();
-
-  const usuarios = leerUsuarios();
-
-  const resultados = usuarios.filter(u =>
-    u.apodo.toLowerCase().includes(texto)
-  );
-
-  res.json(resultados);
-});
-
-// 🎨 CAMBIAR AVATAR
-app.post("/avatar", (req, res) => {
-  const { ide, avatar } = req.body;
-
-  const usuarios = leerUsuarios();
-
-  const user = usuarios.find(u => u.ide === ide);
-
-  if (!user) {
-    return res.json({ error: "No existe" });
-  }
-
-  user.avatar = avatar;
-
-  guardarUsuarios(usuarios);
-
-  res.json({ ok: true });
-});
-
-// 🚀 INICIAR SERVIDOR
-const PORT = 3000;
-
-app.listen(PORT, () => {
-  console.log("Servidor funcionando en http://localhost:" + PORT);
-});
+// MODO
+function cambiarModo(){
+  document.body.classList.toggle("light");
+}

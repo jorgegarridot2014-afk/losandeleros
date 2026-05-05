@@ -45,7 +45,12 @@ app.post("/crear", (req, res) => {
     return res.status(400).json({ error: "Falta apodo" });
   }
 
-  const usuarios = leerUsuarios();
+  let usuarios = leerUsuarios();
+
+  // 🚫 evitar duplicados
+  if (usuarios.find(u => u.apodo === apodo)) {
+    return res.status(400).json({ error: "Ese apodo ya existe" });
+  }
 
   const nuevo = {
     apodo: apodo,
@@ -68,7 +73,6 @@ app.post("/login", (req, res) => {
   }
 
   const usuarios = leerUsuarios();
-
   const user = usuarios.find(u => u.ide === ide);
 
   if (!user) {
@@ -78,10 +82,9 @@ app.post("/login", (req, res) => {
   res.json(user);
 });
 
-// 🔍 RECUPERAR CUENTA (GLOBAL)
+// 🔍 RECUPERAR CUENTA
 app.get("/recuperar/:texto", (req, res) => {
   const texto = req.params.texto.toLowerCase();
-
   const usuarios = leerUsuarios();
 
   const resultados = usuarios.filter(u =>
@@ -91,9 +94,22 @@ app.get("/recuperar/:texto", (req, res) => {
   res.json(resultados);
 });
 
-// 🚀 INICIAR SERVIDOR
-const PORT = 3000;
+// 👀 VER TODOS LOS USUARIOS (para probar)
+app.get("/users", (req, res) => {
+  res.json(leerUsuarios());
+});
+
+// 🗑️ BORRAR USUARIO (opcional PRO)
+app.delete("/borrar/:id", (req, res) => {
+  let usuarios = leerUsuarios();
+  usuarios = usuarios.filter(u => u.ide !== req.params.id);
+  guardarUsuarios(usuarios);
+  res.json({ ok: true });
+});
+
+// 🚀 IMPORTANTE PARA DEPLOY
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`Servidor funcionando en http://localhost:${PORT}`);
+  console.log(`Servidor funcionando en puerto ${PORT}`);
 });

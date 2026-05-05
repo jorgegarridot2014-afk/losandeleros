@@ -1,0 +1,31 @@
+body {
+  background: #0b1e3a;
+  color: white;
+  font-family: Arial;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+}
+
+.contenedor {
+  text-align: center;
+}
+
+/* RUEDA */
+.spinner {
+  width: 80px;
+  height: 80px;
+  border: 8px solid #ccc;
+  border-top: 8px solid orange;
+  border-radius: 50%;
+  animation: girar 1s linear infinite;
+  margin: auto;
+  margin-bottom: 20px;
+}
+
+@keyframes girar {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

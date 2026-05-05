@@ -1,84 +1,31 @@
-body{
+body {
+  background: #0b1e3a;
+  color: white;
   font-family: Arial;
-  background:#0a0f1c; /* negro azulado */
-  color:white;
-  text-align:center;
-  transition:0.3s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
 }
 
-/* 🌞 MODO CLARO AZUL */
-body.claro{
-  background:#dce8ff;
-  color:#0a1a3a;
+.contenedor {
+  text-align: center;
 }
 
-.phone{
-  max-width:320px;
-  margin:auto;
-  padding:20px;
+/* RUEDA */
+.spinner {
+  width: 80px;
+  height: 80px;
+  border: 8px solid #ccc;
+  border-top: 8px solid orange;
+  border-radius: 50%;
+  animation: girar 1s linear infinite;
+  margin: auto;
+  margin-bottom: 20px;
 }
 
-/* 🔥 BOTONES */
-button{
-  margin:8px;
-  padding:12px;
-  border:none;
-  border-radius:12px;
-  background:linear-gradient(45deg,#ff7b00,#ffae00);
-  color:white;
-  font-weight:bold;
-}
-
-/* 🌙 CUENTAS (oscuro) */
-#cuentas div{
-  background:#111a2e;
-  margin:5px;
-  padding:10px;
-  border-radius:10px;
-  cursor:pointer;
-  color:white;
-}
-
-/* 🌞 CUENTAS (claro) 🔥 ARREGLADO */
-body.claro #cuentas div{
-  background:#bcd3ff;   /* azul claro */
-  color:#0a1a3a;        /* texto oscuro visible */
-}
-
-/* PERFIL */
-#perfil img{
-  border-radius:50%;
-  border:3px solid orange;
-}
-
-/* FOTOS */
-#fotos img{
-  width:60px;
-  margin:5px;
-  border-radius:50%;
-  cursor:pointer;
-  border:2px solid transparent;
-}
-
-#fotos img:hover{
-  border:2px solid orange;
-}
-
-/* BOTONES FIJOS */
-#btnPerfil{
-  position:fixed;
-  bottom:20px;
-  right:20px;
-}
-
-#btnModo{
-  position:fixed;
-  bottom:20px;
-  left:20px;
-}
-
-#btnMusica{
-  position:fixed;
-  bottom:70px;
-  right:20px;
+@keyframes girar {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

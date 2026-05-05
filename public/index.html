@@ -1,42 +1,20 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Mi Web</title>
-
+  <title>Mantenimiento</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- TEXTO SESIÓN -->
-  <div id="sesion">No has iniciado sesión</div>
+<div class="contenedor">
+  <div class="spinner"></div>
 
-  <!-- BOTONES PRINCIPALES -->
-  <div id="menu">
-    <button onclick="mostrar('crear')">Crear cuenta</button>
-    <button onclick="mostrar('login')">Iniciar sesión</button>
-    <button onclick="mostrar('buscar')">Recuperar cuenta</button>
-    <button onclick="entrar()">Entrar</button>
-    <button onclick="logout()">Cerrar sesión</button>
-  </div>
+  <h1>🚧 Estamos en mantenimiento</h1>
+  <p>Estamos mejorando la web...</p>
+  <p>👉 Todos los usuarios serán recompensados</p>
+</div>
 
-  <!-- PANEL DINÁMICO -->
-  <div id="panel"></div>
-
-  <!-- BOTÓN MODO -->
-  <button id="modo" onclick="cambiarModo()">Modo</button>
-
-  <!-- BOTÓN PERFIL -->
-  <button id="perfil" onclick="abrirPerfil()">Perfil</button>
-
-  <!-- PERFIL -->
-  <div id="perfilBox" style="display:none;">
-    <h3 id="nombre"></h3>
-    <p>ID: <span id="miID"></span></p>
-    <div id="avatarGrande">😎</div>
-  </div>
-
-  <!-- 🔥 IMPORTANTE: SCRIPT AL FINAL -->
-  <script src="login.js"></script>
+<script src="login.js"></script>
 </body>
 </html>

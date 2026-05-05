@@ -1,93 +1,42 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>App</title>
-<link rel="stylesheet" href="style.css">
-</head>
+  <meta charset="UTF-8">
+  <title>Mi Web</title>
 
+  <link rel="stylesheet" href="style.css">
+</head>
 <body>
 
-<div class="phone">
+  <!-- TEXTO SESIÓN -->
+  <div id="sesion">No has iniciado sesión</div>
 
-<div id="estado">No has iniciado sesión</div>
+  <!-- BOTONES PRINCIPALES -->
+  <div id="menu">
+    <button onclick="mostrar('crear')">Crear cuenta</button>
+    <button onclick="mostrar('login')">Iniciar sesión</button>
+    <button onclick="mostrar('buscar')">Recuperar cuenta</button>
+    <button onclick="entrar()">Entrar</button>
+    <button onclick="logout()">Cerrar sesión</button>
+  </div>
 
-<!-- MENU -->
-<div id="menu">
+  <!-- PANEL DINÁMICO -->
+  <div id="panel"></div>
 
-<div id="menuPrincipal">
-<button id="btnCrear">Crear cuenta</button>
-<button id="btnLogin">Iniciar sesión</button>
-<button id="btnRecuperar">Recuperar cuenta</button>
-</div>
+  <!-- BOTÓN MODO -->
+  <button id="modo" onclick="cambiarModo()">Modo</button>
 
-<h3 id="tituloCuentas">Cuentas guardadas</h3>
-<div id="cuentas"></div>
+  <!-- BOTÓN PERFIL -->
+  <button id="perfil" onclick="abrirPerfil()">Perfil</button>
 
-<button id="btnVolver" style="display:none;">⬅ Volver</button>
+  <!-- PERFIL -->
+  <div id="perfilBox" style="display:none;">
+    <h3 id="nombre"></h3>
+    <p>ID: <span id="miID"></span></p>
+    <div id="avatarGrande">😎</div>
+  </div>
 
-<!-- CREAR -->
-<div id="crearPanel" class="panel" style="display:none;">
-<input id="apodoInput" placeholder="Apodo">
-<button id="crearCuenta">Crear</button>
-</div>
-
-<!-- LOGIN -->
-<div id="loginPanel" class="panel" style="display:none;">
-<input id="ideInput" placeholder="ID">
-<button id="entrar">Entrar</button>
-</div>
-
-<!-- RECUPERAR -->
-<div id="recuperarPanel" class="panel" style="display:none;">
-<input id="recuperarInput" placeholder="Apodo">
-<button id="buscarCuenta">Buscar</button>
-</div>
-
-</div>
-
-<!-- APP -->
-<div id="app" style="display:none;">
-<h2 id="usuarioTexto"></h2>
-
-<button id="btnEntrarJuego">Entrar</button>
-<button id="logout">Cerrar sesión</button>
-</div>
-
-<!-- PANTALLA JUEGO -->
-<div id="juego" style="display:none;">
-<h2>🎮 Ya queda poco para jugar...</h2>
-<button onclick="volverApp()">Volver</button>
-</div>
-
-<!-- PERFIL -->
-<div id="perfil" style="display:none;">
-<h2>👤 Perfil</h2>
-
-<img id="perfilImg" width="100">
-
-<p><b>Apodo:</b> <span id="perfilApodo"></span></p>
-<p><b>ID:</b> <span id="perfilID"></span></p>
-
-<h3>Elegir foto</h3>
-
-<div id="fotos">
-<img src="https://i.pravatar.cc/100?img=1">
-<img src="https://i.pravatar.cc/100?img=2">
-<img src="https://i.pravatar.cc/100?img=3">
-<img src="https://i.pravatar.cc/100?img=4">
-</div>
-
-<button onclick="cerrarPerfil()">Volver</button>
-</div>
-
-<!-- BOTONES -->
-<button id="btnPerfil">👤</button>
-<button id="btnModo">🌗</button>
-
-</div>
-
-<script src="login.js"></script>
-
+  <!-- 🔥 IMPORTANTE: SCRIPT AL FINAL -->
+  <script src="login.js"></script>
 </body>
 </html>

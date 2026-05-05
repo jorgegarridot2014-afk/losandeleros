@@ -1,6 +1,6 @@
 let usuario = null;
 
-// 🚀 AL CARGAR
+// INICIO
 window.onload = function () {
   const guardado = localStorage.getItem("user");
 
@@ -10,14 +10,14 @@ window.onload = function () {
   }
 };
 
-// 📂 MOSTRAR MENÚ
+// MOSTRAR OPCIONES
 function mostrar(tipo) {
   const panel = document.getElementById("panel");
 
   if (tipo === "crear") {
     panel.innerHTML = `
       <input id="apodo" placeholder="Apodo"><br>
-      <button onclick="crear()">Crear cuenta</button>
+      <button onclick="crear()">Crear</button>
       <button onclick="volver()">Volver</button>
     `;
   }
@@ -39,12 +39,12 @@ function mostrar(tipo) {
   }
 }
 
-// 🔙 VOLVER
+// VOLVER
 function volver() {
   document.getElementById("panel").innerHTML = "";
 }
 
-// 🆕 CREAR CUENTA
+// CREAR
 async function crear() {
   const apodo = document.getElementById("apodo").value;
 
@@ -53,33 +53,28 @@ async function crear() {
     return;
   }
 
-  try {
-    const res = await fetch("/crear", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ apodo })
-    });
+  const res = await fetch("/crear", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ apodo })
+  });
 
-    const data = await res.json();
-    const user = data.user || data;
+  const data = await res.json();
+  const user = data.user || data;
 
-    if (user && user.ide) {
-      alert("Tu ID es: " + user.ide);
+  if (user && user.ide) {
+    alert("Tu ID: " + user.ide);
 
-      usuario = user;
-      guardar();
-      actualizarSesion();
-      volver();
-    } else {
-      alert(data.error || "Error");
-    }
-
-  } catch (e) {
-    alert("Error servidor");
+    usuario = user;
+    guardar();
+    actualizarSesion();
+    volver();
+  } else {
+    alert("Error");
   }
 }
 
-// 🔑 LOGIN
+// LOGIN
 async function login() {
   const ide = document.getElementById("ide").value;
 
@@ -88,61 +83,45 @@ async function login() {
     return;
   }
 
-  try {
-    const res = await fetch("/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ide })
-    });
+  const res = await fetch("/login", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ ide })
+  });
 
-    const data = await res.json();
+  const data = await res.json();
 
-    if (data && data.ide) {
-      usuario = data;
+  if (data && data.ide) {
+    usuario = data;
 
-      guardar();
-      actualizarSesion();
-      volver();
-    } else {
-      alert(data.error || "No existe");
-    }
-
-  } catch (e) {
-    alert("Error servidor");
+    guardar();
+    actualizarSesion();
+    volver();
+  } else {
+    alert("No existe");
   }
 }
 
-// 🔍 RECUPERAR
+// RECUPERAR
 async function recuperar() {
   const texto = document.getElementById("buscar").value;
 
-  if (!texto) {
-    alert("Escribe algo");
-    return;
-  }
+  const res = await fetch("/recuperar/" + texto);
+  const data = await res.json();
 
-  try {
-    const res = await fetch("/recuperar/" + texto);
-    const data = await res.json();
-
-    if (data.length === 0) {
-      alert("Nada encontrado");
-    } else {
-      let lista = data.map(u => u.apodo + " (ID: " + u.ide + ")").join("\n");
-      alert(lista);
-    }
-
-  } catch (e) {
-    alert("Error servidor");
+  if (data.length === 0) {
+    alert("Nada");
+  } else {
+    alert(data.map(u => u.apodo + " (" + u.ide + ")").join("\n"));
   }
 }
 
-// 💾 GUARDAR
+// GUARDAR
 function guardar() {
   localStorage.setItem("user", JSON.stringify(usuario));
 }
 
-// 🔝 TEXTO SESIÓN
+// SESIÓN
 function actualizarSesion() {
   const txt = document.getElementById("sesion");
 
@@ -153,13 +132,13 @@ function actualizarSesion() {
   }
 }
 
-// 🚪 LOGOUT
+// LOGOUT
 function logout() {
   localStorage.removeItem("user");
   location.reload();
 }
 
-// 👤 PERFIL
+// PERFIL
 function abrirPerfil() {
   if (!usuario) {
     alert("No has iniciado sesión");
@@ -168,23 +147,19 @@ function abrirPerfil() {
 
   const box = document.getElementById("perfilBox");
 
-  if (box.style.display === "block") {
-    box.style.display = "none";
-  } else {
-    box.style.display = "block";
-  }
+  box.style.display = box.style.display === "block" ? "none" : "block";
 
   document.getElementById("nombre").innerText = usuario.apodo;
   document.getElementById("miID").innerText = usuario.ide;
   document.getElementById("avatarGrande").innerText = usuario.avatar || "😎";
 }
 
-// 🎮 ENTRAR
+// ENTRAR
 function entrar() {
   alert("Ya queda poco...");
 }
 
-// 🌙 MODO
+// MODO
 function cambiarModo() {
   document.body.classList.toggle("light");
 }

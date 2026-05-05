@@ -1,209 +1,168 @@
 let usuario = null;
-let cuentasGuardadas = JSON.parse(localStorage.getItem("cuentas")) || [];
 
+// INICIO
 window.onload = () => {
+  const guardado = localStorage.getItem("user");
 
-  const btnCrear = document.getElementById("btnCrear");
-  const btnLogin = document.getElementById("btnLogin");
-  const btnRecuperar = document.getElementById("btnRecuperar");
-  const btnVolver = document.getElementById("btnVolver");
+  if (guardado) {
+    usuario = JSON.parse(guardado);
+    actualizarSesion();
+  }
+};
 
-  const crearPanel = document.getElementById("crearPanel");
-  const loginPanel = document.getElementById("loginPanel");
-  const recuperarPanel = document.getElementById("recuperarPanel");
+// MOSTRAR OPCIONES
+function mostrar(tipo){
+  const panel = document.getElementById("panel");
 
-  const menuPrincipal = document.getElementById("menuPrincipal");
-
-  const cuentasDiv = document.getElementById("cuentas");
-  const tituloCuentas = document.getElementById("tituloCuentas");
-
-  const perfil = document.getElementById("perfil");
-  const app = document.getElementById("app");
-  const menu = document.getElementById("menu");
-  const juego = document.getElementById("juego");
-
-  const perfilImg = document.getElementById("perfilImg");
-  const perfilApodo = document.getElementById("perfilApodo");
-  const perfilID = document.getElementById("perfilID");
-
-  const estado = document.getElementById("estado");
-  const usuarioTexto = document.getElementById("usuarioTexto");
-
-  // AUTO LOGIN
-  const ultima = localStorage.getItem("ultimaCuenta");
-  if(ultima) loginPorID(ultima);
-
-  cargarCuentas();
-
-  // MENÚ
-  btnCrear.onclick = ()=>mostrar(crearPanel);
-  btnLogin.onclick = ()=>mostrar(loginPanel);
-  btnRecuperar.onclick = ()=>mostrar(recuperarPanel);
-  btnVolver.onclick = volver;
-
-  function mostrar(panel){
-    ocultar();
-    panel.style.display="block";
-    btnVolver.style.display="block";
-    menuPrincipal.style.display="none";
+  if(tipo === "crear"){
+    panel.innerHTML = `
+      <input id="apodo" placeholder="Apodo">
+      <button onclick="crear()">Crear</button>
+      <button onclick="volver()">Volver</button>
+    `;
   }
 
-  function volver(){
-    ocultar();
-    menuPrincipal.style.display="block";
-    btnVolver.style.display="none";
+  if(tipo === "login"){
+    panel.innerHTML = `
+      <input id="ide" placeholder="ID">
+      <button onclick="login()">Entrar</button>
+      <button onclick="volver()">Volver</button>
+    `;
   }
 
-  function ocultar(){
-    crearPanel.style.display="none";
-    loginPanel.style.display="none";
-    recuperarPanel.style.display="none";
+  if(tipo === "buscar"){
+    panel.innerHTML = `
+      <input id="buscar" placeholder="Buscar">
+      <button onclick="recuperar()">Buscar</button>
+      <button onclick="volver()">Volver</button>
+    `;
+  }
+}
+
+// VOLVER
+function volver(){
+  document.getElementById("panel").innerHTML = "";
+}
+
+// CREAR CUENTA (SIN ERRORES)
+async function crear(){
+  const apodo = document.getElementById("apodo").value;
+
+  if(!apodo){
+    alert("Pon un apodo");
+    return;
   }
 
-  // CREAR
-  document.getElementById("crearCuenta").onclick = async () => {
-    const apodo = document.getElementById("apodoInput").value.trim();
-    if(!apodo) return alert("Pon apodo");
-
-    const res = await fetch("/crear",{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ apodo })
-    });
-
-    const data = await res.json();
-
-    guardarCuenta(data);
-    alert("ID: " + data.ide);
-  };
-
-  // LOGIN
-  document.getElementById("entrar").onclick = () => {
-    loginPorID(document.getElementById("ideInput").value);
-  };
-
-  async function loginPorID(ide){
-    if(!ide) return;
-
-    const res = await fetch("/login",{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ ide })
-    });
-
-    if(!res.ok) return alert("No existe");
-
-    usuario = await res.json();
-
-    guardarCuenta(usuario);
-    localStorage.setItem("ultimaCuenta", usuario.ide);
-
-    menu.style.display="none";
-    app.style.display="block";
-
-    cuentasDiv.style.display="none";
-    tituloCuentas.style.display="none";
-
-    usuarioTexto.innerText = "Bienvenido " + usuario.apodo;
-    estado.innerText = usuario.apodo;
-  }
-
-  function guardarCuenta(user){
-    cuentasGuardadas = cuentasGuardadas.filter(u=>u.ide!==user.ide);
-    cuentasGuardadas.unshift(user);
-
-    if(cuentasGuardadas.length > 5){
-      cuentasGuardadas.pop();
-    }
-
-    localStorage.setItem("cuentas", JSON.stringify(cuentasGuardadas));
-    cargarCuentas();
-  }
-
-  function cargarCuentas(){
-    cuentasDiv.innerHTML="";
-
-    cuentasGuardadas.forEach(u=>{
-      const div = document.createElement("div");
-      div.innerText = u.apodo;
-      div.onclick = ()=>loginPorID(u.ide);
-      cuentasDiv.appendChild(div);
-    });
-  }
-
-  // RECUPERAR
-  document.getElementById("buscarCuenta").onclick = async () => {
-    const texto = document.getElementById("recuperarInput").value.trim();
-    if(!texto) return alert("Escribe algo");
-
-    const res = await fetch("/recuperar/" + texto);
-    const data = await res.json();
-
-    if(data.length === 0) return alert("No existe");
-
-    let msg = "";
-    data.forEach(u=>{
-      msg += u.apodo + " | " + u.ide + "\n";
-    });
-
-    alert(msg);
-  };
-
-  // PERFIL
-  document.getElementById("btnPerfil").onclick = () => {
-
-    if(!usuario){
-      alert("No estás en una cuenta");
-      return;
-    }
-
-    perfil.style.display="block";
-    app.style.display="none";
-
-    perfilImg.src = usuario.foto || "https://i.pravatar.cc/100";
-    perfilApodo.innerText = usuario.apodo;
-    perfilID.innerText = usuario.ide;
-  };
-
-  window.cerrarPerfil = () => {
-    perfil.style.display="none";
-    app.style.display="block";
-  };
-
-  document.querySelectorAll("#fotos img").forEach(img=>{
-    img.onclick = ()=>{
-      usuario.foto = img.src;
-      perfilImg.src = img.src;
-    };
+  const res = await fetch("/crear",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({apodo})
   });
 
-  // BOTÓN ENTRAR (JUEGO)
-  document.getElementById("btnEntrarJuego").onclick = () => {
-    app.style.display="none";
-    juego.style.display="block";
-  };
+  const data = await res.json();
 
-  window.volverApp = () => {
-    juego.style.display="none";
-    app.style.display="block";
-  };
+  // 🔥 ACEPTA AMBOS FORMATOS
+  const user = data.user || data;
 
-  // LOGOUT
-  document.getElementById("logout").onclick = () => {
-    usuario=null;
+  if(user && user.ide){
+    alert("Tu ID: " + user.ide);
 
-    menu.style.display="block";
-    app.style.display="none";
+    usuario = user;
+    guardar();
+    actualizarSesion();
+    volver();
+  } else {
+    alert(data.error || "Error al crear cuenta");
+  }
+}
 
-    cuentasDiv.style.display="block";
-    tituloCuentas.style.display="block";
+// LOGIN (ARREGLADO DEFINITIVO)
+async function login(){
+  const ide = document.getElementById("ide").value;
 
-    estado.innerText="No has iniciado sesión";
-  };
+  if(!ide){
+    alert("Pon un ID");
+    return;
+  }
 
-  // MODO
-  document.getElementById("btnModo").onclick = () => {
-    document.body.classList.toggle("claro");
-  };
+  const res = await fetch("/login",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ide})
+  });
 
-};
+  const data = await res.json();
+
+  // 🔥 FIX REAL
+  if(data && data.ide){
+    usuario = data;
+
+    guardar();
+    actualizarSesion();
+    volver();
+  } else {
+    alert(data.error || "No existe");
+  }
+}
+
+// RECUPERAR
+async function recuperar(){
+  const texto = document.getElementById("buscar").value;
+
+  const res = await fetch("/recuperar/"+texto);
+  const data = await res.json();
+
+  if(data.length === 0){
+    alert("Nada");
+  } else {
+    alert(data.map(u => u.apodo+" ("+u.ide+")").join("\n"));
+  }
+}
+
+// GUARDAR SESIÓN
+function guardar(){
+  localStorage.setItem("user", JSON.stringify(usuario));
+}
+
+// TEXTO SESIÓN
+function actualizarSesion(){
+  const txt = document.getElementById("sesion");
+
+  if(usuario){
+    txt.innerText = "Sesión: " + usuario.apodo + " ✔";
+  } else {
+    txt.innerText = "No has iniciado sesión";
+  }
+}
+
+// LOGOUT
+function logout(){
+  localStorage.removeItem("user");
+  location.reload();
+}
+
+// PERFIL
+function abrirPerfil(){
+  if(!usuario){
+    alert("No has iniciado sesión");
+    return;
+  }
+
+  const box = document.getElementById("perfilBox");
+
+  box.style.display = box.style.display === "block" ? "none" : "block";
+
+  document.getElementById("nombre").innerText = usuario.apodo;
+  document.getElementById("miID").innerText = usuario.ide;
+  document.getElementById("avatarGrande").innerText = usuario.avatar || "😎";
+}
+
+// ENTRAR
+function entrar(){
+  alert("🔥 Ya queda poco...");
+}
+
+// MODO
+function cambiarModo(){
+  document.body.classList.toggle("light");
+}

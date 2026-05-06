@@ -67,7 +67,6 @@ function abrirOpcion(html) {
 
 function volver() {
   document.getElementById("panel").innerHTML = "";
-  document.getElementById("mensaje").innerHTML = "";
   render();
 }
 
@@ -78,7 +77,9 @@ function mostrarCrear() {
     <button id="btnCrear">Crear</button>
   `);
 
-  document.getElementById("btnCrear").onclick = crear;
+  setTimeout(() => {
+    document.getElementById("btnCrear").onclick = crear;
+  }, 0);
 }
 
 async function crear() {
@@ -108,7 +109,9 @@ function mostrarLogin() {
     <button id="btnLogin">Entrar</button>
   `);
 
-  document.getElementById("btnLogin").onclick = login;
+  setTimeout(() => {
+    document.getElementById("btnLogin").onclick = login;
+  }, 0);
 }
 
 async function login() {
@@ -130,30 +133,49 @@ async function login() {
   render();
 }
 
-// ===== RECUPERAR =====
+// ===== RECUPERAR (ARREGLADO) =====
 function mostrarRecuperar() {
   abrirOpcion(`
-    <input id="buscar"><br>
+    <input id="buscar" placeholder="Buscar usuario"><br>
     <button id="btnBuscar">Buscar</button>
     <div id="res"></div>
   `);
 
-  document.getElementById("btnBuscar").onclick = buscar;
+  setTimeout(() => {
+    document.getElementById("btnBuscar").onclick = buscar;
+  }, 0);
 }
 
 async function buscar() {
   const txt = document.getElementById("buscar").value;
 
-  const res = await fetch("/recuperar/" + txt);
-  const data = await res.json();
+  if (!txt) return alert("Escribe algo");
 
-  document.getElementById("res").innerHTML =
-    data.map(u => `
+  try {
+    const res = await fetch("/recuperar/" + txt);
+
+    if (!res.ok) return alert("Error servidor");
+
+    const data = await res.json();
+
+    const cont = document.getElementById("res");
+
+    if (data.length === 0) {
+      cont.innerHTML = "No se encontró ninguna cuenta";
+      return;
+    }
+
+    cont.innerHTML = data.map(u => `
       <div>
         ${u.apodo} (${u.ide})
         <button onclick="usarCuenta('${u.ide}')">Usar</button>
       </div>
     `).join("");
+
+  } catch (e) {
+    console.error(e);
+    alert("Error conexión");
+  }
 }
 
 // ===== CUENTAS =====
@@ -189,18 +211,19 @@ function entrar() {
     <button id="irSitio">Ir a ScapeRooms</button>
   `);
 
-  document.getElementById("irSitio").onclick = () => {
-    window.location.href = "https://darkterminal.onrender.com/";
-  };
+  setTimeout(() => {
+    document.getElementById("irSitio").onclick = () => {
+      window.location.href = "https://darkterminal.onrender.com/";
+    };
+  }, 0);
 }
 
-// ===== PERFIL (ARREGLADO) =====
+// ===== PERFIL =====
 function abrirPerfil() {
   if (!usuario) return alert("No has iniciado sesión");
 
   document.getElementById("perfilBox").style.display = "block";
 
-  // 🔥 ahora sí rellena todo bien
   document.getElementById("nombre").innerText = usuario.apodo || "Sin nombre";
   document.getElementById("miID").innerText = usuario.ide || "Sin ID";
 
@@ -212,7 +235,7 @@ function cerrarPerfil() {
   document.getElementById("perfilBox").style.display = "none";
 }
 
-// ===== CAMBIAR FOTO (ARREGLADO) =====
+// ===== CAMBIAR FOTO =====
 function cambiarAvatar(src) {
   if (!usuario) return;
 

@@ -1,62 +1,51 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>App</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- SESIÓN ARRIBA -->
-<div id="sesion"></div>
+<h2 id="sesion"></h2>
 
-<!-- MENÚ PRINCIPAL -->
 <div id="menuTop"></div>
 
-<!-- BOTÓN VOLVER -->
 <button id="volver" onclick="volver()" style="display:none;">⬅ Volver</button>
 
-<!-- MENSAJE (ENTRAR) -->
-<div id="mensaje"></div>
-
-<!-- PANEL (LOGIN / CREAR / ETC) -->
 <div id="panel"></div>
+<div id="mensaje"></div>
 
 <!-- BOTONES FIJOS -->
 <button id="modo" onclick="cambiarModo()">Modo</button>
 <button id="perfil" onclick="abrirPerfil()">Perfil</button>
-<button id="musica" onclick="toggleMusica()">Música</button>
+<button id="musica" onclick="toggleMusica()">🎵</button>
 
 <!-- PERFIL -->
 <div id="perfilBox">
   <div class="contenido">
+    <h3>Perfil</h3>
 
-    <h2>Perfil</h2>
-
-    <img id="avatarGrande" width="120"><br>
+    <img id="avatarGrande" width="100"><br><br>
 
     <p>Nombre: <span id="nombre"></span></p>
     <p>ID: <span id="miID"></span></p>
 
-    <h3>Cambiar foto</h3>
-    <div id="avatars">
-      <img src="https://i.pravatar.cc/100?img=1" onclick="cambiarAvatar(this.src)">
-      <img src="https://i.pravatar.cc/100?img=2" onclick="cambiarAvatar(this.src)">
-      <img src="https://i.pravatar.cc/100?img=3" onclick="cambiarAvatar(this.src)">
-    </div>
+    <h4>Cambiar foto</h4>
+    <img src="https://i.pravatar.cc/100?img=1" width="50" onclick="cambiarAvatar(this.src)">
+    <img src="https://i.pravatar.cc/100?img=2" width="50" onclick="cambiarAvatar(this.src)">
+    <img src="https://i.pravatar.cc/100?img=3" width="50" onclick="cambiarAvatar(this.src)">
 
+    <br><br>
     <button onclick="cerrarPerfil()">Cerrar</button>
-
   </div>
 </div>
 
 <!-- AUDIO -->
 <audio id="audio" loop>
-  <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">
+  <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
 </audio>
 
-<!-- SCRIPT -->
 <script src="login.js"></script>
-
 </body>
 </html>

@@ -3,11 +3,15 @@ let cuentas = [];
 
 // ===== INICIO =====
 window.onload = () => {
-  const u = localStorage.getItem("user");
-  const c = localStorage.getItem("cuentas");
+  try {
+    const u = localStorage.getItem("user");
+    const c = localStorage.getItem("cuentas");
 
-  if (u) usuario = JSON.parse(u);
-  if (c) cuentas = JSON.parse(c);
+    if (u) usuario = JSON.parse(u);
+    if (c) cuentas = JSON.parse(c);
+  } catch {
+    localStorage.clear();
+  }
 
   render();
 };
@@ -58,7 +62,7 @@ function render() {
   }
 }
 
-// ===== CONTROL OPCIONES =====
+// ===== CONTROL =====
 function abrirOpcion(html) {
   document.getElementById("menuTop").style.display = "none";
   document.getElementById("volver").style.display = "inline-block";
@@ -66,7 +70,6 @@ function abrirOpcion(html) {
 }
 
 function volver() {
-  document.getElementById("panel").innerHTML = "";
   render();
 }
 
@@ -133,10 +136,10 @@ async function login() {
   render();
 }
 
-// ===== RECUPERAR (ARREGLADO) =====
+// ===== RECUPERAR =====
 function mostrarRecuperar() {
   abrirOpcion(`
-    <input id="buscar" placeholder="Buscar usuario"><br>
+    <input id="buscar" placeholder="Buscar"><br>
     <button id="btnBuscar">Buscar</button>
     <div id="res"></div>
   `);
@@ -151,31 +154,22 @@ async function buscar() {
 
   if (!txt) return alert("Escribe algo");
 
-  try {
-    const res = await fetch("/recuperar/" + txt);
+  const res = await fetch("/recuperar/" + txt);
+  const data = await res.json();
 
-    if (!res.ok) return alert("Error servidor");
+  const cont = document.getElementById("res");
 
-    const data = await res.json();
-
-    const cont = document.getElementById("res");
-
-    if (data.length === 0) {
-      cont.innerHTML = "No se encontró ninguna cuenta";
-      return;
-    }
-
-    cont.innerHTML = data.map(u => `
-      <div>
-        ${u.apodo} (${u.ide})
-        <button onclick="usarCuenta('${u.ide}')">Usar</button>
-      </div>
-    `).join("");
-
-  } catch (e) {
-    console.error(e);
-    alert("Error conexión");
+  if (data.length === 0) {
+    cont.innerHTML = "No encontrado";
+    return;
   }
+
+  cont.innerHTML = data.map(u => `
+    <div>
+      ${u.apodo} (${u.ide})
+      <button onclick="usarCuenta('${u.ide}')">Usar</button>
+    </div>
+  `).join("");
 }
 
 // ===== CUENTAS =====
@@ -224,9 +218,8 @@ function abrirPerfil() {
 
   document.getElementById("perfilBox").style.display = "block";
 
-  document.getElementById("nombre").innerText = usuario.apodo || "Sin nombre";
-  document.getElementById("miID").innerText = usuario.ide || "Sin ID";
-
+  document.getElementById("nombre").innerText = usuario.apodo;
+  document.getElementById("miID").innerText = usuario.ide;
   document.getElementById("avatarGrande").src =
     usuario.avatar || "https://i.pravatar.cc/100";
 }
@@ -235,13 +228,9 @@ function cerrarPerfil() {
   document.getElementById("perfilBox").style.display = "none";
 }
 
-// ===== CAMBIAR FOTO =====
 function cambiarAvatar(src) {
-  if (!usuario) return;
-
   usuario.avatar = src;
   guardarUsuario();
-
   document.getElementById("avatarGrande").src = src;
 }
 
@@ -253,13 +242,10 @@ function cambiarModo() {
 // ===== MÚSICA =====
 function toggleMusica() {
   const audio = document.getElementById("audio");
-
   audio.volume = 0.3;
 
   if (audio.paused) {
-    audio.play().catch(() => {
-      alert("Pulsa otra vez 🔊");
-    });
+    audio.play().catch(() => alert("Pulsa otra vez 🔊"));
   } else {
     audio.pause();
   }

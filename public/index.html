@@ -1,25 +1,62 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Mantenimiento</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>App</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="contenedor">
-  <div class="spinner"></div>
+<!-- SESIÓN ARRIBA -->
+<div id="sesion"></div>
 
-  <h1>🚧 Estamos en mantenimiento</h1>
-  <p>Estamos mejorando la web...</p>
-  <p>👉 Todos los usuarios serán recompensados</p>
+<!-- MENÚ PRINCIPAL -->
+<div id="menuTop"></div>
 
-  <!-- BOTÓN A LA WEB DE TU AMIGO -->
-  <a href="https://darkterminal.onrender.com/" target="_blank" class="boton">
-    Ir a la web mientras tanto
-  </a>
+<!-- BOTÓN VOLVER -->
+<button id="volver" onclick="volver()" style="display:none;">⬅ Volver</button>
+
+<!-- MENSAJE (ENTRAR) -->
+<div id="mensaje"></div>
+
+<!-- PANEL (LOGIN / CREAR / ETC) -->
+<div id="panel"></div>
+
+<!-- BOTONES FIJOS -->
+<button id="modo" onclick="cambiarModo()">Modo</button>
+<button id="perfil" onclick="abrirPerfil()">Perfil</button>
+<button id="musica" onclick="toggleMusica()">Música</button>
+
+<!-- PERFIL -->
+<div id="perfilBox">
+  <div class="contenido">
+
+    <h2>Perfil</h2>
+
+    <img id="avatarGrande" width="120"><br>
+
+    <p>Nombre: <span id="nombre"></span></p>
+    <p>ID: <span id="miID"></span></p>
+
+    <h3>Cambiar foto</h3>
+    <div id="avatars">
+      <img src="https://i.pravatar.cc/100?img=1" onclick="cambiarAvatar(this.src)">
+      <img src="https://i.pravatar.cc/100?img=2" onclick="cambiarAvatar(this.src)">
+      <img src="https://i.pravatar.cc/100?img=3" onclick="cambiarAvatar(this.src)">
+    </div>
+
+    <button onclick="cerrarPerfil()">Cerrar</button>
+
+  </div>
 </div>
 
+<!-- AUDIO -->
+<audio id="audio" loop>
+  <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">
+</audio>
+
+<!-- SCRIPT -->
 <script src="login.js"></script>
+
 </body>
 </html>

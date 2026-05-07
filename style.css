@@ -1,31 +1,37 @@
-body {
-  background: #0b1e3a;
-  color: white;
-  font-family: Arial;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  text-align: center;
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#111;
+  color:white;
+  font-family:Arial;
+  text-align:center;
 }
 
-.contenedor {
-  text-align: center;
+.box{
+  background:#222;
+  padding:40px;
+  border-radius:10px;
+  box-shadow:0 0 20px rgba(0,0,0,0.5);
 }
 
-/* RUEDA */
-.spinner {
-  width: 80px;
-  height: 80px;
-  border: 8px solid #ccc;
-  border-top: 8px solid orange;
-  border-radius: 50%;
-  animation: girar 1s linear infinite;
-  margin: auto;
-  margin-bottom: 20px;
+h1{
+  color:red;
 }
 
-@keyframes girar {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+button{
+  padding:12px 20px;
+  margin-top:20px;
+  border:none;
+  background:orange;
+  color:black;
+  font-weight:bold;
+  cursor:pointer;
+  border-radius:5px;
+}
+
+button:hover{
+  background:gold;
 }

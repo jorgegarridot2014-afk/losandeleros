@@ -1,9 +1,18 @@
 const express = require("express");
-const app = express();
+const mongoose = require("mongoose");
 
+const app = express();
 const PORT = process.env.PORT || 3000;
 
-/* 🔒 MANTENIMIENTO TOTAL */
+app.use(express.json());
+app.use(express.static(__dirname));
+
+/* 🔗 CONEXIÓN MONGODB */
+mongoose.connect("mongodb+srv://6767:Dfagt3evMJbBKuqj@cluster0.cqeusrr.mongodb.net/appUsuarios?retryWrites=true&w=majority")
+.then(()=> console.log("MongoDB conectado"))
+.catch(err=> console.log(err));
+
+/* 🔒 MANTENIMIENTO SIEMPRE ACTIVO */
 const mantenimiento = true;
 
 app.use((req,res,next)=>{
@@ -36,12 +45,10 @@ app.use((req,res,next)=>{
       }
       </style>
       </head>
-
       <body>
         <div class="box">
           <h1>🔒 WEB EN MANTENIMIENTO</h1>
           <p>Por seguridad de usuarios</p>
-
           <button onclick="window.location.href='https://darkterminal.onrender.com/'">
           👉 Ir a Escape Rooms
           </button>
@@ -53,8 +60,7 @@ app.use((req,res,next)=>{
   next();
 });
 
-app.use(express.static(__dirname));
-
+/* 🚀 START */
 app.listen(PORT, ()=>{
   console.log("Servidor activo");
 });

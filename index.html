@@ -1,18 +1,92 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Mantenimiento</title>
+<title>AppUsuarios</title>
 <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<div class="box">
-  <h1>🔒 WEB EN MANTENIMIENTO</h1>
-  <p>Por seguridad de usuarios</p>
+<!-- PRIVACIDAD -->
+<div id="privacidad" class="hidden">
+  <p>
+  Política de privacidad<br><br>
+  Esta web guarda un apodo y un ID de usuario generado automáticamente para permitir el acceso al servicio.<br>
+  No se recogen datos personales como nombre, dirección o teléfono.<br>
+  Los datos no se comparten con terceros ni se utilizan para publicidad.<br>
+  El usuario puede solicitar la eliminación de su cuenta en cualquier momento.<br>
+  Si eres menor de 14 años, debes usar esta web con la autorización de tus padres o tutores.
+  </p>
 
-  <button onclick="irEscape()">👉 Ir a Escape Rooms</button>
+  <button onclick="aceptarPrivacidad()">Aceptar</button>
+  <button onclick="rechazarPrivacidad()">Rechazar</button>
+
+  <br><br>
+
+  <label>
+    <input type="checkbox" id="noMostrar">
+    No volver a mostrar
+  </label>
+</div>
+
+<!-- NOTIFICACIONES -->
+<div id="notiPanel" class="hidden">
+  <p>Esto es posible que esta semana estemos en mantenimiento</p>
+  <button onclick="cerrarNoti()">Volver</button>
+</div>
+
+<h2 id="estado">No logueado</h2>
+
+<button id="btnNoti" class="hidden" onclick="abrirNoti()">Notificaciones</button>
+
+<!-- MENU -->
+<div id="menu">
+  <button onclick="irCrear()">Crear cuenta</button>
+  <button onclick="irLogin()">Login</button>
+</div>
+
+<!-- CREAR -->
+<div id="crear" class="hidden">
+  <input id="apodo" placeholder="Apodo">
+  <button onclick="crear()">Crear</button>
+  <button onclick="volver()">Volver</button>
+</div>
+
+<!-- LOGIN -->
+<div id="login" class="hidden">
+  <input id="ide" placeholder="ID">
+  <button onclick="login()">Entrar</button>
+  <button onclick="volver()">Volver</button>
+</div>
+
+<!-- PERFIL -->
+<div id="perfil" class="hidden">
+  <h3 id="pApodo"></h3>
+  <p id="pID"></p>
+
+  <button onclick="eliminarCuenta()">Eliminar cuenta</button>
+  <button onclick="volver()">Volver</button>
+</div>
+
+<!-- CUENTAS -->
+<div id="bloqueGuardadas">
+  <h3>Cuentas guardadas</h3>
+  <div id="guardadas"></div>
+</div>
+
+<!-- JUEGO -->
+<div id="juego" class="hidden">
+  <div class="rueda"></div>
+  <button onclick="irScape()">Ir a Scape Rooms</button>
+  <button onclick="volver()">Volver</button>
+</div>
+
+<!-- BARRA -->
+<div id="barra">
+  <button id="btnPerfil" class="hidden" onclick="irPerfil()">Perfil</button>
+  <button id="btnEntrarJuego" class="hidden" onclick="abrirJuego()">Entrar</button>
+  <button id="btnLogout" class="hidden" onclick="logout()">Cerrar sesión</button>
+  <button onclick="modo()">Modo</button>
 </div>
 
 <script src="login.js"></script>

@@ -1,31 +1,18 @@
 body{
-  margin:0;
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
+  font-family: Arial;
+  text-align:center;
   background:#111;
   color:white;
-  font-family:Arial;
-  text-align:center;
+  margin:0;
+  padding-bottom:80px;
 }
 
-.box{
-  background:#222;
-  padding:40px;
-  border-radius:10px;
-  box-shadow:0 0 20px rgba(0,0,0,0.5);
-}
-
-h1{
-  color:red;
-}
-
+/* BOTONES */
 button{
-  padding:12px 20px;
-  margin-top:20px;
-  border:none;
+  padding:10px;
+  margin:5px;
   background:orange;
+  border:none;
   color:black;
   font-weight:bold;
   cursor:pointer;
@@ -33,5 +20,84 @@ button{
 }
 
 button:hover{
-  background:gold;
+  background:darkorange;
+}
+
+/* INPUTS */
+input{
+  padding:10px;
+  margin:5px;
+  border-radius:5px;
+  border:none;
+}
+
+/* OCULTAR */
+.hidden{
+  display:none;
+}
+
+/* BARRA */
+#barra{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:#222;
+  padding:10px;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+}
+
+/* CUENTAS */
+#bloqueGuardadas{
+  margin-top:20px;
+}
+
+/* PERFIL */
+#perfil img{
+  margin:10px;
+  border-radius:50%;
+}
+
+/* RUEDA */
+.rueda{
+  width:200px;
+  height:200px;
+  border-radius:50%;
+  border:12px solid orange;
+  border-top:12px solid white;
+  margin:30px auto;
+  animation:girar 1s linear infinite;
+}
+
+@keyframes girar{
+  from{ transform:rotate(0deg); }
+  to{ transform:rotate(360deg); }
+}
+
+/* NOTIFICACIONES */
+#notiPanel{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:white;
+  color:black;
+  display:none; /* 🔥 CLAVE */
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  z-index:999;
+}
+
+/* MODO CLARO */
+.claro{
+  background:white;
+  color:black;
+}
+
+/* TITULOS */
+h2, h3{
+  margin-top:20px;
 }

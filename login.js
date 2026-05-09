@@ -134,6 +134,13 @@ function eliminarCuenta(){
 
   borrarCuentaLocal(usuario.ide);
 
+  // opcional: borrar en servidor
+  fetch("/eliminar",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ ide: usuario.ide })
+  });
+
   usuario = null;
   localStorage.removeItem("usuario");
 
@@ -167,7 +174,14 @@ function aceptarPrivacidad(){
 }
 
 function rechazarPrivacidad(){
-  alert("No puedes usar la app sin aceptar la privacidad");
+  alert("Debes aceptar la política para usar la web");
+
+  // 🔥 BLOQUEO TOTAL
+  document.body.innerHTML = `
+    <h2 style="text-align:center;margin-top:50px;">
+      No puedes usar la web sin aceptar la política de privacidad
+    </h2>
+  `;
 }
 
 /* UI */
@@ -187,7 +201,7 @@ function actualizar(){
     document.getElementById("btnEntrarJuego").classList.remove("hidden");
     document.getElementById("btnNoti").classList.remove("hidden");
 
-    // 🔥 PRIVACIDAD SOLO LOGUEADO
+    // PRIVACIDAD SOLO SI NO ACEPTADA
     const aceptada = localStorage.getItem("privacidad_"+usuario.ide);
 
     if(!aceptada){

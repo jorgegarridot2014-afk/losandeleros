@@ -1,4 +1,3 @@
-// 🔥 DEBUG (MUY IMPORTANTE)
 console.log("LOGIN JS CARGADO");
 
 let usuario = null;
@@ -11,7 +10,7 @@ function ocultar(){
   document.getElementById("perfil").classList.add("hidden");
 }
 
-/* NAVEGACIÓN */
+/* NAV */
 function irCrear(){
   if(bloqueo) return;
   ocultar();
@@ -29,13 +28,44 @@ function volver(){
   ocultar();
 }
 
-/* CREAR CUENTA */
+/* ========================= */
+/* 🔥 CUENTAS GUARDADAS */
+/* ========================= */
+
+function guardarCuenta(user){
+  let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
+
+  if(!cuentas.find(c => c.ide === user.ide)){
+    cuentas.push(user);
+  }
+
+  localStorage.setItem("cuentas", JSON.stringify(cuentas));
+}
+
+function cargarGuardadas(){
+  const cont = document.getElementById("guardadas");
+  cont.innerHTML = "";
+
+  let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
+
+  cuentas.forEach(c=>{
+    const btn = document.createElement("button");
+    btn.innerText = c.apodo + " (" + c.ide + ")";
+    btn.onclick = ()=> loginRapido(c.ide);
+    cont.appendChild(btn);
+  });
+}
+
+/* ========================= */
+/* CREAR */
+/* ========================= */
+
 async function crear(){
   if(bloqueo) return;
 
   const apodo = document.getElementById("apodo").value;
 
-  const res = await fetch("/crear", {
+  const res = await fetch("/crear",{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({ apodo })
@@ -45,18 +75,30 @@ async function crear(){
   if(!user) return alert("Error al crear");
 
   usuario = user;
+
   localStorage.setItem("usuario", JSON.stringify(usuario));
+
+  guardarCuenta(usuario);
+  cargarGuardadas();
 
   actualizar();
 }
 
+/* ========================= */
 /* LOGIN */
+/* ========================= */
+
 async function login(){
   if(bloqueo) return;
 
   const ide = document.getElementById("ide").value;
+  loginRapido(ide);
+}
 
-  const res = await fetch("/login", {
+async function loginRapido(ide){
+  if(bloqueo) return;
+
+  const res = await fetch("/login",{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({ ide })
@@ -66,12 +108,19 @@ async function login(){
   if(!user) return alert("No existe");
 
   usuario = user;
+
   localStorage.setItem("usuario", JSON.stringify(usuario));
+
+  guardarCuenta(usuario);
+  cargarGuardadas();
 
   actualizar();
 }
 
+/* ========================= */
 /* PERFIL */
+/* ========================= */
+
 function irPerfil(){
   if(!usuario || bloqueo) return;
 
@@ -82,38 +131,56 @@ function irPerfil(){
   document.getElementById("pID").innerText = "ID: " + usuario.ide;
 }
 
+/* ========================= */
 /* LOGOUT */
+/* ========================= */
+
 function logout(){
   usuario = null;
   localStorage.removeItem("usuario");
   actualizar();
 }
 
-/* ELIMINAR CUENTA */
+/* ========================= */
+/* ELIMINAR */
+/* ========================= */
+
 async function eliminarCuenta(){
   if(!usuario || bloqueo) return;
 
   if(!confirm("¿Seguro?")) return;
   if(!confirm("¿Seguro de verdad?")) return;
 
-  await fetch("/eliminar", {
+  await fetch("/eliminar",{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({ ide: usuario.ide })
   });
 
+  // borrar también de guardadas
+  let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
+  cuentas = cuentas.filter(c => c.ide !== usuario.ide);
+  localStorage.setItem("cuentas", JSON.stringify(cuentas));
+
   usuario = null;
   localStorage.removeItem("usuario");
 
+  cargarGuardadas();
   actualizar();
 }
 
+/* ========================= */
 /* MODO */
+/* ========================= */
+
 function modo(){
   document.body.classList.toggle("claro");
 }
 
+/* ========================= */
 /* PRIVACIDAD */
+/* ========================= */
+
 function aceptarPrivacidad(){
   if(!usuario) return;
 
@@ -136,22 +203,24 @@ function rechazarPrivacidad(){
   `;
 }
 
+/* ========================= */
 /* UI */
+/* ========================= */
+
 function actualizar(){
 
   const menu = document.getElementById("menu");
-  const guardadas = document.getElementById("bloqueGuardadas");
+  const bloque = document.getElementById("bloqueGuardadas");
 
   if(usuario){
     document.getElementById("estado").innerText = "Logueado: " + usuario.apodo;
 
     menu.style.display = "none";
-    guardadas.style.display = "none";
+    bloque.style.display = "none";
 
     document.getElementById("btnPerfil").classList.remove("hidden");
     document.getElementById("btnLogout").classList.remove("hidden");
 
-    // 🔥 PRIVACIDAD CONTROL
     const ok = localStorage.getItem("priv_"+usuario.ide);
 
     if(!ok){
@@ -162,7 +231,7 @@ function actualizar(){
     document.getElementById("estado").innerText = "No logueado";
 
     menu.style.display = "block";
-    guardadas.style.display = "block";
+    bloque.style.display = "block";
 
     document.getElementById("btnPerfil").classList.add("hidden");
     document.getElementById("btnLogout").classList.add("hidden");
@@ -171,10 +240,11 @@ function actualizar(){
   }
 }
 
-/* INICIO */
-window.onload = () => {
+/* ========================= */
+/* INIT */
+/* ========================= */
 
-  console.log("WINDOW LOAD OK");
+window.onload = ()=>{
 
   const guardado = localStorage.getItem("usuario");
 
@@ -182,5 +252,6 @@ window.onload = () => {
     usuario = JSON.parse(guardado);
   }
 
+  cargarGuardadas(); // 🔥 ESTO ERA LO QUE TE FALTABA
   actualizar();
 };

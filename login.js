@@ -1,87 +1,17 @@
 let usuario = null;
 let bloqueo = false;
 
-/* OCULTAR */
+/* OCULTAR TODO */
 function ocultar(){
   document.getElementById("crear").classList.add("hidden");
   document.getElementById("login").classList.add("hidden");
   document.getElementById("perfil").classList.add("hidden");
-  document.getElementById("juego").classList.add("hidden");
-  document.getElementById("notiPanel").style.display = "none";
-}
-
-/* VOLVER */
-function volver(){
-  if(bloqueo) return;
-  ocultar();
 }
 
 /* NAV */
 function irCrear(){ if(bloqueo) return; ocultar(); document.getElementById("crear").classList.remove("hidden"); }
 function irLogin(){ if(bloqueo) return; ocultar(); document.getElementById("login").classList.remove("hidden"); }
-
-/* PERFIL */
-function irPerfil(){
-  if(!usuario || bloqueo) return;
-
-  ocultar();
-  document.getElementById("perfil").classList.remove("hidden");
-
-  document.getElementById("pApodo").innerText = usuario.apodo;
-  document.getElementById("pID").innerText = "ID: " + usuario.ide;
-}
-
-/* NOTI */
-function abrirNoti(){
-  if(bloqueo) return;
-  document.getElementById("notiPanel").style.display = "flex";
-}
-function cerrarNoti(){
-  document.getElementById("notiPanel").style.display = "none";
-}
-
-/* JUEGO */
-function abrirJuego(){
-  if(bloqueo) return;
-  ocultar();
-  document.getElementById("juego").classList.remove("hidden");
-}
-
-function irScape(){
-  if(bloqueo) return;
-  window.location.href = "https://darkterminal.onrender.com/";
-}
-
-/* CUENTAS */
-function guardarCuenta(user){
-  let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
-
-  if(!cuentas.find(c => c.ide === user.ide)){
-    cuentas.push(user);
-  }
-
-  localStorage.setItem("cuentas", JSON.stringify(cuentas));
-}
-
-function borrarCuentaLocal(ide){
-  let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
-  cuentas = cuentas.filter(c => c.ide !== ide);
-  localStorage.setItem("cuentas", JSON.stringify(cuentas));
-}
-
-function cargarGuardadas(){
-  const cont = document.getElementById("guardadas");
-  cont.innerHTML = "";
-
-  let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
-
-  cuentas.forEach(c=>{
-    const btn = document.createElement("button");
-    btn.innerText = c.apodo + " (" + c.ide + ")";
-    btn.onclick = ()=> loginRapido(c.ide);
-    cont.appendChild(btn);
-  });
-}
+function volver(){ if(bloqueo) return; ocultar(); }
 
 /* CREAR */
 async function crear(){
@@ -101,10 +31,7 @@ async function crear(){
   usuario = user;
 
   localStorage.setItem("usuario", JSON.stringify(usuario));
-  guardarCuenta(usuario);
-
   actualizar();
-  cargarGuardadas();
 }
 
 /* LOGIN */
@@ -112,11 +39,6 @@ async function login(){
   if(bloqueo) return;
 
   const ide = document.getElementById("ide").value;
-  loginRapido(ide);
-}
-
-async function loginRapido(ide){
-  if(bloqueo) return;
 
   const res = await fetch("/login",{
     method:"POST",
@@ -130,22 +52,35 @@ async function loginRapido(ide){
   usuario = user;
 
   localStorage.setItem("usuario", JSON.stringify(usuario));
-  guardarCuenta(usuario);
-
   actualizar();
-  cargarGuardadas();
+}
+
+/* PERFIL */
+function irPerfil(){
+  if(!usuario || bloqueo) return;
+
+  ocultar();
+  document.getElementById("perfil").classList.remove("hidden");
+
+  document.getElementById("pApodo").innerText = usuario.apodo;
+  document.getElementById("pID").innerText = "ID: " + usuario.ide;
+}
+
+/* LOGOUT */
+function logout(){
+  usuario = null;
+  localStorage.removeItem("usuario");
+  actualizar();
 }
 
 /* ELIMINAR */
-function eliminarCuenta(){
+async function eliminarCuenta(){
   if(!usuario || bloqueo) return;
 
   if(!confirm("¿Seguro?")) return;
   if(!confirm("¿Seguro de verdad?")) return;
 
-  borrarCuentaLocal(usuario.ide);
-
-  fetch("/eliminar",{
+  await fetch("/eliminar",{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({ ide: usuario.ide })
@@ -155,21 +90,10 @@ function eliminarCuenta(){
   localStorage.removeItem("usuario");
 
   actualizar();
-  cargarGuardadas();
-}
-
-/* LOGOUT */
-function logout(){
-  if(bloqueo) return;
-
-  usuario = null;
-  localStorage.removeItem("usuario");
-  actualizar();
 }
 
 /* MODO */
 function modo(){
-  if(bloqueo) return;
   document.body.classList.toggle("claro");
 }
 
@@ -180,7 +104,7 @@ function aceptarPrivacidad(){
   const noMostrar = document.getElementById("noMostrar").checked;
 
   if(noMostrar){
-    localStorage.setItem("privacidad_"+usuario.ide, "ok");
+    localStorage.setItem("priv_"+usuario.ide, "ok");
   }
 
   document.getElementById("privacidad").classList.add("hidden");
@@ -210,15 +134,11 @@ function actualizar(){
 
     document.getElementById("btnPerfil").classList.remove("hidden");
     document.getElementById("btnLogout").classList.remove("hidden");
-    document.getElementById("btnEntrarJuego").classList.remove("hidden");
-    document.getElementById("btnNoti").classList.remove("hidden");
 
-    const aceptada = localStorage.getItem("privacidad_"+usuario.ide);
+    const ok = localStorage.getItem("priv_"+usuario.ide);
 
-    if(!aceptada){
+    if(!ok){
       document.getElementById("privacidad").classList.remove("hidden");
-    } else {
-      document.getElementById("privacidad").classList.add("hidden");
     }
 
   }else{
@@ -229,8 +149,6 @@ function actualizar(){
 
     document.getElementById("btnPerfil").classList.add("hidden");
     document.getElementById("btnLogout").classList.add("hidden");
-    document.getElementById("btnEntrarJuego").classList.add("hidden");
-    document.getElementById("btnNoti").classList.add("hidden");
 
     document.getElementById("privacidad").classList.add("hidden");
   }
@@ -238,9 +156,8 @@ function actualizar(){
 
 /* INIT */
 window.onload = ()=>{
-  cargarGuardadas();
-
   const guardado = localStorage.getItem("usuario");
+
   if(guardado){
     usuario = JSON.parse(guardado);
   }

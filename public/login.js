@@ -1,252 +1,222 @@
 let usuario = null;
-let cuentas = [];
 
-// ===== INICIO =====
-window.onload = () => {
-  try {
-    const u = localStorage.getItem("user");
-    const c = localStorage.getItem("cuentas");
+/* OCULTAR */
+function ocultar(){
+  document.getElementById("crear").classList.add("hidden");
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("perfil").classList.add("hidden");
+  document.getElementById("juego").classList.add("hidden");
+  document.getElementById("notiPanel").style.display = "none";
+}
 
-    if (u) usuario = JSON.parse(u);
-    if (c) cuentas = JSON.parse(c);
-  } catch {
-    localStorage.clear();
+/* VOLVER */
+function volver(){
+  ocultar();
+}
+
+/* NAV */
+function irCrear(){ ocultar(); document.getElementById("crear").classList.remove("hidden"); }
+function irLogin(){ ocultar(); document.getElementById("login").classList.remove("hidden"); }
+
+/* PERFIL */
+function irPerfil(){
+  if(!usuario) return;
+
+  ocultar();
+  document.getElementById("perfil").classList.remove("hidden");
+
+  document.getElementById("pApodo").innerText = usuario.apodo;
+  document.getElementById("pID").innerText = "ID: " + usuario.ide;
+}
+
+/* NOTI */
+function abrirNoti(){
+  document.getElementById("notiPanel").style.display = "flex";
+}
+function cerrarNoti(){
+  document.getElementById("notiPanel").style.display = "none";
+}
+
+/* JUEGO */
+function abrirJuego(){
+  ocultar();
+  document.getElementById("juego").classList.remove("hidden");
+}
+
+function irScape(){
+  window.location.href = "https://darkterminal.onrender.com/";
+}
+
+/* CUENTAS */
+function guardarCuenta(user){
+  let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
+
+  if(!cuentas.find(c => c.ide === user.ide)){
+    cuentas.push(user);
   }
 
-  render();
-};
-
-// ===== RENDER =====
-function render() {
-  const menu = document.getElementById("menuTop");
-  const panel = document.getElementById("panel");
-  const sesion = document.getElementById("sesion");
-
-  panel.innerHTML = "";
-  document.getElementById("volver").style.display = "none";
-  menu.style.display = "block";
-
-  if (usuario) {
-    sesion.innerText = "👤 " + usuario.apodo + " (" + usuario.ide + ")";
-
-    menu.innerHTML = `
-      <button id="btnEntrar">Entrar</button>
-      <button id="btnLogout">Cerrar sesión</button>
-    `;
-
-    document.getElementById("btnEntrar").onclick = entrar;
-    document.getElementById("btnLogout").onclick = logout;
-
-  } else {
-    sesion.innerText = "No has iniciado sesión";
-
-    menu.innerHTML = `
-      <button id="btnLoginMenu">Iniciar sesión</button>
-      <button id="btnCrearMenu">Crear cuenta</button>
-      <button id="btnRecuperarMenu">Recuperar cuenta</button>
-    `;
-
-    document.getElementById("btnLoginMenu").onclick = mostrarLogin;
-    document.getElementById("btnCrearMenu").onclick = mostrarCrear;
-    document.getElementById("btnRecuperarMenu").onclick = mostrarRecuperar;
-
-    if (cuentas.length > 0) {
-      panel.innerHTML = "<h3>Cuentas guardadas</h3>" +
-        cuentas.map(u => `
-          <div>
-            ${u.apodo} (${u.ide})
-            <button onclick="usarCuenta('${u.ide}')">Entrar</button>
-          </div>
-        `).join("");
-    }
-  }
+  localStorage.setItem("cuentas", JSON.stringify(cuentas));
 }
 
-// ===== CONTROL =====
-function abrirOpcion(html) {
-  document.getElementById("menuTop").style.display = "none";
-  document.getElementById("volver").style.display = "inline-block";
-  document.getElementById("panel").innerHTML = html;
+function borrarCuentaLocal(ide){
+  let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
+  cuentas = cuentas.filter(c => c.ide !== ide);
+  localStorage.setItem("cuentas", JSON.stringify(cuentas));
 }
 
-function volver() {
-  render();
+function cargarGuardadas(){
+  const cont = document.getElementById("guardadas");
+  cont.innerHTML = "";
+
+  let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
+
+  cuentas.forEach(c=>{
+    const btn = document.createElement("button");
+    btn.innerText = c.apodo + " (" + c.ide + ")";
+    btn.onclick = ()=> loginRapido(c.ide);
+    cont.appendChild(btn);
+  });
 }
 
-// ===== CREAR =====
-function mostrarCrear() {
-  abrirOpcion(`
-    <input id="apodo" placeholder="Apodo"><br>
-    <button id="btnCrear">Crear</button>
-  `);
-
-  setTimeout(() => {
-    document.getElementById("btnCrear").onclick = crear;
-  }, 0);
-}
-
-async function crear() {
+/* CREAR */
+async function crear(){
   const apodo = document.getElementById("apodo").value;
-  if (!apodo) return alert("Pon un nombre");
 
-  const res = await fetch("/crear", {
+  const res = await fetch("/crear",{
     method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({apodo})
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ apodo })
   });
 
-  const data = await res.json();
-  if (data.error) return alert(data.error);
+  const user = await res.json();
+  if(!user) return alert("Error");
 
-  usuario = data;
-  guardarUsuario();
-  añadirCuenta(data);
+  usuario = user;
 
-  render();
+  localStorage.setItem("usuario", JSON.stringify(usuario));
+  guardarCuenta(usuario);
+
+  actualizar();
+  cargarGuardadas();
 }
 
-// ===== LOGIN =====
-function mostrarLogin() {
-  abrirOpcion(`
-    <input id="ide" placeholder="ID"><br>
-    <button id="btnLogin">Entrar</button>
-  `);
-
-  setTimeout(() => {
-    document.getElementById("btnLogin").onclick = login;
-  }, 0);
-}
-
-async function login() {
+/* LOGIN */
+async function login(){
   const ide = document.getElementById("ide").value;
+  loginRapido(ide);
+}
 
-  const res = await fetch("/login", {
+async function loginRapido(ide){
+  const res = await fetch("/login",{
     method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({ide})
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ ide })
   });
 
-  const data = await res.json();
-  if (data.error) return alert("No existe");
+  const user = await res.json();
+  if(!user) return alert("No existe");
 
-  usuario = data;
-  guardarUsuario();
-  añadirCuenta(data);
+  usuario = user;
 
-  render();
+  localStorage.setItem("usuario", JSON.stringify(usuario));
+  guardarCuenta(usuario);
+
+  actualizar();
+  cargarGuardadas();
 }
 
-// ===== RECUPERAR =====
-function mostrarRecuperar() {
-  abrirOpcion(`
-    <input id="buscar" placeholder="Buscar"><br>
-    <button id="btnBuscar">Buscar</button>
-    <div id="res"></div>
-  `);
+/* ELIMINAR */
+function eliminarCuenta(){
+  if(!usuario) return;
 
-  setTimeout(() => {
-    document.getElementById("btnBuscar").onclick = buscar;
-  }, 0);
-}
+  if(!confirm("¿Seguro?")) return;
+  if(!confirm("¿Seguro de verdad?")) return;
 
-async function buscar() {
-  const txt = document.getElementById("buscar").value;
+  borrarCuentaLocal(usuario.ide);
 
-  if (!txt) return alert("Escribe algo");
-
-  const res = await fetch("/recuperar/" + txt);
-  const data = await res.json();
-
-  const cont = document.getElementById("res");
-
-  if (data.length === 0) {
-    cont.innerHTML = "No encontrado";
-    return;
-  }
-
-  cont.innerHTML = data.map(u => `
-    <div>
-      ${u.apodo} (${u.ide})
-      <button onclick="usarCuenta('${u.ide}')">Usar</button>
-    </div>
-  `).join("");
-}
-
-// ===== CUENTAS =====
-function añadirCuenta(u) {
-  if (!cuentas.find(c => c.ide === u.ide)) {
-    cuentas.push(u);
-    localStorage.setItem("cuentas", JSON.stringify(cuentas));
-  }
-}
-
-function usarCuenta(ide) {
-  usuario = cuentas.find(c => c.ide == ide);
-  guardarUsuario();
-  render();
-}
-
-function guardarUsuario() {
-  localStorage.setItem("user", JSON.stringify(usuario));
-}
-
-// ===== LOGOUT =====
-function logout() {
   usuario = null;
-  localStorage.removeItem("user");
-  render();
+  localStorage.removeItem("usuario");
+
+  actualizar();
+  cargarGuardadas();
 }
 
-// ===== ENTRAR =====
-function entrar() {
-  abrirOpcion(`
-    <h2>🔥 Ya queda poco...</h2>
-    <div class="spinner"></div>
-    <button id="irSitio">Ir a ScapeRooms</button>
-  `);
-
-  setTimeout(() => {
-    document.getElementById("irSitio").onclick = () => {
-      window.location.href = "https://darkterminal.onrender.com/";
-    };
-  }, 0);
+/* LOGOUT */
+function logout(){
+  usuario = null;
+  localStorage.removeItem("usuario");
+  actualizar();
 }
 
-// ===== PERFIL =====
-function abrirPerfil() {
-  if (!usuario) return alert("No has iniciado sesión");
-
-  document.getElementById("perfilBox").style.display = "block";
-
-  document.getElementById("nombre").innerText = usuario.apodo;
-  document.getElementById("miID").innerText = usuario.ide;
-  document.getElementById("avatarGrande").src =
-    usuario.avatar || "https://i.pravatar.cc/100";
+/* MODO */
+function modo(){
+  document.body.classList.toggle("claro");
 }
 
-function cerrarPerfil() {
-  document.getElementById("perfilBox").style.display = "none";
+/* PRIVACIDAD */
+function aceptarPrivacidad(){
+  if(!usuario) return;
+
+  const noMostrar = document.getElementById("noMostrar").checked;
+
+  if(noMostrar){
+    localStorage.setItem("privacidad_"+usuario.ide, "ok");
+  }
+
+  document.getElementById("privacidad").classList.add("hidden");
 }
 
-function cambiarAvatar(src) {
-  usuario.avatar = src;
-  guardarUsuario();
-  document.getElementById("avatarGrande").src = src;
+function rechazarPrivacidad(){
+  alert("No puedes usar la app sin aceptar la privacidad");
 }
 
-// ===== MODO =====
-function cambiarModo() {
-  document.body.classList.toggle("light");
-}
+/* UI */
+function actualizar(){
 
-// ===== MÚSICA =====
-function toggleMusica() {
-  const audio = document.getElementById("audio");
-  audio.volume = 0.3;
+  const menu = document.getElementById("menu");
+  const bloque = document.getElementById("bloqueGuardadas");
 
-  if (audio.paused) {
-    audio.play().catch(() => alert("Pulsa otra vez 🔊"));
-  } else {
-    audio.pause();
+  if(usuario){
+    document.getElementById("estado").innerText = "Logueado: " + usuario.apodo;
+
+    menu.style.display = "none";
+    bloque.style.display = "none";
+
+    document.getElementById("btnPerfil").classList.remove("hidden");
+    document.getElementById("btnLogout").classList.remove("hidden");
+    document.getElementById("btnEntrarJuego").classList.remove("hidden");
+    document.getElementById("btnNoti").classList.remove("hidden");
+
+    // 🔥 PRIVACIDAD SOLO LOGUEADO
+    const aceptada = localStorage.getItem("privacidad_"+usuario.ide);
+
+    if(!aceptada){
+      document.getElementById("privacidad").classList.remove("hidden");
+    }
+
+  }else{
+    document.getElementById("estado").innerText = "No logueado";
+
+    menu.style.display = "block";
+    bloque.style.display = "block";
+
+    document.getElementById("btnPerfil").classList.add("hidden");
+    document.getElementById("btnLogout").classList.add("hidden");
+    document.getElementById("btnEntrarJuego").classList.add("hidden");
+    document.getElementById("btnNoti").classList.add("hidden");
+
+    document.getElementById("privacidad").classList.add("hidden");
   }
 }
+
+/* INIT */
+window.onload = ()=>{
+  cargarGuardadas();
+
+  const guardado = localStorage.getItem("usuario");
+  if(guardado){
+    usuario = JSON.parse(guardado);
+  }
+
+  actualizar();
+};

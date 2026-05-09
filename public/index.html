@@ -1,50 +1,93 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Login</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>AppUsuarios</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2 id="sesion"></h2>
+<!-- PRIVACIDAD -->
+<div id="privacidad" class="hidden">
+  <p>
+  Política de privacidad<br><br>
+  Esta web guarda un apodo y un ID de usuario generado automáticamente para permitir el acceso al servicio.<br>
+  No se recogen datos personales como nombre, dirección o teléfono.<br>
+  Los datos no se comparten con terceros ni se utilizan para publicidad.<br>
+  El usuario puede solicitar la eliminación de su cuenta en cualquier momento.<br>
+  Si eres menor de 14 años, debes usar esta web con la autorización de tus padres o tutores.
+  </p>
 
-<div id="menuTop"></div>
+  <button onclick="aceptarPrivacidad()">Aceptar</button>
+  <button onclick="rechazarPrivacidad()">Rechazar</button>
 
-<button id="volver" onclick="volver()" style="display:none;">⬅ Volver</button>
+  <br><br>
 
-<div id="panel"></div>
-<div id="mensaje"></div>
-
-<!-- BOTONES FIJOS -->
-<button id="modo" onclick="cambiarModo()">Modo</button>
-<button id="perfil" onclick="abrirPerfil()">Perfil</button>
-<button id="musica" onclick="toggleMusica()">🎵</button>
-
-<!-- PERFIL -->
-<div id="perfilBox">
-  <div class="contenido">
-    <h3>Perfil</h3>
-
-    <img id="avatarGrande" width="100"><br><br>
-
-    <p>Nombre: <span id="nombre"></span></p>
-    <p>ID: <span id="miID"></span></p>
-
-    <h4>Cambiar foto</h4>
-    <img src="https://i.pravatar.cc/100?img=1" width="50" onclick="cambiarAvatar(this.src)">
-    <img src="https://i.pravatar.cc/100?img=2" width="50" onclick="cambiarAvatar(this.src)">
-    <img src="https://i.pravatar.cc/100?img=3" width="50" onclick="cambiarAvatar(this.src)">
-
-    <br><br>
-    <button onclick="cerrarPerfil()">Cerrar</button>
-  </div>
+  <label>
+    <input type="checkbox" id="noMostrar">
+    No volver a mostrar
+  </label>
 </div>
 
-<!-- AUDIO -->
-<audio id="audio" loop>
-  <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
-</audio>
+<!-- NOTIFICACIONES -->
+<div id="notiPanel" class="hidden">
+  <p>Esto es posible que esta semana estemos en mantenimiento</p>
+  <button onclick="cerrarNoti()">Volver</button>
+</div>
+
+<h2 id="estado">No logueado</h2>
+
+<button id="btnNoti" class="hidden" onclick="abrirNoti()">Notificaciones</button>
+
+<!-- MENU -->
+<div id="menu">
+  <button onclick="irCrear()">Crear cuenta</button>
+  <button onclick="irLogin()">Login</button>
+</div>
+
+<!-- CREAR -->
+<div id="crear" class="hidden">
+  <input id="apodo" placeholder="Apodo">
+  <button onclick="crear()">Crear</button>
+  <button onclick="volver()">Volver</button>
+</div>
+
+<!-- LOGIN -->
+<div id="login" class="hidden">
+  <input id="ide" placeholder="ID">
+  <button onclick="login()">Entrar</button>
+  <button onclick="volver()">Volver</button>
+</div>
+
+<!-- PERFIL -->
+<div id="perfil" class="hidden">
+  <h3 id="pApodo"></h3>
+  <p id="pID"></p>
+
+  <button onclick="eliminarCuenta()">Eliminar cuenta</button>
+  <button onclick="volver()">Volver</button>
+</div>
+
+<!-- CUENTAS -->
+<div id="bloqueGuardadas">
+  <h3>Cuentas guardadas</h3>
+  <div id="guardadas"></div>
+</div>
+
+<!-- JUEGO -->
+<div id="juego" class="hidden">
+  <div class="rueda"></div>
+  <button onclick="irScape()">Ir a Scape Rooms</button>
+  <button onclick="volver()">Volver</button>
+</div>
+
+<!-- BARRA -->
+<div id="barra">
+  <button id="btnPerfil" class="hidden" onclick="irPerfil()">Perfil</button>
+  <button id="btnEntrarJuego" class="hidden" onclick="abrirJuego()">Entrar</button>
+  <button id="btnLogout" class="hidden" onclick="logout()">Cerrar sesión</button>
+  <button onclick="modo()">Modo</button>
+</div>
 
 <script src="login.js"></script>
 </body>

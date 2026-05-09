@@ -15,7 +15,7 @@
   No se recogen datos personales como nombre, dirección o teléfono.<br>
   Los datos no se comparten con terceros ni se utilizan para publicidad.<br>
   El usuario puede solicitar la eliminación de su cuenta en cualquier momento.<br>
-  Si eres menor de 14 años, debes usar esta web con la autorización de tus padres o tutores.
+  Si eres menor de 14 años, debes usar esta web con autorización de tus padres.
   </p>
 
   <button onclick="aceptarPrivacidad()">Aceptar</button>
@@ -29,7 +29,16 @@
   </label>
 </div>
 
+<!-- NOTIFICACIONES -->
+<div id="notiPanel" class="hidden">
+  <p>Esto es posible que esta semana estemos en mantenimiento</p>
+  <button onclick="cerrarNoti()">Volver</button>
+</div>
+
 <h2 id="estado">No logueado</h2>
+
+<!-- BOTÓN NOTI -->
+<button id="btnNoti" class="hidden" onclick="abrirNoti()">Notificaciones</button>
 
 <!-- MENU -->
 <div id="menu">
@@ -59,7 +68,7 @@
   <button onclick="volver()">Volver</button>
 </div>
 
-<!-- CUENTAS -->
+<!-- CUENTAS GUARDADAS -->
 <div id="bloqueGuardadas">
   <h3>Cuentas guardadas</h3>
   <div id="guardadas"></div>
@@ -68,12 +77,13 @@
 <!-- BARRA -->
 <div id="barra">
   <button id="btnPerfil" class="hidden" onclick="irPerfil()">Perfil</button>
+  <button id="btnEntrarJuego" class="hidden" onclick="abrirJuego()">Entrar</button>
   <button id="btnLogout" class="hidden" onclick="logout()">Cerrar sesión</button>
   <button onclick="modo()">Modo</button>
 </div>
 
-<!-- 🔥 SCRIPT (CLAVE PARA RENDER) -->
-<script src="/login.js?v=99"></script>
+<!-- SCRIPT -->
+<script src="/login.js?v=100"></script>
 
 </body>
 </html>

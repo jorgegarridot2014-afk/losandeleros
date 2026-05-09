@@ -157,7 +157,6 @@ async function eliminarCuenta(){
     body: JSON.stringify({ ide: usuario.ide })
   });
 
-  // borrar también de guardadas
   let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
   cuentas = cuentas.filter(c => c.ide !== usuario.ide);
   localStorage.setItem("cuentas", JSON.stringify(cuentas));
@@ -167,6 +166,27 @@ async function eliminarCuenta(){
 
   cargarGuardadas();
   actualizar();
+}
+
+/* ========================= */
+/* 🎮 BOTÓN ENTRAR */
+/* ========================= */
+
+function abrirJuego(){
+  alert("Cargando juego...");
+  window.location.href = "https://darkterminal.onrender.com/";
+}
+
+/* ========================= */
+/* 🔔 NOTIFICACIONES */
+/* ========================= */
+
+function abrirNoti(){
+  document.getElementById("notiPanel").classList.remove("hidden");
+}
+
+function cerrarNoti(){
+  document.getElementById("notiPanel").classList.add("hidden");
 }
 
 /* ========================= */
@@ -220,6 +240,8 @@ function actualizar(){
 
     document.getElementById("btnPerfil").classList.remove("hidden");
     document.getElementById("btnLogout").classList.remove("hidden");
+    document.getElementById("btnEntrarJuego").classList.remove("hidden");
+    document.getElementById("btnNoti").classList.remove("hidden");
 
     const ok = localStorage.getItem("priv_"+usuario.ide);
 
@@ -235,6 +257,8 @@ function actualizar(){
 
     document.getElementById("btnPerfil").classList.add("hidden");
     document.getElementById("btnLogout").classList.add("hidden");
+    document.getElementById("btnEntrarJuego").classList.add("hidden");
+    document.getElementById("btnNoti").classList.add("hidden");
 
     document.getElementById("privacidad").classList.add("hidden");
   }
@@ -252,6 +276,6 @@ window.onload = ()=>{
     usuario = JSON.parse(guardado);
   }
 
-  cargarGuardadas(); // 🔥 ESTO ERA LO QUE TE FALTABA
+  cargarGuardadas();
   actualizar();
 };

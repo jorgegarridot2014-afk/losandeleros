@@ -1,4 +1,5 @@
 let usuario = null;
+let bloqueo = false;
 
 /* OCULTAR */
 function ocultar(){
@@ -11,16 +12,17 @@ function ocultar(){
 
 /* VOLVER */
 function volver(){
+  if(bloqueo) return;
   ocultar();
 }
 
 /* NAV */
-function irCrear(){ ocultar(); document.getElementById("crear").classList.remove("hidden"); }
-function irLogin(){ ocultar(); document.getElementById("login").classList.remove("hidden"); }
+function irCrear(){ if(bloqueo) return; ocultar(); document.getElementById("crear").classList.remove("hidden"); }
+function irLogin(){ if(bloqueo) return; ocultar(); document.getElementById("login").classList.remove("hidden"); }
 
 /* PERFIL */
 function irPerfil(){
-  if(!usuario) return;
+  if(!usuario || bloqueo) return;
 
   ocultar();
   document.getElementById("perfil").classList.remove("hidden");
@@ -31,6 +33,7 @@ function irPerfil(){
 
 /* NOTI */
 function abrirNoti(){
+  if(bloqueo) return;
   document.getElementById("notiPanel").style.display = "flex";
 }
 function cerrarNoti(){
@@ -39,11 +42,13 @@ function cerrarNoti(){
 
 /* JUEGO */
 function abrirJuego(){
+  if(bloqueo) return;
   ocultar();
   document.getElementById("juego").classList.remove("hidden");
 }
 
 function irScape(){
+  if(bloqueo) return;
   window.location.href = "https://darkterminal.onrender.com/";
 }
 
@@ -80,6 +85,8 @@ function cargarGuardadas(){
 
 /* CREAR */
 async function crear(){
+  if(bloqueo) return;
+
   const apodo = document.getElementById("apodo").value;
 
   const res = await fetch("/crear",{
@@ -102,11 +109,15 @@ async function crear(){
 
 /* LOGIN */
 async function login(){
+  if(bloqueo) return;
+
   const ide = document.getElementById("ide").value;
   loginRapido(ide);
 }
 
 async function loginRapido(ide){
+  if(bloqueo) return;
+
   const res = await fetch("/login",{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
@@ -127,14 +138,13 @@ async function loginRapido(ide){
 
 /* ELIMINAR */
 function eliminarCuenta(){
-  if(!usuario) return;
+  if(!usuario || bloqueo) return;
 
   if(!confirm("¿Seguro?")) return;
   if(!confirm("¿Seguro de verdad?")) return;
 
   borrarCuentaLocal(usuario.ide);
 
-  // opcional: borrar en servidor
   fetch("/eliminar",{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
@@ -150,6 +160,8 @@ function eliminarCuenta(){
 
 /* LOGOUT */
 function logout(){
+  if(bloqueo) return;
+
   usuario = null;
   localStorage.removeItem("usuario");
   actualizar();
@@ -157,6 +169,7 @@ function logout(){
 
 /* MODO */
 function modo(){
+  if(bloqueo) return;
   document.body.classList.toggle("claro");
 }
 
@@ -174,12 +187,11 @@ function aceptarPrivacidad(){
 }
 
 function rechazarPrivacidad(){
-  alert("Debes aceptar la política para usar la web");
+  bloqueo = true;
 
-  // 🔥 BLOQUEO TOTAL
   document.body.innerHTML = `
     <h2 style="text-align:center;margin-top:50px;">
-      No puedes usar la web sin aceptar la política de privacidad
+      Debes aceptar la política de privacidad para usar la web
     </h2>
   `;
 }
@@ -201,11 +213,12 @@ function actualizar(){
     document.getElementById("btnEntrarJuego").classList.remove("hidden");
     document.getElementById("btnNoti").classList.remove("hidden");
 
-    // PRIVACIDAD SOLO SI NO ACEPTADA
     const aceptada = localStorage.getItem("privacidad_"+usuario.ide);
 
     if(!aceptada){
       document.getElementById("privacidad").classList.remove("hidden");
+    } else {
+      document.getElementById("privacidad").classList.add("hidden");
     }
 
   }else{

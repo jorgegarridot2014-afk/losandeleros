@@ -1,36 +1,52 @@
+// 🔥 DEBUG (MUY IMPORTANTE)
+console.log("LOGIN JS CARGADO");
+
 let usuario = null;
 let bloqueo = false;
 
-/* OCULTAR TODO */
+/* OCULTAR */
 function ocultar(){
   document.getElementById("crear").classList.add("hidden");
   document.getElementById("login").classList.add("hidden");
   document.getElementById("perfil").classList.add("hidden");
 }
 
-/* NAV */
-function irCrear(){ if(bloqueo) return; ocultar(); document.getElementById("crear").classList.remove("hidden"); }
-function irLogin(){ if(bloqueo) return; ocultar(); document.getElementById("login").classList.remove("hidden"); }
-function volver(){ if(bloqueo) return; ocultar(); }
+/* NAVEGACIÓN */
+function irCrear(){
+  if(bloqueo) return;
+  ocultar();
+  document.getElementById("crear").classList.remove("hidden");
+}
 
-/* CREAR */
+function irLogin(){
+  if(bloqueo) return;
+  ocultar();
+  document.getElementById("login").classList.remove("hidden");
+}
+
+function volver(){
+  if(bloqueo) return;
+  ocultar();
+}
+
+/* CREAR CUENTA */
 async function crear(){
   if(bloqueo) return;
 
   const apodo = document.getElementById("apodo").value;
 
-  const res = await fetch("/crear",{
+  const res = await fetch("/crear", {
     method:"POST",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({ apodo })
   });
 
   const user = await res.json();
-  if(!user) return alert("Error");
+  if(!user) return alert("Error al crear");
 
   usuario = user;
-
   localStorage.setItem("usuario", JSON.stringify(usuario));
+
   actualizar();
 }
 
@@ -40,7 +56,7 @@ async function login(){
 
   const ide = document.getElementById("ide").value;
 
-  const res = await fetch("/login",{
+  const res = await fetch("/login", {
     method:"POST",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({ ide })
@@ -50,8 +66,8 @@ async function login(){
   if(!user) return alert("No existe");
 
   usuario = user;
-
   localStorage.setItem("usuario", JSON.stringify(usuario));
+
   actualizar();
 }
 
@@ -73,14 +89,14 @@ function logout(){
   actualizar();
 }
 
-/* ELIMINAR */
+/* ELIMINAR CUENTA */
 async function eliminarCuenta(){
   if(!usuario || bloqueo) return;
 
   if(!confirm("¿Seguro?")) return;
   if(!confirm("¿Seguro de verdad?")) return;
 
-  await fetch("/eliminar",{
+  await fetch("/eliminar", {
     method:"POST",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({ ide: usuario.ide })
@@ -101,9 +117,9 @@ function modo(){
 function aceptarPrivacidad(){
   if(!usuario) return;
 
-  const noMostrar = document.getElementById("noMostrar").checked;
+  const check = document.getElementById("noMostrar").checked;
 
-  if(noMostrar){
+  if(check){
     localStorage.setItem("priv_"+usuario.ide, "ok");
   }
 
@@ -124,17 +140,18 @@ function rechazarPrivacidad(){
 function actualizar(){
 
   const menu = document.getElementById("menu");
-  const bloque = document.getElementById("bloqueGuardadas");
+  const guardadas = document.getElementById("bloqueGuardadas");
 
   if(usuario){
     document.getElementById("estado").innerText = "Logueado: " + usuario.apodo;
 
     menu.style.display = "none";
-    bloque.style.display = "none";
+    guardadas.style.display = "none";
 
     document.getElementById("btnPerfil").classList.remove("hidden");
     document.getElementById("btnLogout").classList.remove("hidden");
 
+    // 🔥 PRIVACIDAD CONTROL
     const ok = localStorage.getItem("priv_"+usuario.ide);
 
     if(!ok){
@@ -145,7 +162,7 @@ function actualizar(){
     document.getElementById("estado").innerText = "No logueado";
 
     menu.style.display = "block";
-    bloque.style.display = "block";
+    guardadas.style.display = "block";
 
     document.getElementById("btnPerfil").classList.add("hidden");
     document.getElementById("btnLogout").classList.add("hidden");
@@ -154,8 +171,11 @@ function actualizar(){
   }
 }
 
-/* INIT */
-window.onload = ()=>{
+/* INICIO */
+window.onload = () => {
+
+  console.log("WINDOW LOAD OK");
+
   const guardado = localStorage.getItem("usuario");
 
   if(guardado){

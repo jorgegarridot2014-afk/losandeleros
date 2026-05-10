@@ -18,7 +18,6 @@ button{
   cursor:pointer;
   border-radius:5px;
 }
-
 button:hover{
   background:darkorange;
 }
@@ -31,9 +30,9 @@ input{
   border:none;
 }
 
-/* OCULTAR */
+/* 🔥 OCULTAR (FIX IMPORTANTE) */
 .hidden{
-  display:none;
+  display:none !important;
 }
 
 /* BARRA */
@@ -69,13 +68,30 @@ input{
   margin:30px auto;
   animation:girar 1s linear infinite;
 }
-
 @keyframes girar{
   from{ transform:rotate(0deg); }
   to{ transform:rotate(360deg); }
 }
 
-/* NOTIFICACIONES */
+/* 🔥 PRIVACIDAD */
+#privacidad{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:white;
+  color:black;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  z-index:9999;
+  padding:20px;
+  box-sizing:border-box;
+}
+
+/* 🔥 NOTIFICACIONES */
 #notiPanel{
   position:fixed;
   top:0;
@@ -84,11 +100,11 @@ input{
   height:100%;
   background:white;
   color:black;
-  display:none; /* 🔥 CLAVE */
+  display:flex;
   justify-content:center;
   align-items:center;
   flex-direction:column;
-  z-index:999;
+  z-index:9999;
 }
 
 /* MODO CLARO */

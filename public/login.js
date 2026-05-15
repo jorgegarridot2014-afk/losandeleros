@@ -1,41 +1,49 @@
-console.log("LOGIN JS CARGADO");
-
 let usuario = null;
-let bloqueo = false;
 
-/* OCULTAR */
-function ocultar(){
-  document.getElementById("crear").classList.add("hidden");
-  document.getElementById("login").classList.add("hidden");
-  document.getElementById("perfil").classList.add("hidden");
+function el(id){ return document.getElementById(id); }
+
+/* ========================= */
+/* 🔥 PANTALLAS */
+/* ========================= */
+function mostrarPantalla(id){
+
+  ["crear","login","perfil","notiPanel"].forEach(p=>{
+    let e = el(p);
+    if(e){
+      e.classList.add("hidden");
+      e.style.display = "none";
+    }
+  });
+
+  // limpiar inputs
+  if(el("apodo")) el("apodo").value = "";
+  if(el("ide")) el("ide").value = "";
+
+  if(id && el(id)){
+    el(id).classList.remove("hidden");
+
+    if(id === "notiPanel" || id === "privacidad"){
+      el(id).style.display = "flex";
+    } else {
+      el(id).style.display = "block";
+    }
+  }
 }
 
+/* ========================= */
 /* NAV */
-function irCrear(){
-  if(bloqueo) return;
-  ocultar();
-  document.getElementById("crear").classList.remove("hidden");
-}
-
-function irLogin(){
-  if(bloqueo) return;
-  ocultar();
-  document.getElementById("login").classList.remove("hidden");
-}
-
-function volver(){
-  if(bloqueo) return;
-  ocultar();
-}
+/* ========================= */
+function irCrear(){ mostrarPantalla("crear"); }
+function irLogin(){ mostrarPantalla("login"); }
+function volver(){ mostrarPantalla(null); }
 
 /* ========================= */
-/* 🔥 CUENTAS GUARDADAS */
+/* CUENTAS */
 /* ========================= */
-
 function guardarCuenta(user){
   let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
 
-  if(!cuentas.find(c => c.ide === user.ide)){
+  if(!cuentas.some(c => c.ide === user.ide)){
     cuentas.push(user);
   }
 
@@ -43,43 +51,56 @@ function guardarCuenta(user){
 }
 
 function cargarGuardadas(){
-  const cont = document.getElementById("guardadas");
+
+  let cont = el("guardadas");
+  let bloque = el("bloqueGuardadas");
+
   cont.innerHTML = "";
 
   let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
 
-  cuentas.forEach(c=>{
-    const btn = document.createElement("button");
-    btn.innerText = c.apodo + " (" + c.ide + ")";
-    btn.onclick = ()=> loginRapido(c.ide);
-    cont.appendChild(btn);
-  });
+  if(usuario){
+    bloque.style.display = "none";
+    return;
+  }
+
+  if(cuentas.length > 0){
+
+    bloque.style.display = "block";
+
+    cuentas.forEach(c=>{
+      let b = document.createElement("button");
+      b.textContent = c.apodo + " (" + c.ide + ")";
+      b.onclick = ()=>loginRapido(c.ide);
+      cont.appendChild(b);
+    });
+
+  } else {
+    bloque.style.display = "none";
+  }
 }
 
 /* ========================= */
 /* CREAR */
 /* ========================= */
+async function crearCuenta(){
 
-async function crear(){
-  if(bloqueo) return;
+  let apodo = el("apodo").value.trim();
+  if(!apodo) return alert("Pon apodo");
 
-  const apodo = document.getElementById("apodo").value;
-
-  const res = await fetch("/crear",{
+  let res = await fetch("/crear",{
     method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ apodo })
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({apodo})
   });
 
-  const user = await res.json();
-  if(!user) return alert("Error al crear");
+  let user = await res.json();
 
   usuario = user;
+  localStorage.setItem("usuario", JSON.stringify(user));
+  guardarCuenta(user);
 
-  localStorage.setItem("usuario", JSON.stringify(usuario));
-
-  guardarCuenta(usuario);
-  cargarGuardadas();
+  alert(`Cuenta creada\n\nApodo: ${user.apodo}\nID: ${user.ide}`);
 
   actualizar();
 }
@@ -87,32 +108,26 @@ async function crear(){
 /* ========================= */
 /* LOGIN */
 /* ========================= */
-
-async function login(){
-  if(bloqueo) return;
-
-  const ide = document.getElementById("ide").value;
-  loginRapido(ide);
+function loginCuenta(){
+  let id = el("ide").value.trim();
+  if(!id) return alert("Pon ID");
+  loginRapido(id);
 }
 
-async function loginRapido(ide){
-  if(bloqueo) return;
+async function loginRapido(id){
 
-  const res = await fetch("/login",{
+  let res = await fetch("/login",{
     method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ ide })
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ide:id})
   });
 
-  const user = await res.json();
+  let user = await res.json();
   if(!user) return alert("No existe");
 
   usuario = user;
-
-  localStorage.setItem("usuario", JSON.stringify(usuario));
-
-  guardarCuenta(usuario);
-  cargarGuardadas();
+  localStorage.setItem("usuario", JSON.stringify(user));
+  guardarCuenta(user);
 
   actualizar();
 }
@@ -120,162 +135,149 @@ async function loginRapido(ide){
 /* ========================= */
 /* PERFIL */
 /* ========================= */
-
 function irPerfil(){
-  if(!usuario || bloqueo) return;
 
-  ocultar();
-  document.getElementById("perfil").classList.remove("hidden");
+  mostrarPantalla("perfil");
 
-  document.getElementById("pApodo").innerText = usuario.apodo;
-  document.getElementById("pID").innerText = "ID: " + usuario.ide;
+  el("pApodo").innerText = usuario.apodo;
+  el("pID").innerText = "ID: " + usuario.ide;
 }
 
 /* ========================= */
 /* LOGOUT */
 /* ========================= */
-
 function logout(){
+
+  mostrarPantalla(null);
+
   usuario = null;
   localStorage.removeItem("usuario");
+
   actualizar();
 }
 
 /* ========================= */
 /* ELIMINAR */
 /* ========================= */
-
 async function eliminarCuenta(){
-  if(!usuario || bloqueo) return;
 
-  if(!confirm("¿Seguro?")) return;
-  if(!confirm("¿Seguro de verdad?")) return;
+  if(!confirm("¿Seguro que quieres eliminar la cuenta?")) return;
 
   await fetch("/eliminar",{
     method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ ide: usuario.ide })
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ide:usuario.ide})
   });
 
   let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
   cuentas = cuentas.filter(c => c.ide !== usuario.ide);
   localStorage.setItem("cuentas", JSON.stringify(cuentas));
 
-  usuario = null;
-  localStorage.removeItem("usuario");
+  mostrarPantalla(null);
 
-  cargarGuardadas();
+  localStorage.removeItem("usuario");
+  usuario = null;
+
   actualizar();
 }
 
 /* ========================= */
-/* 🎮 BOTÓN ENTRAR */
+/* 🔒 PRIVACIDAD */
 /* ========================= */
+function aceptarPrivacidad(){
 
-function abrirJuego(){
-  alert("Cargando juego...");
-  window.location.href = "https://darkterminal.onrender.com/";
+  if(el("noMostrar") && el("noMostrar").checked){
+    localStorage.setItem("priv_" + usuario.ide, "ok");
+  }
+
+  el("privacidad").style.display = "none";
+}
+
+function rechazarPrivacidad(){
+  document.body.innerHTML = "<h2>Debes aceptar la política</h2>";
 }
 
 /* ========================= */
-/* 🔔 NOTIFICACIONES */
+/* 🔔 NOTI */
 /* ========================= */
-
 function abrirNoti(){
-  document.getElementById("notiPanel").classList.remove("hidden");
+  el("notiPanel").classList.remove("hidden");
+  el("notiPanel").style.display = "flex";
 }
 
 function cerrarNoti(){
-  document.getElementById("notiPanel").classList.add("hidden");
+  el("notiPanel").classList.add("hidden");
+  el("notiPanel").style.display = "none";
 }
 
 /* ========================= */
-/* MODO */
+/* 🎮 JUEGO */
 /* ========================= */
+function mostrarJuego(){
+  mostrarPantalla(null);
 
+  let opcion = confirm("¿Quieres entrar al Escape Room?");
+  if(opcion){
+    window.location.href = "https://darkterminal.onrender.com/";
+  }
+}
+
+/* ========================= */
+/* 🌙 MODO */
+/* ========================= */
 function modo(){
   document.body.classList.toggle("claro");
 }
 
 /* ========================= */
-/* PRIVACIDAD */
-/* ========================= */
-
-function aceptarPrivacidad(){
-  if(!usuario) return;
-
-  const check = document.getElementById("noMostrar").checked;
-
-  if(check){
-    localStorage.setItem("priv_"+usuario.ide, "ok");
-  }
-
-  document.getElementById("privacidad").classList.add("hidden");
-}
-
-function rechazarPrivacidad(){
-  bloqueo = true;
-
-  document.body.innerHTML = `
-    <h2 style="text-align:center;margin-top:50px;">
-      Debes aceptar la política de privacidad para usar la web
-    </h2>
-  `;
-}
-
-/* ========================= */
 /* UI */
 /* ========================= */
-
 function actualizar(){
 
-  const menu = document.getElementById("menu");
-  const bloque = document.getElementById("bloqueGuardadas");
+  mostrarPantalla(null);
 
   if(usuario){
-    document.getElementById("estado").innerText = "Logueado: " + usuario.apodo;
 
-    menu.style.display = "none";
-    bloque.style.display = "none";
+    el("estado").innerText = "Logueado: " + usuario.apodo;
 
-    document.getElementById("btnPerfil").classList.remove("hidden");
-    document.getElementById("btnLogout").classList.remove("hidden");
-    document.getElementById("btnEntrarJuego").classList.remove("hidden");
-    document.getElementById("btnNoti").classList.remove("hidden");
+    el("menu").style.display = "none";
+    el("bloqueGuardadas").style.display = "none";
 
-    const ok = localStorage.getItem("priv_"+usuario.ide);
+    el("btnPerfil").classList.remove("hidden");
+    el("btnLogout").classList.remove("hidden");
+    el("btnNoti").classList.remove("hidden");
+    el("btnEntrar").classList.remove("hidden");
 
-    if(!ok){
-      document.getElementById("privacidad").classList.remove("hidden");
+    if(!localStorage.getItem("priv_" + usuario.ide)){
+      el("privacidad").style.display = "flex";
     }
 
-  }else{
-    document.getElementById("estado").innerText = "No logueado";
+  } else {
 
-    menu.style.display = "block";
-    bloque.style.display = "block";
+    el("estado").innerText = "No logueado";
 
-    document.getElementById("btnPerfil").classList.add("hidden");
-    document.getElementById("btnLogout").classList.add("hidden");
-    document.getElementById("btnEntrarJuego").classList.add("hidden");
-    document.getElementById("btnNoti").classList.add("hidden");
+    el("menu").style.display = "block";
 
-    document.getElementById("privacidad").classList.add("hidden");
+    el("btnPerfil").classList.add("hidden");
+    el("btnLogout").classList.add("hidden");
+    el("btnNoti").classList.add("hidden");
+    el("btnEntrar").classList.add("hidden");
+
+    cargarGuardadas();
+
+    el("privacidad").style.display = "none";
   }
 }
 
 /* ========================= */
 /* INIT */
 /* ========================= */
-
 window.onload = ()=>{
 
-  const guardado = localStorage.getItem("usuario");
-
+  let guardado = localStorage.getItem("usuario");
   if(guardado){
     usuario = JSON.parse(guardado);
   }
 
-  cargarGuardadas();
   actualizar();
 };

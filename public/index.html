@@ -2,44 +2,57 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>los andeleros 🔥</title>
+<title>los andeleros</title>
 
-<!-- 🔥 ANTI CACHE -->
-<link rel="stylesheet" href="/style.css?v=9999">
+<!-- 🔥 FAVICON -->
+<link rel="icon" type="image/png" href="/favicon.png">
 
+<link rel="stylesheet" href="/style.css">
 </head>
+
 <body>
 
 <!-- PRIVACIDAD -->
 <div id="privacidad" class="hidden">
-  <p>
-  Política de privacidad<br><br>
-  Esta web guarda un apodo y un ID de usuario generado automáticamente.<br>
-  No se recogen datos personales.<br>
-  No se comparten datos con terceros.<br>
-  Puedes eliminar tu cuenta en cualquier momento.
-  </p>
-
-  <button onclick="aceptarPrivacidad()">Aceptar</button>
-  <button onclick="rechazarPrivacidad()">Rechazar</button>
-
-  <br><br>
-
-  <label>
-    <input type="checkbox" id="noMostrar">
-    No volver a mostrar
-  </label>
+  <div class="card">
+    <h3>Política de privacidad</h3>
+    <p>
+    Esta web guarda un apodo y un ID de usuario generado automáticamente para permitir el acceso al servicio.<br><br>
+    No se recogen datos personales.<br><br>
+    No se comparten datos con terceros.<br><br>
+    Puedes eliminar tu cuenta cuando quieras.<br><br>
+    Si eres menor de 14 años, necesitas permiso.
+    </p>
+    <button onclick="aceptarPrivacidad()">Aceptar</button>
+    <button onclick="rechazarPrivacidad()">Rechazar</button>
+    <br><br>
+    <label>
+      <input type="checkbox" id="noMostrar">
+      No volver a mostrar
+    </label>
+  </div>
 </div>
 
-<!-- NOTIFICACIONES -->
+<!-- NOTI -->
 <div id="notiPanel" class="hidden">
-  <p>Es posible que esta semana estemos en mantenimiento</p>
-  <button onclick="cerrarNoti()">Volver</button>
+  <div class="card">
+    <p>🚧 Arreglando fallos<br>🎮 Nuevos juegos pronto</p>
+    <button onclick="cerrarNoti()">Cerrar</button>
+  </div>
+</div>
+
+<!-- JUEGO -->
+<div id="panelJuego" class="hidden">
+  <div class="card">
+    <h3>🎮 Juego</h3>
+    <button onclick="irJuego()">Ir a Escape Room</button>
+    <br><br>
+    <button onclick="volver()">Volver</button>
+  </div>
 </div>
 
 <h2 id="estado">No logueado</h2>
 
-<!-- BOTÓN NOTIFICACIONES -->
 <button id="btnNoti" class="hidden" onclick="abrirNoti()">Notificaciones</button>
 
 <!-- MENU -->
@@ -51,14 +64,14 @@
 <!-- CREAR -->
 <div id="crear" class="hidden">
   <input id="apodo" placeholder="Apodo">
-  <button onclick="crear()">Crear</button>
+  <button onclick="crearCuenta()">Crear</button>
   <button onclick="volver()">Volver</button>
 </div>
 
 <!-- LOGIN -->
 <div id="login" class="hidden">
   <input id="ide" placeholder="ID">
-  <button onclick="login()">Entrar</button>
+  <button onclick="loginCuenta()">Entrar</button>
   <button onclick="volver()">Volver</button>
 </div>
 
@@ -66,11 +79,16 @@
 <div id="perfil" class="hidden">
   <h3 id="pApodo"></h3>
   <p id="pID"></p>
-  <button onclick="eliminarCuenta()">Eliminar cuenta</button>
+
+  <button onclick="eliminarCuenta()" style="background:red;color:white;">
+    Eliminar cuenta
+  </button>
+
+  <button onclick="logout()">Cerrar sesión</button>
   <button onclick="volver()">Volver</button>
 </div>
 
-<!-- CUENTAS GUARDADAS -->
+<!-- CUENTAS -->
 <div id="bloqueGuardadas">
   <h3>Cuentas guardadas</h3>
   <div id="guardadas"></div>
@@ -79,13 +97,11 @@
 <!-- BARRA -->
 <div id="barra">
   <button id="btnPerfil" class="hidden" onclick="irPerfil()">Perfil</button>
-  <button id="btnEntrarJuego" class="hidden" onclick="abrirJuego()">Entrar</button>
+  <button id="btnEntrar" class="hidden" onclick="mostrarJuego()">Entrar</button>
   <button id="btnLogout" class="hidden" onclick="logout()">Cerrar sesión</button>
   <button onclick="modo()">Modo</button>
 </div>
 
-<!-- 🔥 SCRIPT ANTI CACHE -->
-<script src="/login.js?v=9999"></script>
-
+<script src="/login.js"></script>
 </body>
 </html>

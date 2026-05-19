@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>LOS ANDELEROS</title>
+
+<style>
+body{
+    margin:0;
+    background:black;
+    color:white;
+    font-family:Arial;
+    text-align:center;
+    padding:40px;
+    overflow:hidden;
+    transition:transform 0.25s;
+}
+
+/* ===== WARNING ===== */
+#warning{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:black;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:999999;
+}
+
+.warningBox{
+    max-width:600px;
+    border:1px solid red;
+    padding:20px;
+}
+
+.warningBox h2{color:red;}
+
+.buttons button{
+    margin:10px;
+    padding:10px 20px;
+    background:black;
+    color:red;
+    border:1px solid red;
+}
+
+/* TEXTO */
+p{
+    font-size:18px;
+    max-width:800px;
+    margin:15px auto;
+    position:relative;
+    z-index:2;
+}
+
+/* BOTÓN */
+button{
+    padding:10px 20px;
+    background:black;
+    color:red;
+    border:1px solid red;
+    cursor:pointer;
+    margin-top:20px;
+}
+
+/* FOTO */
+#pantallaFoto{
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:black;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    z-index:99999;
+}
+
+.fotoCaja{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:20px;
+}
+
+#foto{
+    max-width:80%;
+    border:2px solid red;
+}
+
+/* VOLVER */
+#volverBtn{
+    position:absolute;
+    right:30px;
+    bottom:30px;
+    padding:10px 20px;
+    background:black;
+    color:red;
+    border:1px solid red;
+    cursor:pointer;
+}
+
+/* ENTIDAD */
+#entidad{
+    position:fixed;
+    top:10px;
+    right:10px;
+    color:#00ff66;
+    font-size:13px;
+    z-index:3;
+}
+
+/* GLITCH */
+#glitchText{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    color:#00ff66;
+    font-size:30px;
+    font-family:monospace;
+    display:none;
+    z-index:100000;
+}
+
+/* FONDO */
+.fondoGlitch{
+    position:fixed;
+    color:rgba(0,255,0,0.15);
+    font-size:22px;
+    font-family:monospace;
+    pointer-events:none;
+    z-index:1;
+    animation:fadebg 2.5s linear forwards;
+}
+
+@keyframes fadebg{
+    0%{opacity:0;}
+    20%{opacity:1;}
+    100%{opacity:0;}
+}
+
+/* 💀 ADMIN TEXTO ABAJO */
+#adminText{
+    position:fixed;
+    bottom:10px;
+    left:50%;
+    transform:translateX(-50%);
+    color:#00ff66;
+    font-family:monospace;
+    font-size:14px;
+    z-index:5;
+    opacity:0.8;
+    pointer-events:none;
+}
+</style>
+</head>
+
+<body>
+
+<!-- WARNING -->
+<div id="warning">
+    <div class="warningBox">
+        <h2>⚠ ADVERTENCIA</h2>
+        <p>Experiencia ficticia de terror digital.</p>
+        <div class="buttons">
+            <button onclick="aceptar()">ACEPTAR</button>
+            <button onclick="rechazar()">RECHAZAR</button>
+        </div>
+    </div>
+</div>
+
+<audio id="whisper">
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7b6c3b6f1e.mp3">
+</audio>
+
+<div id="entidad">...</div>
+<div id="glitchText"></div>
+
+<h1>LOS ANDELEROS</h1>
+
+<p class="p"></p>
+<p class="p"></p>
+<p class="p"></p>
+<p class="p"></p>
+<p class="p"></p>
+<p class="p"></p>
+<p class="p"></p>
+
+<button onclick="verFoto()">VER FOTO</button>
+
+<div id="pantallaFoto">
+    <div class="fotoCaja">
+        <img id="foto" src="foto2.png">
+        <button id="volverBtn" onclick="volver()">VOLVER</button>
+    </div>
+</div>
+
+<!-- ADMIN TEXTO -->
+<div id="adminText"></div>
+
+<script>
+
+/* WARNING */
+function aceptar(){
+    document.getElementById("warning").style.display="none";
+}
+
+function rechazar(){
+    window.location.href="https://losandeleros.onrender.com";
+}
+
+/* TEXTO */
+const frases = [
+"Y a continuación fue un parque temático...",
+"Era el parque de atracciones soñado...",
+"De momento solo hemos podido encontrar esta información:",
+"23 de mayo de 2024...",
+"Pero de repente cayó la luz...",
+"admin abuse será sábado 23 a las 5:30"
+];
+
+const colores = ["red","lime","cyan","magenta","orange","white","yellow"];
+
+document.querySelectorAll(".p").forEach((p,i)=>{
+    p.innerText = frases[i];
+    p.style.color = colores[i % colores.length];
+});
+
+/* FOTO */
+function verFoto(){
+    document.getElementById("pantallaFoto").style.display="flex";
+}
+
+function volver(){
+    document.getElementById("pantallaFoto").style.display="none";
+}
+
+/* ENTIDAD */
+setInterval(()=>{
+    const msgs=["te observo","no estás solo","ERROR","SYSTEM","███"];
+    document.getElementById("entidad").innerText =
+    msgs[Math.floor(Math.random()*msgs.length)];
+},2500);
+
+/* GIRO */
+setInterval(()=>{
+    if(Math.random()<0.25){
+        let x=(Math.random()*12-6);
+        let y=(Math.random()*12-6);
+        let r=(Math.random()*6-3);
+
+        document.body.style.transform=`translate(${x}px,${y}px) rotate(${r}deg)`;
+        setTimeout(()=>document.body.style.transform="none",300);
+    }
+},2000);
+
+/* GLITCH */
+const mensajes = [
+"NO MIREs DETRÁS DE TI",
+"EL SISTEMA TE OBSERVA",
+"NO DEBERÍAS ESTAR AQUÍ",
+"ALGO TE VE"
+];
+
+const glitchText = document.getElementById("glitchText");
+const whisper = document.getElementById("whisper");
+
+function escribir(txt){
+    glitchText.style.display="block";
+    glitchText.innerText="";
+    let i=0;
+
+    let interval=setInterval(()=>{
+        glitchText.innerText+=txt[i];
+        i++;
+        if(i>=txt.length){
+            clearInterval(interval);
+            setTimeout(()=>glitchText.style.display="none",1200);
+        }
+    },50);
+}
+
+/* FONDO */
+const palabrasFondo = ["ERROR","NO MIRES","SISTEMA","CORRUPTO","TE VEO"];
+
+function crearPalabra(){
+    let d=document.createElement("div");
+    d.className="fondoGlitch";
+    d.innerText=palabrasFondo[Math.floor(Math.random()*palabrasFondo.length)];
+    d.style.left=Math.random()*window.innerWidth+"px";
+    d.style.top=Math.random()*window.innerHeight+"px";
+    document.body.appendChild(d);
+    setTimeout(()=>d.remove(),2500);
+}
+
+setInterval(()=>{ if(Math.random()<0.7) crearPalabra(); },500);
+
+/* 💀 ADMIN BASE64 ABAJO */
+function adminBase64(){
+    const base64 = "VEhFIFNZU1RFTSBJUyBXT0FUQ0hJTkcgWU9V";
+    const msg = atob(base64);
+    document.getElementById("adminText").innerText = msg;
+}
+
+adminBase64();
+
+</script>
+
+</body>
+</html>

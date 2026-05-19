@@ -2,43 +2,39 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>AppUsuarios</title>
-<link rel="stylesheet" href="/style.css">
+<title>Los Andeleros</title>
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
 <!-- PRIVACIDAD -->
-<div id="privacidad" class="hidden">
-  <p>
-  Política de privacidad<br><br>
-  Esta web guarda un apodo y un ID de usuario generado automáticamente para permitir el acceso al servicio.<br>
-  No se recogen datos personales como nombre, dirección o teléfono.<br>
-  Los datos no se comparten con terceros ni se utilizan para publicidad.<br>
-  El usuario puede solicitar la eliminación de su cuenta en cualquier momento.<br>
-  Si eres menor de 14 años, debes usar esta web con autorización de tus padres.
-  </p>
+<div id="privacidad" style="display:none;">
+  <div class="card">
+    <h3>Privacidad</h3>
+    <p>
+      Esta web guarda un apodo y un ID.<br><br>
+      No se comparten datos.<br><br>
+      Puedes eliminar tu cuenta.<br><br>
+      Menores necesitan permiso.
+    </p>
 
-  <button onclick="aceptarPrivacidad()">Aceptar</button>
-  <button onclick="rechazarPrivacidad()">Rechazar</button>
-
-  <br><br>
-
-  <label>
-    <input type="checkbox" id="noMostrar">
-    No volver a mostrar
-  </label>
+    <button onclick="aceptarPrivacidad()">Aceptar</button>
+    <button onclick="rechazarPrivacidad()">Rechazar</button>
+    <button onclick="noVolverPrivacidad()">No volver a mostrar</button>
+  </div>
 </div>
 
 <!-- NOTIFICACIONES -->
-<div id="notiPanel" class="hidden">
-  <p>Es posible que esta semana estemos en mantenimiento</p>
-  <button onclick="cerrarNoti()">Volver</button>
+<div id="notiPanel">
+  <div class="card">
+    <p>Arreglando bugs<br>Nuevos minijuegos pronto</p>
+    <button onclick="cerrarNoti()">Cerrar</button>
+  </div>
 </div>
 
 <h2 id="estado">No logueado</h2>
-
-<!-- BOTÓN NOTI -->
-<button id="btnNoti" class="hidden" onclick="abrirNoti()">Notificaciones</button>
+<button id="btnNoti" onclick="abrirNoti()">N</button>
 
 <!-- MENU -->
 <div id="menu">
@@ -49,14 +45,14 @@
 <!-- CREAR -->
 <div id="crear" class="hidden">
   <input id="apodo" placeholder="Apodo">
-  <button onclick="crear()">Crear</button>
+  <button onclick="crearCuenta()">Crear</button>
   <button onclick="volver()">Volver</button>
 </div>
 
 <!-- LOGIN -->
 <div id="login" class="hidden">
   <input id="ide" placeholder="ID">
-  <button onclick="login()">Entrar</button>
+  <button onclick="loginCuenta()">Entrar</button>
   <button onclick="volver()">Volver</button>
 </div>
 
@@ -65,25 +61,37 @@
   <h3 id="pApodo"></h3>
   <p id="pID"></p>
   <button onclick="eliminarCuenta()">Eliminar cuenta</button>
+  <button onclick="logout()">Cerrar sesión</button>
   <button onclick="volver()">Volver</button>
 </div>
 
-<!-- CUENTAS GUARDADAS -->
+<!-- CUENTAS -->
 <div id="bloqueGuardadas">
   <h3>Cuentas guardadas</h3>
   <div id="guardadas"></div>
 </div>
 
+<!-- PANEL JUEGO -->
+<div id="panelJuego" class="hidden">
+  <h3>Elegir juego</h3>
+
+  <button onclick="irEscape()">Escape Room</button>
+  <button onclick="irMini()">Minijuegos</button>
+
+  <!-- 🔥 EVENTOS -->
+  <button onclick="irEventos()">Eventos especiales</button>
+
+  <button onclick="volver()">Volver</button>
+</div>
+
 <!-- BARRA -->
 <div id="barra">
-  <button id="btnPerfil" class="hidden" onclick="irPerfil()">Perfil</button>
-  <button id="btnEntrarJuego" class="hidden" onclick="abrirJuego()">Entrar</button>
-  <button id="btnLogout" class="hidden" onclick="logout()">Cerrar sesión</button>
+  <button id="btnPerfil" onclick="irPerfil()">Perfil</button>
+  <button id="btnEntrar" onclick="mostrarJuego()">Entrar</button>
+  <button id="btnLogout" onclick="logout()">Salir</button>
   <button onclick="modo()">Modo</button>
 </div>
 
-<!-- SCRIPT -->
-<script src="/login.js?v=101"></script>
-
+<script src="login.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <title>Los Andeleros</title>
@@ -9,22 +9,23 @@
 <body>
 
 <!-- PRIVACIDAD -->
-<div id="privacidad">
+<div id="privacidad" style="display:none;">
   <div class="card">
     <h3>Privacidad</h3>
     <p>
       Esta web guarda un apodo y un ID.<br><br>
       No se comparten datos.<br><br>
       Puedes eliminar tu cuenta.<br><br>
-      Menores necesitan permiso.
     </p>
+
     <button onclick="aceptarPrivacidad()">Aceptar</button>
     <button onclick="rechazarPrivacidad()">Rechazar</button>
+    <button onclick="noVolverPrivacidad()">No volver a mostrar</button>
   </div>
 </div>
 
 <!-- NOTIFICACIONES -->
-<div id="notiPanel">
+<div id="notiPanel" style="display:none;">
   <div class="card">
     <p>Arreglando bugs<br>Nuevos minijuegos pronto</p>
     <button onclick="cerrarNoti()">Cerrar</button>
@@ -44,14 +45,14 @@
 <div id="crear" class="hidden">
   <input id="apodo" placeholder="Apodo">
   <button onclick="crearCuenta()">Crear</button>
-  <button onclick="volver()">Volver</button>
+  <button onclick="volverMenu()">Volver</button>
 </div>
 
 <!-- LOGIN -->
 <div id="login" class="hidden">
   <input id="ide" placeholder="ID">
   <button onclick="loginCuenta()">Entrar</button>
-  <button onclick="volver()">Volver</button>
+  <button onclick="volverMenu()">Volver</button>
 </div>
 
 <!-- PERFIL -->
@@ -60,7 +61,7 @@
   <p id="pID"></p>
   <button onclick="eliminarCuenta()">Eliminar cuenta</button>
   <button onclick="logout()">Cerrar sesión</button>
-  <button onclick="volver()">Volver</button>
+  <button onclick="volverMenu()">Volver</button>
 </div>
 
 <!-- CUENTAS -->
@@ -69,22 +70,146 @@
   <div id="guardadas"></div>
 </div>
 
-<!-- JUEGO -->
+<!-- PANEL JUEGO -->
 <div id="panelJuego" class="hidden">
   <h3>Elegir juego</h3>
+
   <button onclick="irEscape()">Escape Room</button>
   <button onclick="irMini()">Minijuegos</button>
-  <button onclick="volver()">Volver</button>
+
+  <!-- EVENTOS ESPECIALES (FIX REAL) -->
+  <button onclick="mostrarEventos()">Eventos especiales</button>
+
+  <button onclick="volverMenu()">Volver</button>
 </div>
 
 <!-- BARRA -->
 <div id="barra">
-  <button id="btnPerfil" onclick="irPerfil()">Perfil</button>
-  <button id="btnEntrar" onclick="mostrarJuego()">Entrar</button>
-  <button id="btnLogout" onclick="logout()">Salir</button>
-  <button onclick="modo()">Modo</button>
+  <button onclick="irPerfil()">Perfil</button>
+  <button onclick="mostrarJuego()">Entrar</button>
+  <button onclick="logout()">Salir</button>
 </div>
 
-<script src="login.js"></script>
+<script>
+
+/* =========================
+   NAVEGACIÓN BASE
+========================= */
+function ocultarTodo(){
+  document.getElementById("menu").classList.add("hidden");
+  document.getElementById("crear").classList.add("hidden");
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("perfil").classList.add("hidden");
+  document.getElementById("panelJuego").classList.add("hidden");
+}
+
+/* =========================
+   EVENTOS ESPECIALES (FIX)
+========================= */
+function mostrarEventos(){
+  ocultarTodo();
+
+  let ev = document.createElement("div");
+  ev.id = "eventos";
+  ev.innerHTML = `
+    <h2>EVENTOS ESPECIALES</h2>
+    <p>⚠ Sistema en mantenimiento</p>
+    <p>🔥 Nuevos eventos pronto</p>
+    <button onclick="volverMenu()">Volver</button>
+  `;
+
+  document.body.appendChild(ev);
+}
+
+/* =========================
+   VOLVER MENÚ
+========================= */
+function volverMenu(){
+  let ev = document.getElementById("eventos");
+  if(ev) ev.remove();
+
+  document.getElementById("menu").classList.remove("hidden");
+}
+
+/* =========================
+   JUEGOS
+========================= */
+function mostrarJuego(){
+  ocultarTodo();
+  document.getElementById("panelJuego").classList.remove("hidden");
+}
+
+function irEscape(){
+  window.location.href="escape.html";
+}
+
+function irMini(){
+  window.location.href="mini.html";
+}
+
+/* =========================
+   NOTIFICACIONES
+========================= */
+function abrirNoti(){
+  document.getElementById("notiPanel").style.display="block";
+}
+
+function cerrarNoti(){
+  document.getElementById("notiPanel").style.display="none";
+}
+
+/* =========================
+   PRIVACIDAD (BÁSICO)
+========================= */
+function aceptarPrivacidad(){
+  document.getElementById("privacidad").style.display="none";
+}
+
+function rechazarPrivacidad(){
+  document.body.innerHTML="<h2>ACCESO BLOQUEADO</h2>";
+}
+
+function noVolverPrivacidad(){
+  document.getElementById("privacidad").style.display="none";
+}
+
+/* =========================
+   PLACEHOLDERS LOGIN
+========================= */
+function irCrear(){
+  ocultarTodo();
+  document.getElementById("crear").classList.remove("hidden");
+}
+
+function irLogin(){
+  ocultarTodo();
+  document.getElementById("login").classList.remove("hidden");
+}
+
+function crearCuenta(){
+  alert("Cuenta creada (demo)");
+}
+
+function loginCuenta(){
+  alert("Login OK (demo)");
+  document.getElementById("menu").classList.add("hidden");
+  document.getElementById("panelJuego").classList.remove("hidden");
+}
+
+function irPerfil(){
+  ocultarTodo();
+  document.getElementById("perfil").classList.remove("hidden");
+}
+
+function logout(){
+  location.reload();
+}
+
+function eliminarCuenta(){
+  alert("Cuenta eliminada (demo)");
+}
+
+</script>
+
 </body>
 </html>

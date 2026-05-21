@@ -1,277 +1,263 @@
-let usuario = null;
-function el(id){ return document.getElementById(id); }
+let user = JSON.parse(localStorage.getItem("user")) || null;
+let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
+let modo = localStorage.getItem("modo") || "oscuro";
 
-/* ========================= */
-/* INICIO */
-/* ========================= */
-window.onload = ()=>{
+/* =========================
+   UI PRINCIPAL
+========================= */
 
-  let guardado = localStorage.getItem("usuario");
+function actualizarUI(){
 
-  if(guardado){
-    usuario = JSON.parse(guardado);
+  document.body.className = modo;
+
+  const menu = document.getElementById("menu");
+  const panel = document.getElementById("panel");
+  const perfil = document.getElementById("perfil");
+
+  const crear = document.getElementById("crear");
+  const login = document.getElementById("login");
+
+  const btnPerfil = document.getElementById("btnPerfil");
+  const btnNoti = document.getElementById("btnNoti");
+  const btnEntrar = document.getElementById("btnEntrar");
+
+  // 🔥 RESET TOTAL (CLAVE DEL FIX)
+  menu.style.display = "none";
+  panel.style.display = "none";
+  perfil.style.display = "none";
+  crear.style.display = "none";
+  login.style.display = "none";
+
+  if(user){
+
+    document.getElementById("estado").innerText = "Logueado";
+
+    panel.style.display = "block";
+    document.getElementById("pApodo").innerText = user.apodo;
+
+    btnPerfil.style.display = "inline-block";
+    btnNoti.style.display = "inline-block";
+    btnEntrar.style.display = "inline-block";
+
+  }else{
+
+    document.getElementById("estado").innerText = "No logueado";
+
+    menu.style.display = "block";
+
+    btnPerfil.style.display = "none";
+    btnNoti.style.display = "none";
+    btnEntrar.style.display = "none";
   }
 
-  actualizar();
+  mostrarCuentas();
+}
 
-  // 🔥 PRIVACIDAD SOLO SI LOGUEADO Y NO ACEPTADA
-  if(usuario && !localStorage.getItem("priv")){
-    mostrarPrivacidad();
+/* =========================
+   PROTECCIÓN
+========================= */
+
+function requiereLogin(){
+  if(!user){
+    alert("Debes iniciar sesión");
+    return false;
   }
-};
-
-/* ========================= */
-/* 🔒 PRIVACIDAD */
-/* ========================= */
-function mostrarPrivacidad(){
-  let p = el("privacidad");
-  if(!p) return;
-
-  p.style.display = "flex";
-  document.body.classList.add("bloqueado");
+  return true;
 }
 
-function aceptarPrivacidad(){
-  localStorage.setItem("priv","ok");
-  cerrarPrivacidad();
+/* =========================
+   PERFIL
+========================= */
+
+function verPerfil(){
+  if(!requiereLogin()) return;
+
+  document.getElementById("perfil").style.display = "block";
+  document.getElementById("pfApodo").innerText = user.apodo;
+  document.getElementById("pfId").innerText = user.ide;
 }
 
-function noVolverPrivacidad(){
-  localStorage.setItem("priv","ok");
-  cerrarPrivacidad();
-}
+/* =========================
+   NOTI
+========================= */
 
-function cerrarPrivacidad(){
-  el("privacidad").style.display = "none";
-  document.body.classList.remove("bloqueado");
-}
-
-// 💀 RECHAZAR → EFECTO GLITCH
-function rechazarPrivacidad(){
-
-  document.body.innerHTML = `
-    <div class="bloqueo">
-      <h1 class="glitch" data-text="ACCESO DENEGADO">ACCESO DENEGADO</h1>
-      <p class="glitch2">Debes aceptar la privacidad para continuar</p>
-    </div>
-  `;
-}
-
-/* ========================= */
-/* NAV */
-/* ========================= */
-function irCrear(){ ocultar(); el("crear").classList.remove("hidden"); }
-function irLogin(){ ocultar(); el("login").classList.remove("hidden"); }
-function volver(){ actualizar(); }
-
-function ocultar(){
-  ["crear","login","perfil","panelJuego"].forEach(id=>{
-    if(el(id)) el(id).classList.add("hidden");
-  });
-}
-
-/* ========================= */
-/* CREAR CUENTA */
-/* ========================= */
-function crearCuenta(){
-
-  let apodo = el("apodo").value;
-  if(!apodo) return alert("Pon apodo");
-
-  let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
-
-  if(cuentas.length >= 5) return alert("Max 5 cuentas");
-
-  let id = Math.floor(Math.random()*100000);
-
-  usuario = {apodo, ide:id};
-
-  cuentas.push(usuario);
-
-  localStorage.setItem("usuario", JSON.stringify(usuario));
-  localStorage.setItem("cuentas", JSON.stringify(cuentas));
-
-  actualizar();
-
-  // 🔥 MOSTRAR PRIVACIDAD
-  setTimeout(()=>{
-    mostrarPrivacidad();
-  },100);
-}
-
-/* ========================= */
-/* LOGIN */
-/* ========================= */
-function loginCuenta(){
-
-  let id = el("ide").value;
-
-  let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
-
-  let user = cuentas.find(c => String(c.ide) === String(id));
-
-  if(!user) return alert("No existe");
-
-  usuario = user;
-
-  localStorage.setItem("usuario", JSON.stringify(user));
-
-  actualizar();
-
-  // 🔥 PRIVACIDAD SI NO ACEPTADA
-  if(!localStorage.getItem("priv")){
-    setTimeout(()=>{
-      mostrarPrivacidad();
-    },100);
-  }
-}
-
-/* ========================= */
-/* CUENTAS GUARDADAS */
-/* ========================= */
-function cargarGuardadas(){
-
-  let cont = el("guardadas");
-  cont.innerHTML = "";
-
-  let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
-
-  if(usuario){
-    el("bloqueGuardadas").style.display = "none";
-    return;
-  }
-
-  cuentas.forEach(c=>{
-    let b = document.createElement("button");
-
-    b.textContent = c.apodo + " (" + c.ide + ")";
-
-    b.onclick = ()=>{
-      usuario = c;
-      localStorage.setItem("usuario", JSON.stringify(c));
-      actualizar();
-
-      if(!localStorage.getItem("priv")){
-        mostrarPrivacidad();
-      }
-    };
-
-    cont.appendChild(b);
-  });
-
-  el("bloqueGuardadas").style.display = cuentas.length ? "block" : "none";
-}
-
-/* ========================= */
-/* PERFIL */
-/* ========================= */
-function irPerfil(){
-
-  if(!usuario) return;
-
-  ocultar();
-  el("perfil").classList.remove("hidden");
-
-  el("pApodo").innerText = usuario.apodo;
-  el("pID").innerText = "ID: " + usuario.ide;
-}
-
-/* ========================= */
-/* LOGOUT */
-/* ========================= */
-function logout(){
-  usuario = null;
-  localStorage.removeItem("usuario");
-  actualizar();
-}
-
-/* ========================= */
-/* ELIMINAR */
-/* ========================= */
-function eliminarCuenta(){
-
-  if(!usuario) return;
-
-  let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
-
-  cuentas = cuentas.filter(c => c.ide !== usuario.ide);
-
-  localStorage.setItem("cuentas", JSON.stringify(cuentas));
-
-  usuario = null;
-  localStorage.removeItem("usuario");
-
-  actualizar();
-}
-
-/* ========================= */
-/* NOTI */
-/* ========================= */
 function abrirNoti(){
-  el("notiPanel").style.display = "flex";
+  if(!requiereLogin()) return;
+  document.getElementById("overlayNoti").classList.add("active");
 }
 
 function cerrarNoti(){
-  el("notiPanel").style.display = "none";
+  document.getElementById("overlayNoti").classList.remove("active");
 }
 
-/* ========================= */
-/* JUEGOS */
-/* ========================= */
-function mostrarJuego(){
-  ocultar();
-  el("panelJuego").classList.remove("hidden");
+/* =========================
+   ENTRAR
+========================= */
+
+function abrirEntrar(){
+  if(!requiereLogin()) return;
+  document.getElementById("menuEntrar").style.display = "block";
+}
+
+function cerrarEntrar(){
+  document.getElementById("menuEntrar").style.display = "none";
+}
+
+/* =========================
+   LINKS
+========================= */
+
+function irMinijuegos(){
+  window.location.href = "https://magomagioso-bit.github.io/losandeleros-minijuegos/";
 }
 
 function irEscape(){
   window.location.href = "https://darkterminal.onrender.com/";
 }
 
-function irMini(){
-  window.location.href = "https://magomagioso-bit.github.io/losandeleros-minijuegos/";
-}
-
 function irEventos(){
   window.location.href = "admin.html";
 }
 
-/* ========================= */
-/* MODO */
-/* ========================= */
-function modo(){
-  document.body.classList.toggle("claro");
+/* =========================
+   CUENTAS
+========================= */
+
+function mostrarCuentas(){
+  const div = document.getElementById("listaCuentas");
+  div.innerHTML = "";
+
+  cuentas.forEach(c => {
+    const btn = document.createElement("button");
+    btn.innerText = c.apodo + " (" + c.ide + ")";
+    btn.onclick = () => loginDirecto(c);
+    div.appendChild(btn);
+  });
+}
+
+function loginDirecto(c){
+  user = c;
+  localStorage.setItem("user", JSON.stringify(user));
+
+  actualizarUI();
+  comprobarPrivacidad();
+}
+
+/* =========================
+   CREAR / LOGIN
+========================= */
+
+function crearCuenta(){
+  const apodo = document.getElementById("apodo").value;
+
+  const data = {
+    apodo,
+    ide: Math.floor(10000 + Math.random()*90000)
+  };
+
+  cuentas.push(data);
+  localStorage.setItem("cuentas", JSON.stringify(cuentas));
+
+  loginDirecto(data); // 🔥 YA OCULTA TODO
+}
+
+function loginCuenta(){
+  const ide = document.getElementById("ide").value;
+  const encontrado = cuentas.find(c => c.ide == ide);
+
+  if(encontrado){
+    loginDirecto(encontrado); // 🔥 YA OCULTA TODO
+  }else{
+    alert("Cuenta no encontrada");
+  }
+}
+
+/* =========================
+   ELIMINAR CUENTA
+========================= */
+
+function eliminarCuenta(){
+
+  if(!user){
+    alert("No hay cuenta");
+    return;
+  }
+
+  if(!confirm("¿Eliminar cuenta?")) return;
+
+  cuentas = cuentas.filter(c => c.ide !== user.ide);
+  localStorage.setItem("cuentas", JSON.stringify(cuentas));
+
+  localStorage.removeItem("user");
+  localStorage.removeItem("privacidad_" + user.ide);
+
+  user = null;
+
+  actualizarUI();
 }
 
 /* ========================= */
-/* UI */
+
+function logout(){
+  localStorage.removeItem("user");
+  user = null;
+  actualizarUI();
+}
+
 /* ========================= */
-function actualizar(){
 
-  ocultar();
+function toggleModo(){
+  modo = (modo === "oscuro") ? "claro" : "oscuro";
+  localStorage.setItem("modo", modo);
+  actualizarUI();
+}
 
-  if(usuario){
+/* =========================
+   MENÚS
+========================= */
 
-    el("estado").innerText = "Logueado: " + usuario.apodo;
+function mostrarCrear(){
+  document.getElementById("crear").style.display="block";
+  document.getElementById("login").style.display="none";
+}
 
-    el("menu").style.display = "none";
-    el("bloqueGuardadas").style.display = "none";
+function mostrarLogin(){
+  document.getElementById("login").style.display="block";
+  document.getElementById("crear").style.display="none";
+}
 
-    el("btnPerfil").style.display = "inline-block";
-    el("btnEntrar").style.display = "inline-block";
-    el("btnNoti").style.display = "inline-block";
-    el("btnLogout").style.display = "inline-block";
+function volver(){
+  actualizarUI(); // 🔥 reset total limpio
+}
 
-  } else {
+/* =========================
+   PRIVACIDAD
+========================= */
 
-    el("estado").innerText = "No logueado";
+function comprobarPrivacidad(){
+  if(!user) return;
 
-    el("menu").style.display = "block";
+  const clave = "privacidad_" + user.ide;
 
-    el("btnPerfil").style.display = "none";
-    el("btnEntrar").style.display = "none";
-    el("btnNoti").style.display = "none";
-    el("btnLogout").style.display = "none";
-
-    cargarGuardadas();
+  if(!localStorage.getItem(clave)){
+    document.getElementById("privacidad").style.display = "flex";
   }
+}
+
+function aceptarPrivacidad(){
+  const clave = "privacidad_" + user.ide;
+  localStorage.setItem(clave, "si");
+  document.getElementById("privacidad").style.display = "none";
+}
+
+function rechazarPrivacidad(){
+  document.getElementById("textoPrivacidad").innerHTML =
+    "❌ Debes aceptar para usar la web";
+}
+
+/* ========================= */
+
+window.onload = function(){
+  actualizarUI();
+  if(user) comprobarPrivacidad();
 }

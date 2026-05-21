@@ -1,191 +1,34 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>LOS ANDELEROS</title>
-
-<style>
-body{
-    margin:0;
-    background:black;
-    color:white;
-    font-family:Arial;
-    text-align:center;
-    overflow:hidden;
-}
-
-/* WARNING */
-#warning{
-    position:fixed;
-    inset:0;
-    background:black;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    z-index:999999;
-}
-
-.warningBox{
-    border:1px solid red;
-    padding:20px;
-}
-
-button{
-    padding:10px 20px;
-    background:black;
-    color:red;
-    border:1px solid red;
-    cursor:pointer;
-    margin:10px;
-}
-
-/* CONTENIDO */
-#contenido{
-    display:none;
-}
-
-/* TEXTO */
-.linea{
-    font-size:18px;
-    margin:10px;
-}
-
-/* FOTO */
-#pantallaFoto{
-    display:none;
-    position:fixed;
-    inset:0;
-    background:black;
-    justify-content:center;
-    align-items:center;
-    flex-direction:column;
-    z-index:99999;
-}
-
-#pantallaFoto img{
-    max-width:80%;
-    border:2px solid red;
-}
-
-/* BOTONES */
-#volverTexto{
-    position:fixed;
-    bottom:20px;
-    left:50%;
-    transform:translateX(-50%);
-}
-
-#volverWeb{
-    position:fixed;
-    bottom:20px;
-    right:20px;
-}
-
-/* TECLADO */
-#typingBox{
-    position:fixed;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    color:#00ff66;
-    font-family:monospace;
-    font-size:22px;
-    display:none;
-    z-index:100000;
-}
-</style>
+<title>Admin Panel</title>
+<link rel="stylesheet" href="style.css">
 </head>
 
-<body>
+<body class="admin">
 
-<!-- WARNING -->
-<div id="warning">
-    <div class="warningBox">
-        <h2 style="color:red">⚠ ADVERTENCIA</h2>
-        <p>Experiencia ficticia de terror digital.</p>
-        <button onclick="aceptar()">ACEPTAR</button>
-        <button onclick="rechazar()">RECHAZAR</button>
-    </div>
-</div>
+<div class="adminBox">
 
-<!-- CONTENIDO TEXTO -->
-<div id="contenido">
+  <h1>🛠 ADMIN PANEL</h1>
 
-    <h1>LOS ANDELEROS</h1>
+  <h2 class="glow">Pronto nuevas actualizaciones</h2>
 
-    <p class="linea"></p>
-    <p class="linea"></p>
-    <p class="linea"></p>
-    <p class="linea"></p>
-    <p class="linea"></p>
-    <p class="linea"></p>
-    <p class="linea"></p>
-    <p class="linea"></p>
+  <p>
+    ⚡ Mejoras del sistema<br>
+    🎮 Nuevos minijuegos<br>
+    🔧 Arreglo de bugs<br>
+    🔒 Seguridad mejorada
+  </p>
 
-    <button onclick="verFoto()">VER FOTO</button>
+  <button onclick="volver()">Volver</button>
 
-    <!-- VOLVER A WEB (EN TEXTO) -->
-    <button id="volverWeb" onclick="volverWeb()">VOLVER</button>
-
-</div>
-
-<!-- FOTO -->
-<div id="pantallaFoto">
-    <img src="foto2.png">
-
-    <!-- VOLVER A TEXTO -->
-    <button id="volverTexto" onclick="volverTexto()">VOLVER</button>
 </div>
 
 <script>
-
-/* WARNING */
-function aceptar(){
-    document.getElementById("warning").style.display="none";
-    document.getElementById("contenido").style.display="block";
+function volver(){
+  window.location.href = "index.html";
 }
-
-function rechazar(){
-    document.body.innerHTML="<h2 style='color:red;text-align:center;margin-top:40vh'>ACCESO DENEGADO</h2>";
-}
-
-/* TEXTO */
-const frases=[
-"LOS ANDELEROS",
-"El sistema fue activado en condiciones anómalas.",
-"23 de mayo de 2024...",
-"Cuando la luz volvió, los registros estaban corruptos.",
-"Solo quedó una imagen del sistema principal.",
-"Nadie volvió a entrar al servidor original.",
-"Los logs indican presencia no identificada.",
-"ANDELEROS_CORE no responde."
-];
-
-const colores=["red","lime","cyan","magenta","yellow","white"];
-
-function pintar(){
-    document.querySelectorAll(".linea").forEach((p,i)=>{
-        p.innerText=frases[i];
-        p.style.color=colores[Math.floor(Math.random()*colores.length)];
-    });
-}
-setInterval(pintar,1500);
-pintar();
-
-/* FOTO */
-function verFoto(){
-    document.getElementById("pantallaFoto").style.display="flex";
-}
-
-function volverTexto(){
-    document.getElementById("pantallaFoto").style.display="none";
-}
-
-/* VOLVER A WEB */
-function volverWeb(){
-    window.location.href="https://losandeleros.onrender.com";
-}
-
 </script>
 
 </body>

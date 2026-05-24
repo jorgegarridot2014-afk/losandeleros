@@ -13,7 +13,6 @@ function actualizarUI(){
   const menu = document.getElementById("menu");
   const panel = document.getElementById("panel");
   const perfil = document.getElementById("perfil");
-
   const crear = document.getElementById("crear");
   const login = document.getElementById("login");
 
@@ -21,7 +20,6 @@ function actualizarUI(){
   const btnNoti = document.getElementById("btnNoti");
   const btnEntrar = document.getElementById("btnEntrar");
 
-  // 🔥 RESET TOTAL (CLAVE DEL FIX)
   menu.style.display = "none";
   panel.style.display = "none";
   perfil.style.display = "none";
@@ -54,23 +52,14 @@ function actualizarUI(){
 }
 
 /* =========================
-   PROTECCIÓN
-========================= */
-
-function requiereLogin(){
-  if(!user){
-    alert("Debes iniciar sesión");
-    return false;
-  }
-  return true;
-}
-
-/* =========================
    PERFIL
 ========================= */
 
 function verPerfil(){
-  if(!requiereLogin()) return;
+  if(!user){
+    alert("Debes iniciar sesión");
+    return;
+  }
 
   document.getElementById("perfil").style.display = "block";
   document.getElementById("pfApodo").innerText = user.apodo;
@@ -82,7 +71,7 @@ function verPerfil(){
 ========================= */
 
 function abrirNoti(){
-  if(!requiereLogin()) return;
+  if(!user) return;
   document.getElementById("overlayNoti").classList.add("active");
 }
 
@@ -95,7 +84,7 @@ function cerrarNoti(){
 ========================= */
 
 function abrirEntrar(){
-  if(!requiereLogin()) return;
+  if(!user) return;
   document.getElementById("menuEntrar").style.display = "block";
 }
 
@@ -138,9 +127,7 @@ function mostrarCuentas(){
 function loginDirecto(c){
   user = c;
   localStorage.setItem("user", JSON.stringify(user));
-
   actualizarUI();
-  comprobarPrivacidad();
 }
 
 /* =========================
@@ -158,7 +145,7 @@ function crearCuenta(){
   cuentas.push(data);
   localStorage.setItem("cuentas", JSON.stringify(cuentas));
 
-  loginDirecto(data); // 🔥 YA OCULTA TODO
+  loginDirecto(data);
 }
 
 function loginCuenta(){
@@ -166,7 +153,7 @@ function loginCuenta(){
   const encontrado = cuentas.find(c => c.ide == ide);
 
   if(encontrado){
-    loginDirecto(encontrado); // 🔥 YA OCULTA TODO
+    loginDirecto(encontrado);
   }else{
     alert("Cuenta no encontrada");
   }
@@ -178,10 +165,7 @@ function loginCuenta(){
 
 function eliminarCuenta(){
 
-  if(!user){
-    alert("No hay cuenta");
-    return;
-  }
+  if(!user) return;
 
   if(!confirm("¿Eliminar cuenta?")) return;
 
@@ -189,8 +173,6 @@ function eliminarCuenta(){
   localStorage.setItem("cuentas", JSON.stringify(cuentas));
 
   localStorage.removeItem("user");
-  localStorage.removeItem("privacidad_" + user.ide);
-
   user = null;
 
   actualizarUI();
@@ -227,37 +209,7 @@ function mostrarLogin(){
 }
 
 function volver(){
-  actualizarUI(); // 🔥 reset total limpio
-}
-
-/* =========================
-   PRIVACIDAD
-========================= */
-
-function comprobarPrivacidad(){
-  if(!user) return;
-
-  const clave = "privacidad_" + user.ide;
-
-  if(!localStorage.getItem(clave)){
-    document.getElementById("privacidad").style.display = "flex";
-  }
-}
-
-function aceptarPrivacidad(){
-  const clave = "privacidad_" + user.ide;
-  localStorage.setItem(clave, "si");
-  document.getElementById("privacidad").style.display = "none";
-}
-
-function rechazarPrivacidad(){
-  document.getElementById("textoPrivacidad").innerHTML =
-    "❌ Debes aceptar para usar la web";
-}
-
-/* ========================= */
-
-window.onload = function(){
   actualizarUI();
-  if(user) comprobarPrivacidad();
 }
+
+window.onload = actualizarUI;

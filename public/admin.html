@@ -1,31 +1,267 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <title>Admin Panel</title>
-<link rel="stylesheet" href="style.css">
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #0a0a0a;
+  color: white;
+}
+
+/* BOTÓN ADMIN */
+#adminBtn {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, #00ffff, #00ff88);
+  color: black;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 10px;
+  box-shadow: 0 0 15px #00ffff;
+  transition: all 0.2s ease;
+}
+
+#adminBtn:hover {
+  transform: scale(1.1);
+}
+
+#adminBtn:active {
+  transform: scale(0.95);
+}
+
+/* CENTRADO PANEL */
+.adminBox {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+}
+
+.glow {
+  color: #00ffff;
+  text-shadow: 0 0 10px #00ffff;
+}
+
+/* OVERLAY */
+#overlay {
+  display: none;
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background: rgba(0,0,0,0.95);
+  justify-content: center;
+  align-items: center;
+}
+
+/* PANEL */
+#panel {
+  background: #111;
+  padding: 25px;
+  border-radius: 12px;
+  border: 2px solid #00ffff;
+  text-align: center;
+  width: 320px;
+  box-shadow: 0 0 25px #00ffff;
+}
+
+/* INPUT */
+#codeInput {
+  width: 90%;
+  font-size: 22px;
+  text-align: center;
+  margin-top: 10px;
+  background: black;
+  color: #00ff88;
+  border: 1px solid #00ff88;
+  padding: 8px;
+}
+
+/* TECLADO */
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.keypad button {
+  padding: 16px;
+  font-size: 18px;
+  background: #111;
+  color: #00ffff;
+  border: 1px solid #00ffff;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.15s ease;
+}
+
+.keypad button:hover {
+  background: #00ffff;
+  color: black;
+  transform: scale(1.1);
+}
+
+.keypad button:active {
+  transform: scale(0.9);
+}
+
+/* BOTONES GENERALES */
+button {
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid #00ff88;
+  background: #111;
+  color: #00ff88;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: #00ff88;
+  color: black;
+  transform: scale(1.05);
+}
+
+/* ADMIN MODE */
+#adminFeatures {
+  display: none;
+  margin-top: 15px;
+  color: #00ff88;
+  text-shadow: 0 0 8px #00ff88;
+}
+</style>
 </head>
 
-<body class="admin">
+<body>
 
+<!-- BOTÓN ADMIN -->
+<button id="adminBtn" onclick="openPanel()">ADMIN</button>
+
+<!-- PANEL PRINCIPAL -->
 <div class="adminBox">
 
-  <h1>🛠 ADMIN PANEL</h1>
+  <div>
+    <h1>🛠 ADMIN PANEL</h1>
 
-  <h2 class="glow">Pronto nuevas actualizaciones</h2>
+    <h2 class="glow">Pronto nuevas actualizaciones</h2>
 
-  <p>
-    ⚡ Mejoras del sistema<br>
-    🎮 Nuevos minijuegos<br>
-    🔧 Arreglo de bugs<br>
-    🔒 Seguridad mejorada
-  </p>
+    <p>
+      ⚡ Mejoras del sistema<br>
+      🎮 Nuevos minijuegos<br>
+      🔧 Arreglo de bugs<br>
+      🔒 Seguridad mejorada
+    </p>
 
-  <button onclick="volver()">Volver</button>
+    <button onclick="volver()">Volver</button>
+  </div>
 
 </div>
 
+<!-- OVERLAY -->
+<div id="overlay">
+  <div id="panel">
+
+    <h2 style="color:#00ffff">ACCESO ADMIN</h2>
+
+    <input id="codeInput" type="password" readonly>
+
+    <div class="keypad" id="keypad">
+      <button onclick="addNum(1)">1</button>
+      <button onclick="addNum(2)">2</button>
+      <button onclick="addNum(3)">3</button>
+      <button onclick="addNum(4)">4</button>
+      <button onclick="addNum(5)">5</button>
+      <button onclick="addNum(6)">6</button>
+      <button onclick="addNum(7)">7</button>
+      <button onclick="addNum(8)">8</button>
+      <button onclick="addNum(9)">9</button>
+      <button onclick="clearCode()">C</button>
+      <button onclick="addNum(0)">0</button>
+      <button onclick="checkCode()">✔</button>
+    </div>
+
+    <div id="adminFeatures">
+      <h2>✔ ERES ADMIN</h2>
+      <p>🔓 Panel desbloqueado</p>
+      <p>⚙ Funciones secretas activas</p>
+      <p>🎮 Modo desarrollador ON</p>
+
+      <button onclick="exitAdmin()">Salir de admin</button>
+    </div>
+
+    <br>
+    <button onclick="closePanel()">Cerrar</button>
+
+  </div>
+</div>
+
 <script>
+let code = "";
+let isAdmin = false;
+
+function openPanel(){
+  document.getElementById("overlay").style.display = "flex";
+}
+
+function closePanel(){
+  document.getElementById("overlay").style.display = "none";
+  reset();
+}
+
+function addNum(n){
+  if(isAdmin) return;
+
+  if(code.length < 6){
+    code += n;
+    document.getElementById("codeInput").value = code;
+  }
+}
+
+function clearCode(){
+  code = "";
+  document.getElementById("codeInput").value = "";
+}
+
+function checkCode(){
+  if(code === "678931"){
+    isAdmin = true;
+
+    document.getElementById("keypad").style.display = "none";
+    document.getElementById("codeInput").style.display = "none";
+    document.getElementById("adminFeatures").style.display = "block";
+  } else {
+    alert("Código incorrecto");
+    clearCode();
+  }
+}
+
+function exitAdmin(){
+  isAdmin = false;
+
+  document.getElementById("keypad").style.display = "grid";
+  document.getElementById("codeInput").style.display = "block";
+  document.getElementById("adminFeatures").style.display = "none";
+
+  reset();
+}
+
+function reset(){
+  code = "";
+  document.getElementById("codeInput").value = "";
+}
+
 function volver(){
   window.location.href = "index.html";
 }

@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -26,18 +25,9 @@ body {
   cursor: pointer;
   border-radius: 10px;
   box-shadow: 0 0 15px #00ffff;
-  transition: all 0.2s ease;
 }
 
-#adminBtn:hover {
-  transform: scale(1.1);
-}
-
-#adminBtn:active {
-  transform: scale(0.95);
-}
-
-/* CENTRADO PANEL */
+/* PANEL */
 .adminBox {
   height: 100vh;
   display: flex;
@@ -65,7 +55,7 @@ body {
   align-items: center;
 }
 
-/* PANEL */
+/* PANEL INTERNO */
 #panel {
   background: #111;
   padding: 25px;
@@ -102,22 +92,10 @@ body {
   background: #111;
   color: #00ffff;
   border: 1px solid #00ffff;
-  cursor: pointer;
   border-radius: 10px;
-  transition: all 0.15s ease;
 }
 
-.keypad button:hover {
-  background: #00ffff;
-  color: black;
-  transform: scale(1.1);
-}
-
-.keypad button:active {
-  transform: scale(0.9);
-}
-
-/* BOTONES GENERALES */
+/* BOTONES */
 button {
   padding: 10px 15px;
   border-radius: 8px;
@@ -125,33 +103,63 @@ button {
   background: #111;
   color: #00ff88;
   cursor: pointer;
-  transition: 0.2s;
 }
 
-button:hover {
-  background: #00ff88;
-  color: black;
-  transform: scale(1.05);
-}
-
-/* ADMIN MODE */
+/* ADMIN */
 #adminFeatures {
   display: none;
   margin-top: 15px;
   color: #00ff88;
-  text-shadow: 0 0 8px #00ff88;
+}
+
+#adminMsg {
+  width: 90%;
+  padding: 10px;
+  margin-top: 10px;
+  background: black;
+  color: #00ff88;
+  border: 1px solid #00ff88;
+  text-align: center;
+}
+
+/* 🔥 MENSAJES ARRIBA */
+#topMessages {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 999;
+}
+
+.msgBox {
+  background: linear-gradient(135deg, #00ffff, #00ff88);
+  color: black;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: bold;
+  box-shadow: 0 0 15px #00ffff;
+  animation: aparecer 0.3s ease;
+}
+
+@keyframes aparecer {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 </style>
 </head>
 
 <body>
 
+<!-- MENSAJES ARRIBA -->
+<div id="topMessages"></div>
+
 <!-- BOTÓN ADMIN -->
 <button id="adminBtn" onclick="openPanel()">ADMIN</button>
 
-<!-- PANEL PRINCIPAL -->
 <div class="adminBox">
-
   <div>
     <h1>🛠 ADMIN PANEL</h1>
 
@@ -166,7 +174,6 @@ button:hover {
 
     <button onclick="volver()">Volver</button>
   </div>
-
 </div>
 
 <!-- OVERLAY -->
@@ -193,11 +200,12 @@ button:hover {
     </div>
 
     <div id="adminFeatures">
-      <h2>✔ ERES ADMIN</h2>
-      <p>🔓 Panel desbloqueado</p>
-      <p>⚙ Funciones secretas activas</p>
-      <p>🎮 Modo desarrollador ON</p>
+      <h2>🎉 Felicidades has sido ADMIN</h2>
 
+      <input id="adminMsg" placeholder="Escribe mensaje...">
+      <button onclick="sendMsg()">Enviar mensaje</button>
+
+      <br><br>
       <button onclick="exitAdmin()">Salir de admin</button>
     </div>
 
@@ -208,6 +216,7 @@ button:hover {
 </div>
 
 <script>
+
 let code = "";
 let isAdmin = false;
 
@@ -241,10 +250,35 @@ function checkCode(){
     document.getElementById("keypad").style.display = "none";
     document.getElementById("codeInput").style.display = "none";
     document.getElementById("adminFeatures").style.display = "block";
+
+    showTop("✔ ADMIN ACTIVADO");
   } else {
-    alert("Código incorrecto");
+    showTop("❌ Código incorrecto");
     clearCode();
   }
+}
+
+/* 🔥 MENSAJES ARRIBA */
+function showTop(text){
+
+  let box = document.createElement("div");
+  box.className = "msgBox";
+  box.textContent = text;
+
+  document.getElementById("topMessages").appendChild(box);
+
+  setTimeout(() => box.remove(), 3000);
+}
+
+/* ADMIN MSG */
+function sendMsg(){
+  let input = document.getElementById("adminMsg");
+
+  if(input.value.trim() === "") return;
+
+  showTop("🛠 ADMIN: " + input.value);
+
+  input.value = "";
 }
 
 function exitAdmin(){
@@ -265,6 +299,7 @@ function reset(){
 function volver(){
   window.location.href = "index.html";
 }
+
 </script>
 
 </body>

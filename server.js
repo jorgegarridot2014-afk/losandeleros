@@ -1,17 +1,14 @@
 const express = require("express");
+const path = require("path");
+
 const app = express();
 
-/* 💀 SERVIR ARCHIVOS (si los tienes) */
-app.use(express.static("public"));
-
-/* 💀 RUTA PRINCIPAL */
-app.get("*", (req, res) => {
-  res.sendFile(__dirname + "/public/index.html");
+/* ================= MANTENIMIENTO SIEMPRE ================= */
+app.use((req, res) => {
+  return res.sendFile(path.join(__dirname, "public", "mantenimiento.html"));
 });
 
-/* 💀 PUERTO RENDER */
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log("Servidor funcionando en puerto " + PORT);
+/* ================= START ================= */
+app.listen(process.env.PORT || 3000, () => {
+  console.log("🚧 Modo mantenimiento activo siempre");
 });

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Los Andeleros</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Orbitron', sans-serif;
+}
+
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at top,#6f3cff55,transparent 40%),
+    radial-gradient(circle at bottom,#00d9ff33,transparent 45%),
+    #050816;
+}
+
+/* ================= SCREENS ================= */
+.screen{
+  width:100%;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  transition: all .4s ease;
+}
+
+.hidden{ display:none !important; }
+
+/* ================= INICIO ================= */
+.title .main{
+  font-size:3.2rem;
+  font-weight:900;
+  color:#dffcff;
+  text-shadow:0 0 20px #00d9ff,0 0 40px #6f3cff;
+}
+
+.status{
+  margin:25px 0;
+  padding:15px 20px;
+  border:1px solid #00d9ff66;
+  border-radius:15px;
+  color:#c8f9ff;
+  background:rgba(0,0,0,.3);
+}
+
+.play-btn{
+  width:260px;
+  height:70px;
+  border:none;
+  border-radius:16px;
+  font-weight:900;
+  cursor:pointer;
+  color:#001;
+  background:linear-gradient(180deg,#55ff39,#1dbf0f);
+  box-shadow:0 0 25px #39ff14;
+}
+
+/* ================= GAME ================= */
+.hud{
+  width:100%;
+  max-width:430px;
+  display:flex;
+  justify-content:space-between;
+  padding:12px;
+  color:#dffcff;
+}
+
+.game-card{
+  width:95%;
+  max-width:430px;
+  height:65vh;
+  border-radius:20px;
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at top,#6f3cff33,transparent 50%),
+    #061028;
+  border:1px solid #00d9ff55;
+  box-shadow:0 0 20px #00d9ff22;
+}
+
+.target{
+  position:absolute;
+  width:70px;
+  height:70px;
+  border-radius:18px;
+  background:linear-gradient(45deg,#39ff14,#00ffcc);
+  transform:translate(-50%,-50%);
+  box-shadow:0 0 20px #39ff14;
+  cursor:pointer;
+}
+
+.target:active{
+  transform:translate(-50%,-50%) scale(.9);
+}
+
+/* ================= OVERLAY ================= */
+.overlay{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  background:rgba(0,0,0,.75);
+  color:#fff;
+}
+
+.restart-btn{
+  margin-top:15px;
+  padding:14px 20px;
+  border:none;
+  border-radius:12px;
+  font-weight:bold;
+  background:#39ff14;
+  cursor:pointer;
+}
+
+/* ================= BOTÓN VOLVER ================= */
+.volver{
+  position:fixed;
+  bottom:15px;
+  left:50%;
+  transform:translateX(-50%);
+  width:90%;
+  max-width:320px;
+  padding:15px;
+  border:none;
+  border-radius:16px;
+  font-weight:900;
+  color:#fff;
+  background:linear-gradient(90deg,#6f3cff,#00d9ff);
+  box-shadow:0 0 25px #6f3cffaa;
+  cursor:pointer;
+  display:none;
+}
+
+.volver.show{
+  display:block;
+}
+</style>
+</head>
+
+<body>
+
+<!-- INICIO -->
+<section id="startScreen" class="screen">
+  <h1 class="title">
+    <span class="main">LOS ANDELEROS</span>
+  </h1>
+
+  <div class="status">MODO DEMO</div>
+
+  <button class="play-btn" id="playBtn">JUGAR</button>
+</section>
+
+<!-- JUEGO -->
+<section id="gameScreen" class="screen hidden">
+
+  <div class="hud">
+    <div>Puntos: <span id="score">0</span></div>
+    <div>Tiempo: <span id="time">20</span></div>
+  </div>
+
+  <div class="game-card" id="gameCard">
+    <div class="target" id="target"></div>
+
+    <div class="overlay hidden" id="overlay">
+      <h2>FIN DEL JUEGO</h2>
+      <p id="finalText"></p>
+      <button class="restart-btn" id="restartBtn">REINICIAR</button>
+    </div>
+  </div>
+</section>
+
+<!-- BOTÓN VOLVER -->
+<button id="backBtn" class="volver">⬅ VOLVER AL MENÚ</button>
+
+<script>
+const playBtn = document.getElementById("playBtn");
+const startScreen = document.getElementById("startScreen");
+const gameScreen = document.getElementById("gameScreen");
+const backBtn = document.getElementById("backBtn");
+
+const gameCard = document.getElementById("gameCard");
+const target = document.getElementById("target");
+
+const scoreEl = document.getElementById("score");
+const timeEl = document.getElementById("time");
+
+const overlay = document.getElementById("overlay");
+const finalText = document.getElementById("finalText");
+const restartBtn = document.getElementById("restartBtn");
+
+let score = 0;
+let time = 20;
+let timer = null;
+let playing = false;
+
+/* ================= POSICIÓN ================= */
+function randomPos(){
+  const r = gameCard.getBoundingClientRect();
+  const x = Math.random()*(r.width-80)+40;
+  const y = Math.random()*(r.height-80)+40;
+
+  target.style.left = x+"px";
+  target.style.top = y+"px";
+}
+
+/* ================= START ================= */
+function startGame(){
+  score = 0;
+  time = 20;
+  playing = true;
+
+  scoreEl.textContent = score;
+  timeEl.textContent = time;
+
+  overlay.classList.add("hidden");
+
+  randomPos();
+
+  clearInterval(timer);
+  timer = setInterval(()=>{
+    time--;
+    timeEl.textContent = time;
+
+    if(time<=0) endGame();
+  },1000);
+}
+
+/* ================= END ================= */
+function endGame(){
+  playing = false;
+  clearInterval(timer);
+
+  finalText.textContent = `Tu puntuación ha sido ${score}`;
+  overlay.classList.remove("hidden");
+}
+
+/* ================= CLICK OBJETIVO ================= */
+target.onclick = ()=>{
+  if(!playing) return;
+
+  score++;
+  scoreEl.textContent = score;
+
+  randomPos();
+};
+
+/* ================= BOTONES ================= */
+playBtn.onclick = ()=>{
+  startScreen.classList.add("hidden");
+  gameScreen.classList.remove("hidden");
+
+  backBtn.classList.add("show");
+
+  startGame();
+};
+
+restartBtn.onclick = startGame;
+
+/* ================= VOLVER ================= */
+backBtn.onclick = ()=>{
+  clearInterval(timer);
+  playing = false;
+
+  gameScreen.classList.add("hidden");
+  startScreen.classList.remove("hidden");
+
+  backBtn.classList.remove("show");
+};
+
+/* ================= RESIZE ================= */
+window.addEventListener("resize", ()=>{
+  if(playing) randomPos();
+});
+</script>
+
+</body>
+</html>

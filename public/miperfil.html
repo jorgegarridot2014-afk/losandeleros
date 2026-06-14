@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jorge Dev Studio</title>
+
+<style>
+  *{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+  }
+
+  body{
+    height:100vh;
+    overflow:hidden;
+    background:#000;
+    color:white;
+  }
+
+  /* ===== NAV ===== */
+  nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:18px 30px;
+    background:#0a0a0a;
+    border-bottom:1px solid #111;
+  }
+
+  .logo{
+    color:#00aaff;
+    font-weight:bold;
+    text-shadow:0 0 10px #00aaff;
+  }
+
+  .nav-links button{
+    background:none;
+    border:none;
+    color:#aaa;
+    margin-left:15px;
+    cursor:pointer;
+  }
+
+  .nav-links button:hover{
+    color:#00aaff;
+  }
+
+  /* ===== SECCIONES ===== */
+  .section{
+    height:calc(100vh - 60px);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    text-align:center;
+    padding:20px;
+  }
+
+  .active{ display:flex; }
+
+  h1,h2{
+    color:#00aaff;
+    text-shadow:0 0 12px #00aaff;
+  }
+
+  p{
+    color:#bbb;
+    margin-top:10px;
+    max-width:600px;
+  }
+
+  .card{
+    margin-top:20px;
+    background:#0a0a0a;
+    border:1px solid #111;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 0 15px #00aaff22;
+  }
+
+  /* ===== BOTÓN DISCORD ===== */
+  .discord-btn{
+    margin-top:15px;
+    padding:14px 22px;
+    border:none;
+    border-radius:12px;
+    background:#5865F2;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+    box-shadow:0 0 20px #5865F2;
+    transition:0.2s;
+  }
+
+  .discord-btn:hover{
+    transform:scale(1.05);
+    box-shadow:0 0 30px #5865F2;
+  }
+
+</style>
+</head>
+
+<body>
+
+<nav>
+  <div class="logo">Jorge Dev Studio</div>
+
+  <div class="nav-links">
+    <button onclick="show('home')">Inicio</button>
+    <button onclick="show('servicios')">Servicios</button>
+    <button onclick="show('skills')">Skills</button>
+    <button onclick="show('proyectos')">Proyectos</button>
+    <button onclick="show('conocenos')">Conócenos</button>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div id="home" class="section active">
+  <h1>Hola, soy Jorge 👋</h1>
+  <p>Desarrollador de videojuegos (Roblox) y páginas web modernas tipo empresa real.</p>
+</div>
+
+<!-- SERVICIOS -->
+<div id="servicios" class="section">
+  <h2>Servicios</h2>
+  <div class="card">
+    🎮 Roblox PvP y desarrollo de juegos<br><br>
+    🌐 Páginas web modernas<br><br>
+    ⚙️ Sistemas backend
+  </div>
+</div>
+
+<!-- SKILLS -->
+<div id="skills" class="section">
+  <h2>Skills</h2>
+  <div class="card">En progreso...</div>
+</div>
+
+<!-- PROYECTOS -->
+<div id="proyectos" class="section">
+  <h2>En desarrollo</h2>
+  <div class="card">
+    🔥 Black Ops (Roblox PvP)<br>
+    📱 App Andeleros
+  </div>
+</div>
+
+<!-- CONÓCENOS -->
+<div id="conocenos" class="section">
+  <h2>Conócenos</h2>
+
+  <div class="card">
+    Somos un equipo de desarrollo enfocado en crear juegos y webs modernas.<br><br>
+
+    🎮 Roblox PvP<br>
+    🌐 Webs interactivas<br>
+    ⚙️ Apps en desarrollo<br><br>
+
+    <a href="https://discord.gg/Hg2zbPrHv" target="_blank">
+      <button class="discord-btn">
+        Unirse a nuestro Discord
+      </button>
+    </a>
+  </div>
+</div>
+
+<script>
+function show(id){
+  document.querySelectorAll(".section").forEach(s=>{
+    s.classList.remove("active");
+  });
+  document.getElementById(id).classList.add("active");
+}
+</script>
+
+</body>
+</html>

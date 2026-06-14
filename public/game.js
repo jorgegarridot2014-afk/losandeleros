@@ -20,10 +20,17 @@ function initGame(name) {
   setInterval(() => {
     let dx = 0, dy = 0;
 
-    if (keys["w"]) dy -= 3;
-    if (keys["s"]) dy += 3;
-    if (keys["a"]) dx -= 3;
-    if (keys["d"]) dx += 3;
+    if (keys["w"]) dy -= 1;
+    if (keys["s"]) dy += 1;
+    if (keys["a"]) dx -= 1;
+    if (keys["d"]) dx += 1;
+
+    if (dx !== 0 || dy !== 0) {
+      const length = Math.sqrt(dx * dx + dy * dy);
+      const speed = 3;
+      dx = (dx / length) * speed;
+      dy = (dy / length) * speed;
+    }
 
     socket.emit("move", { x: dx, y: dy });
   }, 30);

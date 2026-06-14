@@ -167,7 +167,7 @@ async function crearCuenta(){
     const resCuentas = await fetch(`${API_BASE}/cuentas`);
     let cuentasActuales = [];
     if(resCuentas.ok) cuentasActuales = await resCuentas.json();
-    else console.warn("No se pudo verificar el límite, procediendo...");
+    else throw new Error("Servidor no responde al verificar límites");
 
     if(cuentasActuales.length >= 50) { // Límite aumentado a 50
       return alert("El servidor está lleno. Contacta con el admin.");
@@ -183,8 +183,8 @@ async function crearCuenta(){
     updateBar();
     abrirSetup();
   } catch(err) {
-    console.error(err);
-    alert("Error de conexión con el servidor");
+    console.error("Fallo en crearCuenta:", err);
+    alert("No se pudo conectar con el servidor. Revisa tu internet o espera a que el servidor despierte.");
   }
 }
 
@@ -251,7 +251,7 @@ async function aceptarPrivacidad(){
     });
 
     const data = await res.json();
-    if(!res.ok) return alert(data.error || "Error al crear cuenta final");
+    if(!res.ok) throw new Error(data.error || "Error en el servidor al crear cuenta");
 
     user = data;
 
@@ -259,8 +259,8 @@ async function aceptarPrivacidad(){
     saveCurrentUserLocalData();
     go();
   } catch(err){
-    console.error(err);
-    alert("Error de conexión");
+    console.error("Error en aceptación:", err);
+    alert("Fallo al confirmar la cuenta: " + err.message);
     go();
   }
 }

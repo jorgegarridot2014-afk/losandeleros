@@ -14,9 +14,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /* ================= MONGO ================= */
-mongoose.connect(process.env.MONGO_URI)
-.then(()=>console.log("🟢 Mongo conectado"))
-.catch(err=>console.log("❌ Mongo error:", err));
+if (!process.env.MONGO_URI) {
+  console.error("❌ ERROR CRÍTICO: La variable MONGO_URI no está configurada en el entorno.");
+} else {
+  mongoose.connect(process.env.MONGO_URI, {
+    serverSelectionTimeoutMS: 5000 // Falla rápido si no hay conexión (5 seg) en lugar de esperar infinito
+  })
+  .then(() => console.log("🟢 Mongo conectado exitosamente"))
+  .catch(err => {
+    console.error("❌ Error al conectar a MongoDB:");
+    console.error("Mensaje:", err.message);
+    console.error("Asegúrate de que la IP de Render esté permitida (0.0.0.0/0) en MongoDB Atlas.");
+  });
+}
 
 /* ================= MODELO ================= */
 const UserSchema = new mongoose.Schema({

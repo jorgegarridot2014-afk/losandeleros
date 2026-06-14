@@ -1,7 +1,7 @@
 let user = null;
 let pendingUser = null; // Para guardar datos antes de crear en DB
 let modo = localStorage.getItem("modo") || "oscuro";
-const API_BASE = window.location.origin || "http://localhost:3000";
+const API_BASE = ""; // Usar rutas relativas para que funcione en Render y local sin cambios
 const LOCAL_ACCOUNT_KEY = "andeleros_account_";
 const LAST_ACTIVE_KEY = "andeleros_last_active";
 

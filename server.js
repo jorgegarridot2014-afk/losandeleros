@@ -1,7 +1,11 @@
 const express = require("express");
 const path = require("path");
 const mongoose = require("mongoose");
-require("dotenv").config();
+try {
+  require("dotenv").config();
+} catch (e) {
+  console.log("ℹ️ No se encontró el módulo 'dotenv', usando variables de entorno del sistema.");
+}
 
 const app = express();
 

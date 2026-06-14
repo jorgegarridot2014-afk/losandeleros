@@ -1,6 +1,7 @@
 const express = require("express");
 const path = require("path");
 const mongoose = require("mongoose");
+const cors = require("cors");
 try {
   require("dotenv").config();
 } catch (e) {
@@ -10,6 +11,7 @@ try {
 const app = express();
 
 /* ================= MIDDLEWARE ================= */
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

@@ -505,6 +505,10 @@ function irQuiz(){
   window.location.href = "/quiz.html";
 }
 
+function irMisterio(){
+  window.location.href = "/mario%20bross/menu.html";
+}
+
 function irLab(){
   window.location.href = "https://elementlab.onrender.com/";
 }

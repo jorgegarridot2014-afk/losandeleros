@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Ultra Cinematic Menu</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+body{
+  overflow:hidden;
+  background:black;
+  cursor: crosshair;
+}
+
+/* CANVAS */
+canvas{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+}
+
+/* VIGNETTE EFFECT */
+.vignette {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* CINEMATIC TEXT */
+.cine{
+  position:absolute;
+  width:100%;
+  height:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  text-align:center;
+  color:white;
+  opacity:0; 
+  transform:scale(1.4);
+  transition:2s ease;
+  z-index:2;
+}
+
+.cine.show{
+  opacity:1;
+  transform:scale(1);
+}
+
+.big{
+  font-size:75px;
+  text-shadow:0 0 20px cyan, 0 0 40px blue, 0 10px 0 rgba(0,0,0,0.5);
+  letter-spacing:8px;
+}
+
+.small{
+  font-size:22px;
+  opacity:0.8;
+  margin-top:10px;
+}
+
+/* BUTTON */
+button{
+  margin-top:25px;
+  padding:15px 60px;
+  font-size:22px;
+  border:none;
+  border-radius:14px;
+  cursor:pointer;
+  background:linear-gradient(90deg,#00ffcc,#0066ff);
+  color:white;
+  box-shadow:0 0 30px rgba(0,255,255,0.4);
+  display:none;
+}
+
+#back {
+  background: linear-gradient(90deg, #ff4b2b, #ff416c);
+  margin-top: 15px;
+}
+
+/* HUD */
+#hud{
+  position:absolute;
+  bottom:20px;
+  width:100%;
+  text-align:center;
+  color:white;
+  font-size:14px;
+  opacity:0.7;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="bg"></canvas>
+<div class="vignette"></div>
+
+<!-- CINEMÁTICAS -->
+<div id="t1" class="cine">
+  <div class="small">UNA EXPERIENCIA ORIGINAL</div>
+</div>
+
+<div id="t2" class="cine">
+  <div class="big">GONJOR GAMES</div>
+  <div class="small">PRESENTS</div>
+</div>
+
+<div id="t_extra1" class="cine">
+  <div class="small">EN UN MUNDO PIXELADO...</div>
+</div>
+
+<div id="t3" class="cine">
+  <div class="big">CARL BRISS</div>
+</div>
+
+<div id="t_extra2" class="cine">
+  <div class="small">EL DESTINO AGUARDA</div>
+</div>
+
+<div id="t4" class="cine">
+  <div class="big">EL COMIENZO</div>
+  <div class="small">PREPÁRATE PARA EL SALTO</div>
+</div>
+
+<!-- MENÚ FINAL -->
+<div id="menu" class="cine">
+  <div class="big">🎮 START GAME</div>
+  <button id="play">JUGAR</button>
+  <button id="back">VOLVER AL MENÚ PRINCIPAL</button>
+</div>
+
+<div id="hud">Cargando sistema...</div>
+
+<script>
+
+const canvas=document.getElementById("bg");
+const ctx=canvas.getContext("2d");
+
+function resize(){
+  canvas.width=innerWidth;
+  canvas.height=innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+/* 🌌 PARTICULAS */
+let particles=[];
+for(let i=0;i<200;i++){
+  particles.push({
+    x:Math.random()*innerWidth,
+    y:Math.random()*innerHeight,
+    s:0.3+Math.random()*1.2,
+    o:Math.random()
+  });
+}
+
+/* FONDO */
+let t=0;
+
+function draw(){
+
+  t+=0.0025;
+
+  let r=10+Math.sin(t)*30;
+  let g=20+Math.sin(t+2)*50;
+  let b=50+Math.sin(t+4)*70;
+
+  ctx.fillStyle=`rgb(${r},${g},${b})`;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  particles.forEach(p=>{
+    ctx.fillStyle=`rgba(255,255,255,${0.3 + Math.sin(t + p.o)*0.5})`;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.s * 2, 0, Math.PI*2);
+    ctx.fill();
+
+    p.y+=p.s;
+    p.x+=Math.sin(p.y*0.01)*0.4;
+
+    if(p.y>canvas.height){
+      p.y=0;
+      p.x=Math.random()*canvas.width;
+    }
+  });
+}
+
+/* LOOP */
+function loop(){
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+
+/* 🎬 CINEMÁTICAS EN CADENA */
+
+function show(id){
+  document.querySelectorAll(".cine").forEach(e=>e.classList.remove("show"));
+  document.getElementById(id).classList.add("show");
+}
+
+/* SECUENCIA LARGA */
+const sequence = [
+  {id:"t1", time: 1000},
+  {id:"t2", time: 3500},
+  {id:"t_extra1", time: 6500},
+  {id:"t3", time: 9000},
+  {id:"t_extra2", time: 11500},
+  {id:"t4", time: 14000}
+];
+
+sequence.forEach(step => setTimeout(() => show(step.id), step.time));
+
+setTimeout(()=>{
+  document.querySelectorAll(".cine").forEach(e=>e.classList.remove("show"));
+  document.getElementById("menu").classList.add("show");
+  document.getElementById("play").style.display="block";
+  document.getElementById("back").style.display="block";
+  document.getElementById("hud").innerText="SISTEMA LISTO";
+}, 16000);
+
+/* 🎵 MUSICA SIMPLE SIN ARCHIVOS */
+let audioCtx;
+
+function music(){
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  let osc = audioCtx.createOscillator();
+  let gain = audioCtx.createGain();
+
+  osc.type="sine";
+  osc.frequency.value=110;
+
+  gain.gain.value=0.04;
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  osc.start();
+
+  setInterval(()=>{
+    osc.frequency.value=110 + Math.random()*60;
+  },700);
+}
+
+setTimeout(music,1200);
+
+/* BOTÓN */
+document.getElementById("play").onclick=()=>{
+  document.body.style.transition="1.2s";
+  document.body.style.opacity="0";
+
+  setTimeout(()=>{
+    window.location.href="game.html";
+  },1000);
+};
+
+document.getElementById("back").onclick=()=>{
+  window.location.href="../index.html";
+};
+
+</script>
+
+</body>
+</html>

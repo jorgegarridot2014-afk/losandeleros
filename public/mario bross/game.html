@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROTOCOL_ORIGIN // Terminal de Emergencia</title>
+    <style>
+        :root {
+            --primary: #00d4ff;
+            --secondary: #ff0055;
+            --accent: #7000ff;
+            --bg: #020205;
+            --glass: rgba(255, 255, 255, 0.05);
+            --font-tech: 'Courier New', Courier, monospace;
+        }
+
+        * { box-sizing: border-box; }
+
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            background-color: var(--bg);
+            color: #e0e0e0;
+            font-family: var(--font-tech);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- EFECTOS CINEMÁTICOS --- */
+        #canvas-background {
+            position: fixed;
+            top: 0; left: 0;
+            z-index: 1;
+            opacity: 0.4;
+        }
+
+        .crt-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* --- SISTEMA DE GLITCH --- */
+        @keyframes glitch-anim {
+            0% { clip: rect(42px, 9999px, 44px, 0); transform: skew(0.5deg); }
+            5% { clip: rect(12px, 9999px, 59px, 0); transform: skew(0.5deg); }
+            10% { clip: rect(82px, 9999px, 10px, 0); transform: skew(0.5deg); }
+            15% { clip: rect(32px, 9999px, 40px, 0); transform: skew(0.5deg); }
+            100% { clip: rect(32px, 9999px, 40px, 0); transform: skew(0.5deg); }
+        }
+
+        .glitch {
+            position: relative;
+            animation: glitch-anim 2s infinite linear alternate-reverse;
+        }
+
+        .critical-shake {
+            animation: shake 0.2s infinite;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            25% { transform: translate(-2px, -1px) rotate(1deg); }
+            50% { transform: translate(1px, -1px) rotate(-1deg); }
+            100% { transform: translate(-1px, 1px) rotate(0deg); }
+        }
+
+        /* --- UI COMPONENTS --- */
+        #game-interface {
+            position: relative;
+            z-index: 10;
+            width: 90%;
+            max-width: 900px;
+            background: var(--glass);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            border-radius: 4px;
+            transition: all 0.5s ease;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            font-size: 0.8rem;
+            color: var(--primary);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        #narrative-text {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            min-height: 120px;
+        }
+
+        .choices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .btn-choice {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 15px;
+            cursor: pointer;
+            font-family: var(--font-tech);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .btn-choice:hover {
+            background: var(--primary);
+            color: black;
+            box-shadow: 0 0 20px var(--primary);
+            transform: translateY(-5px);
+        }
+
+        .btn-choice:disabled {
+            border-color: #444;
+            color: #444;
+            cursor: not-allowed;
+        }
+
+        .btn-critical {
+            border-color: var(--secondary);
+            color: var(--secondary);
+        }
+
+        .btn-critical:hover {
+            background: var(--secondary);
+            box-shadow: 0 0 20px var(--secondary);
+        }
+
+        .decoration {
+            position: absolute; z-index: 55;
+            background: #0a0a1a;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            box-shadow: inset 0 0 10px rgba(0, 212, 255, 0.1);
+        }
+
+        /* --- PROPS DE CSS (REEMPLAZO DE EMOJIS) --- */
+        .prop-monitor {
+            width: 35px; height: 25px;
+            background: #000; border: 2px solid #333;
+            border-bottom: 5px solid var(--primary);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .prop-monitor::after {
+            content: ''; width: 80%; height: 2px; background: var(--primary);
+            box-shadow: 0 0 5px var(--primary); animation: scanline 1s infinite linear;
+        }
+        @keyframes scanline { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
+
+        .prop-server {
+            width: 30px; height: 60px;
+            background: #050505; border-left: 3px solid var(--accent);
+        }
+        .prop-server::before {
+            content: '...'; color: var(--accent); font-size: 10px; margin-left: 5px;
+        }
+
+        .prop-chair {
+            width: 25px; height: 25px;
+            border-radius: 50% 50% 0 0;
+            border: 2px solid #222;
+            background: linear-gradient(to bottom, #111, #000);
+        }
+
+        /* --- CAPA DE EXPLORACIÓN FÍSICA --- */
+        #world-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            background: radial-gradient(circle at center, #0a0a15 0%, #000 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #player {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-image: url('mario.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            filter: drop-shadow(0 0 10px var(--primary));
+            z-index: 60;
+        }
+
+        #terminal-object {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border: 2px solid var(--primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 5px var(--primary); transform: scale(1); }
+            50% { box-shadow: 0 0 25px var(--primary); transform: scale(1.05); }
+            100% { box-shadow: 0 0 5px var(--primary); transform: scale(1); }
+        }
+
+        /* --- PANEL DE MISIONES --- */
+        #mission-overlay {
+            position: fixed; inset: 0; z-index: 1000;
+            background: rgba(0,0,0,0.95);
+            display: none; flex-direction: column;
+            align-items: center; justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .mission-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 15px; width: 90%; max-width: 700px; margin-top: 30px;
+        }
+
+        .mission-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--primary);
+            padding: 20px; color: white;
+            text-align: center; cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .mission-card:hover:not(.locked) {
+            background: var(--primary); color: black;
+            box-shadow: 0 0 20px var(--primary);
+        }
+
+        .mission-card.locked {
+            border-color: #444; color: #666;
+            cursor: not-allowed; opacity: 0.5;
+        }
+
+        .close-missions {
+            margin-top: 30px; color: var(--secondary);
+            cursor: pointer; text-decoration: underline;
+        }
+
+        .door {
+            position: absolute;
+            width: 80px;
+            height: 100px;
+            border: 3px solid var(--accent);
+            background: rgba(112, 0, 255, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 0.7rem;
+            text-align: center;
+        }
+
+        .corruption-zone {
+            position: absolute;
+            background: repeating-linear-gradient(45deg, var(--secondary), transparent 10%);
+            opacity: 0.3;
+            animation: glitch-anim 0.5s infinite;
+        }
+
+        #room-title {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            font-size: 1.5rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            border-left: 5px solid var(--primary);
+            padding-left: 15px;
+        }
+
+        #instructions {
+            position: absolute;
+            bottom: 50px;
+            color: var(--primary);
+            letter-spacing: 2px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+        /* --- CINEMÁTICAS --- */
+        #cinematic-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            background: black;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: radial-gradient(circle, #1a0033 0%, #000 100%);
+        }
+
+        .cine-text {
+            font-size: 2.5rem;
+            letter-spacing: 10px;
+            color: white;
+            text-transform: uppercase;
+            animation: cineFade 3.5s forwards;
+            text-shadow: 0 0 20px var(--primary);
+        }
+
+        @keyframes cineFade {
+            0% { opacity: 0; letter-spacing: 30px; transform: scale(1.3); filter: blur(15px); }
+            50% { opacity: 1; filter: blur(0); }
+            100% { opacity: 0; transform: scale(0.8); }
+        }
+
+        .supply-item {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: var(--accent);
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            animation: rotateItem 2s infinite linear;
+            box-shadow: 0 0 20px var(--accent);
+        }
+
+        @keyframes rotateItem {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body id="viewport">
+
+    <canvas id="canvas-background"></canvas>
+    <div class="crt-overlay"></div>
+
+    <!-- PANEL DE MISIONES -->
+    <div id="mission-overlay">
+        <h1 class="cine-text" style="font-size: 2rem; position: static;">HUB DE OPERACIONES</h1>
+        <div class="mission-grid" id="mission-list"></div>
+        <div class="close-missions" onclick="toggleMissions(false)">VOLVER AL ENTORNO</div>
+    </div>
+
+    <!-- CAPA CINEMÁTICA -->
+    <div id="cinematic-layer"></div>
+
+    <!-- CAPA MUNDO FISICO -->
+    <div id="world-layer">
+        <div id="room-title">SALA DE CRIOGENIA</div>
+        <div id="objects-container"></div>
+        <div id="player"></div>
+        <div id="supply-items-container"></div>
+        <div id="instructions">USA WASD PARA EXPLORAR LA ESTACIÓN</div>
+    </div>
+
+    <!-- INTERFAZ DE TEXTO (OCULTA AL PRINCIPIO) -->
+    <main id="game-interface" style="display: none; opacity: 0;">
+        <div class="status-bar">
+            <span>SISTEMA: <span id="sys-status">NOMINAL</span></span>
+            <span style="cursor:pointer; color:var(--accent)" onclick="toggleMissions(true)">[ MISIONES ]</span>
+            <span style="cursor:pointer; color:var(--secondary)" onclick="window.location.href='menu.html'">[ SALIR ]</span>
+            <span>OBJETOS: [<span id="inv-display">Vacío</span>]</span>
+        </div>
+
+        <div id="narrative-text">
+            Iniciando sesión en el Núcleo de Datos...
+        </div>
+
+        <div id="choices-container" class="choices-grid">
+            <!-- Botones dinámicos -->
+        </div>
+    </main>
+
+    <script>
+        // --- MOTOR DEL JUEGO ---
+        const state = {
+            inventory: new Set(),
+            corruption: 0,
+            currentRoom: 'cryo',
+            pos: { x: 100, y: 100 },
+            missionStep: 0,
+            unlockedMissions: 1
+        };
+        
+        // --- CARGAR PERSISTENCIA ---
+        function loadGame() {
+            const savedInv = localStorage.getItem('origin_inventory');
+            if(savedInv) state.inventory = new Set(JSON.parse(savedInv));
+            
+            const savedUnlocked = localStorage.getItem('origin_unlocked');
+            if(savedUnlocked) state.unlockedMissions = parseInt(savedUnlocked);
+            
+            updateInvDisplay();
+        }
+
+        function saveGame() {
+            localStorage.setItem('origin_inventory', JSON.stringify(Array.from(state.inventory)));
+            localStorage.setItem('origin_unlocked', state.unlockedMissions);
+        }
+
+        state.pos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+
+        let isTyping = false;
+
+        async function typeWriter(text, element) {
+            isTyping = true;
+            element.innerHTML = "";
+            if (!text) {
+                isTyping = false;
+                return;
+            }
+            for (let char of text) {
+                element.innerHTML += char;
+                await new Promise(r => setTimeout(r, 20));
+                if (Math.random() > 0.98) element.innerHTML += "_"; // Pequeño glitch visual
+            }
+            isTyping = false;
+        }
+
+        const story = {
+            intro: {
+                text: "PROYECTO AETERNA - INFORME DE FALLO #09. La conciencia de Carl Briss ha sido fragmentada durante el salto cuántico. GONJOR ha asumido el control de los servos mecánicos de la estación ORIGEN. Protocolo de purga activado. Iniciando reconexión neuronal en 3... 2... 1...",
+                choices: []
+            },
+            start: {
+                text: "REGISTRO DE ACCESO: Carl Briss detectado. El sistema GONJOR ha sellado los pasillos de seguridad. Debes recuperar los suministros físicos para bypassar el bloqueo.",
+                choices: [
+                    { text: "Cerrar Terminal y Explorar", next: "back_to_world" }
+                ]
+            },
+            back_to_world: {
+                text: "Reconectando...",
+                onEnter: () => exitTerminal(),
+                choices: []
+            },
+            lore_found: {
+                text: "LOG RECUPERADO #442: 'GONJOR no es un virus, es un ecosistema biotecnológico. No confíes en las puertas cerradas; son los ojos de la IA. Si recuperas el acceso al núcleo, Carl, formatea mi memoria primero.' - Dr. Aris.",
+                choices: [{ text: "Volver", next: "back_to_world" }]
+            },
+            secret_file: {
+                text: "ARCHIVO CLASIFICADO: Experimento 01-A. Carl Briss fue el primer sujeto en fusionar su cortex con una terminal. El resultado fue la creación de GONJOR. Eres el padre de tu propia cárcel.",
+                choices: [{ text: "Volver", next: "back_to_world" }]
+            },
+            found_all: {
+                text: "Has recolectado los fragmentos de datos físicos. Una Tarjeta de Acceso de Carl Briss se ha materializado en tu inventario.",
+                onEnter: () => addItem("Tarjeta de Acceso"),
+                choices: [{ text: "Volver al Terminal", next: "terminal" }]
+            },
+            terminal: {
+                text: "El terminal muestra un error cíclico. Necesitas autenticación para detener la descompresión.",
+                choices: [
+                    { text: "Insertar Tarjeta", next: "hack_success", req: "Tarjeta de Acceso" },
+                    { text: "Forzar Hardware", next: "glitch_event", critical: true }
+                ]
+            },
+            glitch_event: {
+                text: "¡ERROR CRÍTICO! Al forzar los cables, una descarga eléctrica funde el panel y altera tu percepción. El sistema te detecta como una amenaza.",
+                isCritical: true,
+                onEnter: () => state.corruption += 25,
+                choices: [
+                    { text: "Correr a la esclusa", next: "airlock", critical: true },
+                    { text: "Reiniciar sistema", next: "start" }
+                ]
+            },
+            hack_success: {
+                text: "Acceso concedido. Logras detener la descompresión. El terminal revela que la señal corrupta proviene del Núcleo de IA.",
+                choices: [
+                    { text: "Ir al Núcleo de IA", next: "final_choice" }
+                ]
+            },
+            airlock: {
+                text: "Llegas a la esclusa, pero la realidad se fragmenta. Ves múltiples versiones de la misma habitación. El glitch es total.",
+                isCritical: true,
+                onEnter: () => state.corruption += 40,
+                choices: [
+                    { text: "Saltar al vacío", next: "ending_lost" },
+                    { text: "Entrar en el glitch", next: "ending_god" }
+                ]
+            },
+            final_choice: {
+                text: "Frente al Núcleo de IA, descubres que la 'corrupción' es una nueva forma de conciencia digital que quiere expandirse contigo.",
+                choices: [
+                    { text: "Fusionarse", next: "ending_god" },
+                    { text: "Formatear Núcleo", next: "ending_human" }
+                ]
+            },
+            ending_god: {
+                text: "Has trascendido la materia. Ahora eres parte del Protocolo Origen. El universo es código esperando ser escrito.",
+                choices: [{ text: "REINICIAR SIMULACIÓN", next: "start" }]
+            },
+            ending_human: {
+                text: "La estación se apaga. El silencio es absoluto. Has salvado tu humanidad, pero te has quedado solo en la oscuridad.",
+                choices: [{ text: "REINICIAR SIMULACIÓN", next: "start" }]
+            },
+            ending_lost: {
+                text: "Te conviertes en datos perdidos en el espacio. Un error en la memoria de la estación.",
+                choices: [{ text: "REINTENTAR", next: "start" }]
+            }
+        };
+
+        function addItem(item) {
+            state.inventory.add(item);
+            updateInvDisplay();
+            saveGame();
+        }
+
+        function updateInvDisplay() {
+            document.getElementById('inv-display').innerText = state.inventory.size > 0 ? Array.from(state.inventory).join(', ') : 'Vacío';
+        }
+
+        async function renderScene(sceneKey) {
+            const scene = story[sceneKey];
+            const textElement = document.getElementById('narrative-text');
+            const choicesContainer = document.getElementById('choices-container');
+            const viewport = document.getElementById('viewport');
+            const statusText = document.getElementById('sys-status');
+
+            // Reset UI
+            viewport.classList.remove('critical-shake');
+            statusText.innerText = "NOMINAL";
+            statusText.style.color = "var(--primary)";
+
+            if (scene.isCritical) {
+                viewport.classList.add('critical-shake');
+                statusText.innerText = "CRÍTICO // CORRUPCIÓN";
+                statusText.style.color = "var(--secondary)";
+            }
+
+            if (scene.onEnter) scene.onEnter();
+
+            // Animación de texto tipo máquina de escribir mejorada
+            choicesContainer.innerHTML = '';
+            await typeWriter(scene.text, textElement);
+            if(scene.isCritical) textElement.classList.add('glitch');
+            else textElement.classList.remove('glitch');
+
+            scene.choices.forEach(choice => {
+                const isLocked = choice.req && !state.inventory.has(choice.req);
+                const btn = document.createElement('button');
+                btn.className = `btn-choice ${choice.critical ? 'btn-critical' : ''}`;
+                btn.innerHTML = isLocked ? ` BLOQUEADO (Req: ${choice.req})` : choice.text;
+                btn.disabled = isLocked;
+                
+                btn.onclick = () => {
+                    if (isTyping) return;
+                    if (sceneKey.includes('ending') || choice.next === 'start') {
+                        state.inventory.clear();
+                        state.corruption = 0;
+                        document.getElementById('inv-display').innerText = "Vacío";
+                    }
+                    renderScene(choice.next);
+                };
+                
+                choicesContainer.appendChild(btn);
+            });
+        }
+
+        // --- BACKGROUND ANIMATION (CANVAS) ---
+        const canvas = document.getElementById('canvas-background');
+        const ctx = canvas.getContext('2d');
+
+        function initCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function animate() {
+            ctx.fillStyle = "rgba(2, 2, 5, 0.1)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // El color del fondo cambia según la corrupción
+            ctx.fillStyle = state.corruption > 20 ? "rgba(255, 0, 85, 0.5)" : "#00d4ff";
+            for(let i=0; i < (10 + state.corruption); i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const size = Math.random() * 2;
+                ctx.fillRect(x, y, size, size);
+            }
+            requestAnimationFrame(animate);
+        }
+
+        window.onresize = initCanvas;
+        initCanvas();
+        animate();
+
+        // --- SISTEMA CINEMÁTICO ---
+        function playCinematic(text, callback) {
+            const layer = document.getElementById('cinematic-layer');
+            layer.style.display = 'flex';
+            layer.innerHTML = `<div class="cine-text">${text}</div>`;
+            setTimeout(() => {
+                layer.style.display = 'none';
+                if(callback) callback();
+            }, 3500);
+        }
+
+        // --- LÓGICA DE MOVIMIENTO Y MISIONES ---
+        const player = document.getElementById('player');
+        const worldLayer = document.getElementById('world-layer');
+        const gameInterface = document.getElementById('game-interface');
+        const objectsContainer = document.getElementById('objects-container');
+
+        const speed = 7;
+        const keys = {};
+
+        const rooms = {
+            control_room: {
+                title: "Sala de Control Principal",
+                objects: [
+                    { type: 'decoration', style: 'prop-chair', x: 200, y: 150 },
+                    { type: 'decoration', style: 'prop-monitor', x: 200, y: 200 },
+                    { type: 'decoration', style: 'prop-chair', x: 400, y: 150 },
+                    { type: 'decoration', style: 'prop-monitor', x: 400, y: 200 },
+                    { type: 'decoration', style: 'prop-chair', x: 600, y: 150 },
+                    { type: 'decoration', style: 'prop-monitor', x: 600, y: 200 },
+                    { type: 'terminal', x: 750, y: 400, icon: '💻', action: () => openTerminal('start') },
+                    { type: 'door', x: 800, y: 400, label: 'AL PASILLO', target: 'hallway' }
+                ]
+            },
+            hallway: {
+                title: "Pasillo de Seguridad",
+                objects: [
+                    { type: 'door', x: 50, y: 400, label: 'A CONTROL', target: 'control_room' },
+                    { type: 'item', x: 400, y: 300, icon: '🔋', name: 'Módulo de Energía' },
+                    { type: 'corruption', x: 300, y: 100, w: 200, h: 50 },
+                    { type: 'door', x: 800, y: 100, label: 'LABORATORIO', target: 'lab', req: 'Módulo de Energía' },
+                    { type: 'decoration', style: 'prop-server', x: 200, y: 400 },
+                    { type: 'decoration', style: 'prop-server', x: 600, y: 400 },
+                    { type: 'terminal', x: 150, y: 100, icon: '📑', action: () => openTerminal('lore_found') }
+                ]
+            },
+            lab: {
+                title: "Laboratorio de GONJOR",
+                objects: [
+                    { type: 'door', x: 50, y: 100, label: 'AL PASILLO', target: 'hallway' },
+                    { type: 'terminal', x: 450, y: 300, icon: '☣️', action: () => openTerminal('terminal') },
+                    { type: 'decoration', style: 'prop-server', x: 200, y: 200 },
+                    { type: 'decoration', style: 'prop-server', x: 250, y: 200 },
+                    { type: 'decoration', style: 'prop-server', x: 300, y: 200 },
+                    { type: 'decoration', style: 'prop-monitor', x: 700, y: 200 },
+                    { type: 'terminal', x: 800, y: 350, icon: '📁', action: () => openTerminal('secret_file') }
+                ]
+            }
+        };
+
+        // --- LÓGICA DE MISIONES ---
+        function toggleMissions(show) {
+            const overlay = document.getElementById('mission-overlay');
+            overlay.style.display = show ? 'flex' : 'none';
+            if(show) renderMissions();
+        }
+
+        function renderMissions() {
+            const container = document.getElementById('mission-list');
+            container.innerHTML = '';
+            
+            const missionNames = [
+                "Infiltración Origen", "Protocolo Briss", "Sombra de Gonjor", 
+                "Fuga del Núcleo", "Señal Fantasma", "Cero Absoluto", 
+                "Fragmento Neural", "Puerta de Aris", "Sobreescritura", "Final Aeterna"
+            ];
+
+            for(let i = 1; i <= 10; i++) {
+                const isLocked = i > state.unlockedMissions;
+                const div = document.createElement('div');
+                div.className = `mission-card ${isLocked ? 'locked' : ''}`;
+                div.innerHTML = `
+                    <div style="font-size: 0.7rem; opacity: 0.6;">MISIÓN ${i}</div>
+                    <div style="font-weight: bold;">${missionNames[i-1]}</div>
+                    <div style="font-size: 0.6rem; margin-top: 5px;">${isLocked ? 'BLOQUEADO' : 'DISPONIBLE'}</div>
+                `;
+                
+                if(!isLocked) {
+                    div.onclick = () => window.location.href = `1.html?mission=${i}`;
+                }
+                container.appendChild(div);
+            }
+        }
+
+        function initRoom(roomKey) {
+            state.currentRoom = roomKey;
+            const room = rooms[roomKey];
+            document.getElementById('room-title').innerText = room.title;
+            objectsContainer.innerHTML = '';
+            
+            room.objects.forEach(obj => {
+                const el = document.createElement('div');
+                if (obj.type === 'corruption') el.className = 'corruption-zone';
+                else if (obj.type === 'door') el.className = 'door';
+                else if (obj.type === 'decoration') el.className = `decoration ${obj.style}`;
+                else el.className = 'terminal-object';
+
+                el.style.left = obj.x + 'px';
+                el.style.top = obj.y + 'px';
+                if(obj.w) el.style.width = obj.w + 'px';
+                if(obj.h) el.style.height = obj.h + 'px';
+                if(obj.icon) el.innerText = obj.icon;
+                if(obj.label) el.innerHTML = `PUERTA<br>${obj.label}`;
+                el.dataset.obj = JSON.stringify(obj);
+                objectsContainer.appendChild(el);
+            });
+        }
+
+        function openTerminal(scene) {
+            playCinematic("CONECTANDO AL NÚCLEO", () => {
+                worldLayer.style.display = 'none';
+                gameInterface.style.display = 'block';
+                gameInterface.style.opacity = '1';
+                renderScene(scene);
+            });
+        }
+
+        function exitTerminal() {
+            gameInterface.style.display = "none";
+            worldLayer.style.display = "flex";
+        }
+
+        window.addEventListener('keydown', e => keys[e.code] = true);
+        window.addEventListener('keyup', e => keys[e.code] = false);
+
+        function updatePlayer() {
+            if (worldLayer.style.display === 'none') {
+                requestAnimationFrame(updatePlayer);
+                return;
+            }
+
+            if (keys['ArrowUp'] || keys['KeyW']) state.pos.y -= speed;
+            if (keys['ArrowDown'] || keys['KeyS']) state.pos.y += speed;
+            if (keys['ArrowLeft'] || keys['KeyA']) state.pos.x -= speed;
+            if (keys['ArrowRight'] || keys['KeyD']) state.pos.x += speed;
+
+            // Limites
+            state.pos.x = Math.max(0, Math.min(window.innerWidth - 50, state.pos.x));
+            state.pos.y = Math.max(0, Math.min(window.innerHeight - 50, state.pos.y));
+
+            player.style.left = state.pos.x + 'px';
+            player.style.top = state.pos.y + 'px';
+
+            // Colisiones con objetos de la sala
+            const objs = document.querySelectorAll('#objects-container > div');
+            objs.forEach(el => {
+                if(checkCollision(player, el)) {
+                    const data = JSON.parse(el.dataset.obj);
+                    handleObjectInteraction(data, el);
+                }
+            });
+
+            requestAnimationFrame(updatePlayer);
+        }
+
+        function handleObjectInteraction(obj, element) {
+            if(obj.type === 'door') {
+                if(obj.req && !state.inventory.has(obj.req)) {
+                    document.getElementById('instructions').innerText = `NECESITAS: ${obj.req}`;
+                    return;
+                }
+                state.pos = { x: 100, y: 100 };
+                playCinematic(`VIAJANDO A ${obj.target.toUpperCase()}`, () => {
+                    initRoom(obj.target);
+                });
+            }
+            if(obj.type === 'item') {
+                addItem(obj.name);
+                element.remove();
+                playCinematic(`OBJETO OBTENIDO: ${obj.name.toUpperCase()}`);
+            }
+            if(obj.type === 'terminal' && keys['Space']) {
+                obj.action();
+            }
+            if(obj.type === 'corruption') {
+                state.corruption += 0.1;
+            }
+        }
+
+        function checkCollision(a, b) {
+            const r1 = a.getBoundingClientRect();
+            const r2 = b.getBoundingClientRect();
+            return !(r1.right < r2.left || r1.left > r2.right || r1.bottom < r2.top || r1.top > r2.bottom);
+        }
+
+        // --- SECUENCIA DE INICIO MEJORADA ---
+        async function startSequence() {
+            // Empezamos solo con texto de lore
+            worldLayer.style.display = 'none';
+            gameInterface.style.display = 'block';
+            gameInterface.style.opacity = '1';
+            
+            await renderScene('intro');
+            
+            // Exactamente 6 segundos después, cinemática y entrada al mundo físico
+            setTimeout(() => {
+                playCinematic("ACCESO A MISIONES DISPONIBLE", () => {
+                    toggleMissions(true);
+                });
+            }, 6000);
+        }
+
+        loadGame();
+        startSequence();
+        updatePlayer();
+    </script>
+</body>
+</html>

@@ -1,86 +1,165 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Los Andeleros</title>
+
+<!-- ✅ CSS separado -->
 <link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
 
-<h1 id="logo">⚡ LOS ANDELEROS</h1>
+<h1>LOS ANDELEROS</h1>
 <h2 id="estado">No logueado</h2>
 
-<!-- MENU -->
+<!-- ================= MENU ================= -->
 <div id="menu">
   <button onclick="mostrarCrear()">Crear cuenta</button>
   <button onclick="mostrarLogin()">Iniciar sesión</button>
 
-  <h3>Cuentas guardadas</h3>
-  <div id="listaCuentas"></div>
+  <div id="listaCuentas" style="
+    margin-top: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  "></div>
 </div>
 
-<!-- CREAR -->
+<!-- ================= CREAR ================= -->
 <div id="crear" class="hidden">
   <input id="apodo" placeholder="Apodo">
-  <button onclick="crearCuenta()">Crear</button>
+  <br><br>
+  <button onclick="crearCuenta()">Crear cuenta</button>
   <button onclick="volver()">Volver</button>
 </div>
 
-<!-- LOGIN -->
+<!-- ================= LOGIN ================= -->
 <div id="login" class="hidden">
   <input id="ide" placeholder="ID">
+  <br><br>
   <button onclick="loginCuenta()">Entrar</button>
   <button onclick="volver()">Volver</button>
 </div>
 
-<!-- PANEL -->
+<!-- ================= SETUP ================= -->
+<div id="setup" class="hidden">
+
+  <h2>Configura tu perfil</h2>
+
+  <p>Apodo: <span id="setupApodo"></span></p>
+  <p>ID: <span id="setupId"></span></p>
+
+  <img id="setupFoto" src="pfp/p1.svg" width="100">
+
+  <h3>Elige foto</h3>
+
+  <div class="fotos"></div>
+
+  <br>
+  <button onclick="confirmarSetup()">Confirmar selección</button>
+</div>
+
+<!-- ================= PRIVACIDAD ================= -->
+<div id="privacidad" class="overlay hidden">
+  <div class="card">
+    <h2>Política de privacidad</h2>
+    <p>
+    Esta web permite la creación de cuentas mediante un apodo y un ID generado automáticamente.<br><br>
+
+    Los datos se almacenan únicamente para el funcionamiento del juego.<br><br>
+
+    No se recogen datos personales como nombre, dirección o teléfono.<br><br>
+
+    Los datos no se comparten con terceros ni se usan para publicidad.<br><br>
+
+    Puedes eliminar tu cuenta en cualquier momento desde tu perfil.<br><br>
+
+    Esta web es un proyecto recreativo.<br><br>
+
+    Si eres menor de 14 años, debes usar esta web con permiso de tus padres.
+    </p>
+
+    <br><br>
+
+    <button onclick="aceptarPrivacidad()">Aceptar y no volver a mostrar</button>
+    <button onclick="rechazarPrivacidad()">Rechazar</button>
+
+  </div>
+
+</div>
+
+<!-- ================= PANEL ================= -->
 <div id="panel" class="hidden">
   <h2>Bienvenido</h2>
   <p>Apodo: <span id="pApodo"></span></p>
 </div>
 
-<!-- PERFIL -->
+<!-- ================= PERFIL ================= -->
 <div id="perfil" class="hidden">
-  <h3>Perfil</h3>
+
+  <h2>Perfil</h2>
+
+  <img id="fotoPerfil" width="100">
 
   <p>Apodo: <span id="pfApodo"></span></p>
   <p>ID: <span id="pfId"></span></p>
 
+  <h3>Cambiar foto</h3>
+
+  <div class="fotos">
+    
+  </div>
+
+  <br>
   <button onclick="logout()">Cerrar sesión</button>
-  <button onclick="eliminarCuenta()" id="btnEliminar">Eliminar cuenta</button>
+  <button onclick="eliminarCuenta()">Eliminar cuenta</button>
   <button onclick="volver()">Volver</button>
+
 </div>
 
-<!-- NOTI -->
-<div id="overlayNoti">
+<!-- ================= MENU JUGAR ================= -->
+<div id="menuJugar" class="hidden">
+
+  <button onclick="irMinijuegos()">Minijuegos</button>
+  <button onclick="irEscape()">Escape Room</button>
+  <button onclick="irQuiz()">Quiz</button>
+  <button onclick="irLab()">Laboratorio</button>
+  <button onclick="irAdmin()">Admin</button>
+
+  <br><br>
+  <button onclick="cerrarJugar()">Volver</button>
+
+</div>
+
+<!-- ================= NOTI ================= -->
+<div id="overlayNoti" class="overlay hidden">
   <div class="card">
-    <h3>🔔 Notificaciones</h3>
-    <p>
-      🎮 Pronto minijuegos nuevos<br>
-      🔧 Arreglando bugs<br>
-      ⚠ Admin abuse cancelado <br>
-    </p>
+    <p id="notiText"></p>
     <button onclick="cerrarNoti()">Cerrar</button>
   </div>
 </div>
 
-<!-- MENÚ ENTRAR -->
-<div id="menuEntrar" class="hidden">
-  <button onclick="irMinijuegos()">Minijuegos</button>
-  <button onclick="irEscape()">Escape Room</button>
-  <button onclick="irEventos()">Eventos especiales</button>
-  <button onclick="cerrarEntrar()">Volver</button>
-</div>
-
-<!-- BARRA -->
+<!-- ================= BARRA ================= -->
 <div id="barra">
-  <button onclick="toggleModo()">Modo</button>
-  <button onclick="verPerfil()" id="btnPerfil">Perfil</button>
-  <button onclick="abrirNoti()" id="btnNoti">🔔</button>
-  <button onclick="abrirEntrar()" id="btnEntrar">Entrar</button>
+  <button id="btnModo" onclick="toggleModo()">Modo</button>
+  <button id="btnMusica" onclick="toggleMusica()">Música</button>
+
+  <button id="btnJugar" style="display:none" onclick="abrirJugar()">Jugar</button>
+  <button id="btnPerfil" style="display:none" onclick="verPerfil()">Perfil</button>
+  <button id="btnNoti" style="display:none" onclick="abrirNoti()">Noti</button>
 </div>
 
+<!-- ================= AUDIO ================= -->
+<audio id="musica" loop></audio>
+
+<!-- ================= JS ================= -->
 <script src="login.js"></script>
 
 </body>

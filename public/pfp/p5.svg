@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Fondo circular gradiente-like -->
+  <circle cx="50" cy="50" r="50" fill="#f59e0b"/>
+  
+  <!-- Cabeza cuadrada/robot -->
+  <rect x="32" y="20" width="36" height="36" rx="4" fill="#f97316"/>
+  
+  <!-- Pantalla/visor frontal -->
+  <rect x="35" y="25" width="30" height="26" rx="2" fill="#000" opacity="0.3"/>
+  
+  <!-- Ojos tipo LED -->
+  <rect x="40" y="30" width="6" height="6" fill="#ff0000"/>
+  <rect x="54" y="30" width="6" height="6" fill="#ff0000"/>
+  
+  <!-- Indicadores de estado -->
+  <circle cx="39" cy="38" r="2" fill="#00ff00"/>
+  <circle cx="61" cy="38" r="2" fill="#00ff00"/>
+  
+  <!-- Antena -->
+  <rect x="48" y="15" width="4" height="8" fill="#92400e"/>
+  <circle cx="50" cy="14" r="3" fill="#dc2626"/>
+  
+  <!-- Boca tipo grilla -->
+  <line x1="40" y1="46" x2="60" y2="46" stroke="#000" stroke-width="1"/>
+  <line x1="40" y1="48" x2="60" y2="48" stroke="#000" stroke-width="1"/>
+  
+  <!-- Cuerpo rectangular -->
+  <rect x="35" y="58" width="30" height="24" rx="4" fill="#f59e0b"/>
+  
+  <!-- Panel de control -->
+  <circle cx="42" cy="67" r="2" fill="#22c55e"/>
+  <circle cx="50" cy="67" r="2" fill="#22c55e"/>
+  <circle cx="58" cy="67" r="2" fill="#22c55e"/>
+  
+  <!-- Brazos mecánicos -->
+  <rect x="15" y="62" width="20" height="6" rx="3" fill="#f59e0b"/>
+  <rect x="65" y="62" width="20" height="6" rx="3" fill="#f59e0b"/>
+  
+  <!-- Pernos de unión -->
+  <circle cx="35" cy="65" r="1.5" fill="#92400e"/>
+  <circle cx="65" cy="65" r="1.5" fill="#92400e"/>
+</svg>

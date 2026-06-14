@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Fondo circular -->
+  <circle cx="50" cy="50" r="50" fill="#ec4899"/>
+  
+  <!-- Cabeza -->
+  <circle cx="50" cy="35" r="20" fill="#fbbf24"/>
+  
+  <!-- Cabello -->
+  <path d="M 32 25 Q 30 15 50 12 Q 70 15 68 25" fill="#d97706"/>
+  
+  <!-- Ojos -->
+  <circle cx="43" cy="32" r="3" fill="#fff"/>
+  <circle cx="43" cy="32" r="1.5" fill="#000"/>
+  <circle cx="57" cy="32" r="3" fill="#fff"/>
+  <circle cx="57" cy="32" r="1.5" fill="#000"/>
+  
+  <!-- Mejillas rosadas -->
+  <circle cx="32" cy="38" r="3" fill="#fca5a5" opacity="0.6"/>
+  <circle cx="68" cy="38" r="3" fill="#fca5a5" opacity="0.6"/>
+  
+  <!-- Nariz -->
+  <polygon points="50,35 48,38 52,38" fill="#f97316"/>
+  
+  <!-- Boca -->
+  <ellipse cx="50" cy="42" rx="6" ry="4" fill="#be185d"/>
+  
+  <!-- Cuerpo -->
+  <ellipse cx="50" cy="62" rx="18" ry="20" fill="#06b6d4"/>
+  
+  <!-- Brazos -->
+  <ellipse cx="22" cy="60" rx="8" ry="12" fill="#fbbf24" transform="rotate(-30 22 60)"/>
+  <ellipse cx="78" cy="60" rx="8" ry="12" fill="#fbbf24" transform="rotate(30 78 60)"/>
+  
+  <!-- Distintivos -->
+  <circle cx="20" cy="15" r="4" fill="#22c55e"/>
+  <circle cx="80" cy="20" r="4" fill="#f59e0b"/>
+  <circle cx="15" cy="60" r="3" fill="#06b6d4"/>
+</svg>

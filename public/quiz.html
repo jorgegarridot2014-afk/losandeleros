@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz PRO FINAL</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:white;
+  overflow:hidden;
+}
+
+/* 🌌 fondo pro */
+#bg{
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(circle at 20% 20%, #00ffcc33, transparent 40%),
+    radial-gradient(circle at 80% 80%, #ff00ff33, transparent 40%),
+    #050505;
+  animation:pulse 6s infinite alternate;
+  z-index:-2;
+}
+
+@keyframes pulse{
+  100%{filter:brightness(1.3);}
+}
+
+/* caja */
+#menu,#box{
+  width:420px;
+  padding:18px;
+  background:rgba(255,255,255,0.06);
+  border-radius:14px;
+  text-align:center;
+  backdrop-filter:blur(10px);
+  box-shadow:0 0 20px rgba(0,255,150,0.25);
+}
+
+/* botones */
+button{
+  width:100%;
+  margin:5px 0;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:linear-gradient(90deg,#00ff99,#00ccff);
+  font-weight:bold;
+}
+
+button:hover{
+  transform:scale(1.05);
+}
+
+/* timer */
+#timer{
+  font-size:20px;
+  color:yellow;
+}
+
+/* pista */
+#hint{
+  font-size:12px;
+  color:#00d9ff;
+}
+
+/* puntos */
+#points{
+  position:fixed;
+  top:8px;
+  right:8px;
+  background:rgba(0,0,0,0.5);
+  padding:8px 10px;
+  border-radius:8px;
+  border:1px solid #00ffcc;
+}
+
+/* popup */
+#popup{
+  position:fixed;
+  inset:0;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  background:rgba(0,0,0,0.7);
+}
+
+#popupBox{
+  width:200px;
+  padding:15px;
+  background:#111;
+  border-radius:10px;
+  text-align:center;
+  border:1px solid #00ffcc;
+}
+
+.spinner{
+  width:40px;
+  height:40px;
+  border:4px solid rgba(255,255,255,0.2);
+  border-top:4px solid #00ffcc;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  margin:auto;
+}
+
+@keyframes spin{
+  100%{transform:rotate(360deg);}
+}
+</style>
+</head>
+
+<body>
+
+<div id="bg"></div>
+
+<div id="points">⭐ Puntos: 0</div>
+
+<!-- MENU -->
+<div id="menu">
+  <h2>🧠 QUIZ PRO FINAL</h2>
+  <button onclick="startGame()">▶ Empezar</button>
+  <button onclick="weekly()">📅 Quiz semanal</button>
+  <button onclick="shop()">🏪 Tienda</button>
+</div>
+
+<!-- QUIZ -->
+<div id="box" style="display:none;">
+  <div id="timer"></div>
+  <div id="question"></div>
+  <div id="hint"></div>
+  <div id="answers"></div>
+  <button onclick="goHome()">🔙 Volver</button>
+</div>
+
+<!-- POPUP -->
+<div id="popup">
+  <div id="popupBox">
+    <div class="spinner"></div>
+    <p id="popupText"></p>
+    <button onclick="closePopup()">Cerrar</button>
+  </div>
+</div>
+
+<script>
+
+/* 💰 puntos guardados */
+let points = parseInt(localStorage.getItem("points")) || 0;
+
+const pointsUI = document.getElementById("points");
+pointsUI.innerText = "⭐ Puntos: " + points;
+
+/* 🧠 50 preguntas reales */
+const questions = [
+  {q:"Capital de España?",a:["Madrid","Barcelona","Sevilla","Valencia"],c:0,h:"Capital del país"},
+  {q:"Planeta rojo?",a:["Venus","Marte","Júpiter","Saturno"],c:1,h:"Óxido"},
+  {q:"2+2?",a:["3","4","5","6"],c:1,h:"básico"},
+  {q:"Capital Francia?",a:["Roma","París","Madrid","Lisboa"],c:1,h:"Torre Eiffel"},
+  {q:"Lenguaje web?",a:["Python","HTML","C++","Java"],c:1,h:"estructura web"},
+  {q:"Elemento más ligero?",a:["Helio","Hidrógeno","Oxígeno","Carbono"],c:1,h:"H"},
+  {q:"Velocidad luz?",a:["300k km/s","150k","100k","500k"],c:0,h:"constante"},
+  {q:"Capital Italia?",a:["Roma","Milán","Venecia","Nápoles"],c:0,h:"imperio"},
+  {q:"5x5?",a:["20","25","30","15"],c:1,h:"multiplicación"},
+  {q:"Mona Lisa?",a:["Da Vinci","Picasso","Goya","Van Gogh"],c:0,h:"arte"},
+
+  {q:"CPU es?",a:["Pantalla","Procesador","Teclado","RAM"],c:1,h:"cerebro"},
+  {q:"Océano más grande?",a:["Atlántico","Índico","Pacífico","Ártico"],c:2,h:"muy grande"},
+  {q:"Gas respiramos?",a:["Oxígeno","CO2","Helio","Hidrógeno"],c:0,h:"vida"},
+  {q:"Capital Japón?",a:["Tokio","Kyoto","Osaka","Seúl"],c:0,h:"Asia"},
+  {q:"HTML es?",a:["Lenguaje web","Sistema","App","IA"],c:0,h:"web"},
+
+  {q:"Newton?",a:["Gravedad","Electricidad","Fuego","Luz"],c:0,h:"manzana"},
+  {q:"Planeta grande?",a:["Júpiter","Marte","Tierra","Venus"],c:0,h:"gigante"},
+  {q:"Continentes?",a:["5","6","7","8"],c:2,h:"modelo"},
+  {q:"Python creado por?",a:["Guido","Elon","Jobs","Linus"],c:0,h:"programación"},
+  {q:"Metal líquido?",a:["Mercurio","Oro","Plata","Hierro"],c:0,h:"tóxico"},
+
+  {q:"Alemania capital?",a:["Berlín","Munich","Hamburgo","Roma"],c:0,h:"Europa"},
+  {q:"10x10?",a:["100","10","1000","50"],c:0,h:"cuadrado"},
+  {q:"Sistema solar?",a:["7","8","9","10"],c:1,h:"planetas"},
+  {q:"América descubierta?",a:["Colón","Newton","Tesla","Galileo"],c:0,h:"1492"},
+  {q:"Backend?",a:["HTML","Python","CSS","Photoshop"],c:1,h:"servidor"},
+
+  {q:"Italia forma?",a:["bota","cuadrado","círculo","triángulo"],c:0,h:"mapa"},
+  {q:"144 raíz?",a:["10","11","12","13"],c:2,h:"perfecto"},
+  {q:"Océano profundo?",a:["Pacífico","Atlántico","Índico","Ártico"],c:0,h:"Marianas"},
+  {q:"Aire principal?",a:["Nitrógeno","Oxígeno","CO2","Helio"],c:0,h:"78%"},
+  {q:"Windows es?",a:["OS","App","Juego","Web"],c:0,h:"sistema"},
+
+  {q:"Internet creado?",a:["ARPANET","Google","Apple","Tesla"],c:0,h:"militar"},
+  {q:"CPU?",a:["Unidad central","Pantalla","Memoria","Disco"],c:0,h:"procesador"},
+  {q:"Sol es?",a:["Estrella","Planeta","Luna","Cometa"],c:0,h:"astro"},
+  {q:"CSS?",a:["Estilo","Programar","Base datos","IA"],c:0,h:"diseño"},
+  {q:"JS?",a:["Lenguaje","Sistema","Hardware","Web"],c:0,h:"web"},
+
+  {q:"5+5*2?",a:["20","15","10","25"],c:1,h:"orden"},
+  {q:"UK capital?",a:["Londres","Dublín","Manchester","Edimburgo"],c:0,h:"Big Ben"},
+  {q:"Python es?",a:["Lenguaje","Juego","Sistema","Red"],c:0,h:"programación"},
+  {q:"Tesla?",a:["Electricidad","Ruedas","Coches","Robots"],c:0,h:"corriente"},
+  {q:"H2O?",a:["Agua","Oxígeno","Hidrógeno","Sal"],c:0,h:"química"}
+];
+
+let i=0;
+let score=0;
+let time=60;
+let interval;
+
+/* UI */
+const menu=document.getElementById("menu");
+const box=document.getElementById("box");
+const q=document.getElementById("question");
+const a=document.getElementById("answers");
+const t=document.getElementById("timer");
+const h=document.getElementById("hint");
+
+/* start */
+function startGame(){
+  i = 0;
+  score = 0;
+  time = 60;
+  menu.style.display="none";
+  box.style.display="block";
+  show();
+  timer();
+}
+
+/* timer */
+function timer(){
+  clearInterval(interval);
+  interval=setInterval(()=>{
+    time--;
+    t.innerText="⏱️ "+time;
+    if(time<=0) end();
+  },1000);
+}
+
+/* show */
+function show(){
+  let qd=questions[i];
+
+  q.innerText=qd.q;
+  h.innerText="💡 "+qd.h;
+  a.innerHTML="";
+
+  qd.a.forEach((opt,idx)=>{
+    let b=document.createElement("button");
+    b.innerText=opt;
+
+    b.onclick=()=>{
+      if(idx===qd.c){
+        score++;
+        points+=100;
+      } else {
+        points+=20;
+      }
+
+      localStorage.setItem("points",points);
+      pointsUI.innerText="⭐ Puntos: "+points;
+
+      next();
+    };
+
+    a.appendChild(b);
+  });
+}
+
+/* next */
+function next(){
+  i++;
+  if(i>=questions.length || time<=0) end();
+  else show();
+}
+
+/* end */
+function end(){
+  clearInterval(interval);
+  q.innerHTML="🏁 FIN";
+  a.innerHTML="✔ Aciertos: "+score;
+  h.innerHTML="";
+  t.innerHTML="";
+}
+
+/* volver */
+function goHome(){
+  window.location.href="index.html";
+}
+
+/* 📅 semanal */
+function weekly(){
+  showPopup("🚫 Quiz semanal no disponible");
+}
+
+/* 🏪 tienda */
+function shop(){
+  showPopup("🏪 Tienda no disponible aún");
+}
+
+/* popup */
+function showPopup(text){
+  document.getElementById("popupText").innerText=text;
+  document.getElementById("popup").style.display="flex";
+}
+
+function closePopup(){
+  document.getElementById("popup").style.display="none";
+}
+
+</script>
+
+</body>
+</html>

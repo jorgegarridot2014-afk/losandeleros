@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Fondo circular -->
+  <circle cx="50" cy="50" r="50" fill="#8b5cf6"/>
+  
+  <!-- Cabeza -->
+  <circle cx="50" cy="35" r="20" fill="#fdbf37"/>
+  
+  <!-- Ojos -->
+  <circle cx="43" cy="32" r="2.5" fill="#000"/>
+  <circle cx="57" cy="32" r="2.5" fill="#000"/>
+  
+  <!-- Cejas -->
+  <path d="M 40 28 Q 43 26 46 28" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M 54 28 Q 57 26 60 28" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  
+  <!-- Nariz -->
+  <line x1="50" y1="32" x2="50" y2="37" stroke="#000" stroke-width="1.5"/>
+  
+  <!-- Boca sonriente -->
+  <path d="M 45 40 Q 50 42 55 40" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/>
+  
+  <!-- Cuerpo -->
+  <rect x="35" y="55" width="30" height="25" rx="5" fill="#00f0ff"/>
+  
+  <!-- Brazos -->
+  <rect x="20" y="60" width="15" height="8" rx="4" fill="#fdbf37"/>
+  <rect x="65" y="60" width="15" height="8" rx="4" fill="#fdbf37"/>
+  
+  <!-- Estrellas decorativas -->
+  <polygon points="15,20 18,28 26,28 20,33 23,41 15,36 7,41 10,33 4,28 12,28" fill="#00f0ff" opacity="0.7"/>
+  <polygon points="85,25 87,31 93,31 88,35 90,41 85,37 80,41 82,35 77,31 83,31" fill="#22c55e" opacity="0.7"/>
+</svg>

@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel</title>
 
 <style>
@@ -10,296 +11,75 @@ body {
   font-family: Arial;
   background: #0a0a0a;
   color: white;
-}
-
-/* BOTÓN ADMIN */
-#adminBtn {
-  position: fixed;
-  top: 15px;
-  right: 15px;
-  padding: 12px 18px;
-  background: linear-gradient(135deg, #00ffff, #00ff88);
-  color: black;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-  border-radius: 10px;
-  box-shadow: 0 0 15px #00ffff;
-}
-
-/* PANEL */
-.adminBox {
-  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-direction: column;
+  height: 100vh;
+}
+
+/* CONTENEDOR */
+.box {
   text-align: center;
 }
 
+/* TITULO */
 .glow {
+  font-size: 28px;
   color: #00ffff;
   text-shadow: 0 0 10px #00ffff;
+  margin-bottom: 20px;
 }
 
-/* OVERLAY */
-#overlay {
-  display: none;
-  position: fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background: rgba(0,0,0,0.95);
-  justify-content: center;
-  align-items: center;
+/* RUEDA */
+.loader {
+  border: 6px solid rgba(255,255,255,0.1);
+  border-top: 6px solid #00ffff;
+  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  margin: auto;
+  animation: girar 1s linear infinite;
 }
 
-/* PANEL INTERNO */
-#panel {
-  background: #111;
-  padding: 25px;
-  border-radius: 12px;
-  border: 2px solid #00ffff;
-  text-align: center;
-  width: 320px;
-  box-shadow: 0 0 25px #00ffff;
+@keyframes girar {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-/* INPUT */
-#codeInput {
-  width: 90%;
-  font-size: 22px;
-  text-align: center;
-  margin-top: 10px;
-  background: black;
-  color: #00ff88;
-  border: 1px solid #00ff88;
-  padding: 8px;
-}
-
-/* TECLADO */
-.keypad {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.keypad button {
-  padding: 16px;
-  font-size: 18px;
-  background: #111;
-  color: #00ffff;
-  border: 1px solid #00ffff;
-  border-radius: 10px;
-}
-
-/* BOTONES */
+/* BOTÓN */
 button {
+  margin-top: 25px;
   padding: 10px 15px;
+  border: none;
   border-radius: 8px;
-  border: 1px solid #00ff88;
-  background: #111;
-  color: #00ff88;
-  cursor: pointer;
-}
-
-/* ADMIN */
-#adminFeatures {
-  display: none;
-  margin-top: 15px;
-  color: #00ff88;
-}
-
-#adminMsg {
-  width: 90%;
-  padding: 10px;
-  margin-top: 10px;
-  background: black;
-  color: #00ff88;
-  border: 1px solid #00ff88;
-  text-align: center;
-}
-
-/* 🔥 MENSAJES ARRIBA */
-#topMessages {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  z-index: 999;
-}
-
-.msgBox {
-  background: linear-gradient(135deg, #00ffff, #00ff88);
+  background: #00ffff;
   color: black;
-  padding: 10px 20px;
-  border-radius: 10px;
   font-weight: bold;
-  box-shadow: 0 0 15px #00ffff;
-  animation: aparecer 0.3s ease;
-}
-
-@keyframes aparecer {
-  from { transform: translateY(-20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  cursor: pointer;
 }
 </style>
 </head>
 
 <body>
 
-<!-- MENSAJES ARRIBA -->
-<div id="topMessages"></div>
+<div class="box">
 
-<!-- BOTÓN ADMIN -->
-<button id="adminBtn" onclick="openPanel()">ADMIN</button>
+  <h1 class="glow">🛠 PANEL ADMIN</h1>
 
-<div class="adminBox">
-  <div>
-    <h1>🛠 ADMIN PANEL</h1>
+  <h2>⏳ Volvemos en unos momentos...</h2>
 
-    <h2 class="glow">Pronto nuevas actualizaciones</h2>
+  <!-- RUEDA -->
+  <div class="loader"></div>
 
-    <p>
-      ⚡ Mejoras del sistema<br>
-      🎮 Nuevos minijuegos<br>
-      🔧 Arreglo de bugs<br>
-      🔒 Seguridad mejorada
-    </p>
+  <br>
+  <button onclick="volver()">Volver</button>
 
-    <button onclick="volver()">Volver</button>
-  </div>
-</div>
-
-<!-- OVERLAY -->
-<div id="overlay">
-  <div id="panel">
-
-    <h2 style="color:#00ffff">ACCESO ADMIN</h2>
-
-    <input id="codeInput" type="password" readonly>
-
-    <div class="keypad" id="keypad">
-      <button onclick="addNum(1)">1</button>
-      <button onclick="addNum(2)">2</button>
-      <button onclick="addNum(3)">3</button>
-      <button onclick="addNum(4)">4</button>
-      <button onclick="addNum(5)">5</button>
-      <button onclick="addNum(6)">6</button>
-      <button onclick="addNum(7)">7</button>
-      <button onclick="addNum(8)">8</button>
-      <button onclick="addNum(9)">9</button>
-      <button onclick="clearCode()">C</button>
-      <button onclick="addNum(0)">0</button>
-      <button onclick="checkCode()">✔</button>
-    </div>
-
-    <div id="adminFeatures">
-      <h2>🎉 Felicidades has sido ADMIN</h2>
-
-      <input id="adminMsg" placeholder="Escribe mensaje...">
-      <button onclick="sendMsg()">Enviar mensaje</button>
-
-      <br><br>
-      <button onclick="exitAdmin()">Salir de admin</button>
-    </div>
-
-    <br>
-    <button onclick="closePanel()">Cerrar</button>
-
-  </div>
 </div>
 
 <script>
-
-let code = "";
-let isAdmin = false;
-
-function openPanel(){
-  document.getElementById("overlay").style.display = "flex";
-}
-
-function closePanel(){
-  document.getElementById("overlay").style.display = "none";
-  reset();
-}
-
-function addNum(n){
-  if(isAdmin) return;
-
-  if(code.length < 6){
-    code += n;
-    document.getElementById("codeInput").value = code;
-  }
-}
-
-function clearCode(){
-  code = "";
-  document.getElementById("codeInput").value = "";
-}
-
-function checkCode(){
-  if(code === "678931"){
-    isAdmin = true;
-
-    document.getElementById("keypad").style.display = "none";
-    document.getElementById("codeInput").style.display = "none";
-    document.getElementById("adminFeatures").style.display = "block";
-
-    showTop("✔ ADMIN ACTIVADO");
-  } else {
-    showTop("❌ Código incorrecto");
-    clearCode();
-  }
-}
-
-/* 🔥 MENSAJES ARRIBA */
-function showTop(text){
-
-  let box = document.createElement("div");
-  box.className = "msgBox";
-  box.textContent = text;
-
-  document.getElementById("topMessages").appendChild(box);
-
-  setTimeout(() => box.remove(), 3000);
-}
-
-/* ADMIN MSG */
-function sendMsg(){
-  let input = document.getElementById("adminMsg");
-
-  if(input.value.trim() === "") return;
-
-  showTop("🛠 ADMIN: " + input.value);
-
-  input.value = "";
-}
-
-function exitAdmin(){
-  isAdmin = false;
-
-  document.getElementById("keypad").style.display = "grid";
-  document.getElementById("codeInput").style.display = "block";
-  document.getElementById("adminFeatures").style.display = "none";
-
-  reset();
-}
-
-function reset(){
-  code = "";
-  document.getElementById("codeInput").value = "";
-}
-
 function volver(){
   window.location.href = "index.html";
 }
-
 </script>
 
 </body>

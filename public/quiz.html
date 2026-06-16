@@ -114,6 +114,7 @@ button:hover{
   justify-content:center;
   align-items:center;
   background:rgba(0,0,0,0.7);
+  z-index: 5000; /* Asegurar que esté por encima de todo */
 }
 
 #popupBox{
@@ -251,10 +252,10 @@ button:hover{
 </div>
 
 <!-- RANKING BOX -->
-<div id="ranking-box" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:100; display:none; justify-content:center; align-items:center;">
-  <div class="card" style="width:300px; text-align:center;">
+<div id="ranking-box" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:4000; justify-content:center; align-items:center;">
+  <div class="card" style="width:320px; text-align:center; background:#111; border:2px solid #00ffcc; padding:20px; border-radius:15px;">
     <h3>🏆 TOP 10 ANDELEROS</h3>
-    <div id="ranking-list" style="margin:15px 0; text-align:left; font-size:14px;"></div>
+    <div id="ranking-list" style="margin:15px 0; text-align:left; font-size:14px; max-height:300px; overflow-y:auto;"></div>
     <button onclick="closeRanking()">Cerrar</button>
   </div>
 </div>

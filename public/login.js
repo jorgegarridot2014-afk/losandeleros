@@ -338,7 +338,7 @@ function renderCuentas(){
     return;
   }
 
-  div.innerHTML = "<p style='font-size:11px; opacity:0.6; margin-bottom:8px;'>Cuentas en este dispositivo (localStorage):</p>";
+  div.innerHTML = "<p style='font-size:11px; opacity:0.6; margin-bottom:8px;'>Tus sesiones activas:</p>";
 
   cuentas.forEach(account=>{
     const row = document.createElement("div");
@@ -521,7 +521,7 @@ function irAdmin(){
 function abrirNoti(){
   hideAll();
   show("overlayNoti");
-  document.getElementById("notiText").innerText = "🔔 No tienes notificaciones";
+  document.getElementById("notiText").innerText = "🔔 porfavor para tener una mjor esperiencia create una nueva cuenat para reiniciar al base de datos ,para evitar fallos, muchas gracias";
 }
 
 function cerrarNoti(){

@@ -686,22 +686,28 @@
             ];
 
             for(let i = 1; i <= 10; i++) {
-                const isLocked = i > state.unlockedMissions;
+                const isLocked = (i > state.unlockedMissions) || (i === 3);
                 const div = document.createElement('div');
                 div.className = `mission-card ${isLocked ? 'locked' : ''}`;
+                
+                let statusText = isLocked ? 'BLOQUEADO' : 'DISPONIBLE';
+                if (i === 3) statusText = 'NO DISPONIBLE';
+
                 div.innerHTML = `
                     <div style="font-size: 0.7rem; opacity: 0.6;">MISIÓN ${i}</div>
                     <div style="font-weight: bold;">${missionNames[i-1]}</div>
-                    <div style="font-size: 0.6rem; margin-top: 5px;">${isLocked ? 'BLOQUEADO' : 'DISPONIBLE'}</div>
+                    <div style="font-size: 0.6rem; margin-top: 5px;">${statusText}</div>
                 `;
                 
                 if(!isLocked) {
                     div.onclick = () => {
                         const params = `?ide=${encodeURIComponent(userIde)}&apodo=${encodeURIComponent(userApodo)}&points=${userPoints}&m1=${userM1}&m2=${userM2}`;
                         if (i === 1) {
-                            window.location.href = `game.html${params}`;
+                            window.location.href = `1.html${params}`;
                         } else if (i === 2) {
                             window.location.href = `2.html${params}`;
+                        } else if (i === 3) {
+                            alert("Carl Briss: 'La Misión 3 está actualmente fuera de servicio por mantenimiento del núcleo.'");
                         } else {
                             window.location.href = `${i}.html${params}`;
                         }
@@ -814,34 +820,10 @@
 
         // --- SECUENCIA DE INICIO MEJORADA ---
         async function startSequence() {
-            // Empezamos solo con texto de lore
-            worldLayer.style.display = 'none';
-            gameInterface.style.display = 'block';
-            gameInterface.style.opacity = '1';
-            
-            await renderScene('intro');
-            
-            // Desbloqueo automático al entrar (Misión 1 desbloquea la 2)
-            const urlParams = new URLSearchParams(window.location.search);
-            const ide = urlParams.get('ide');
-            if (ide) {
-                state.unlockedMissions = Math.max(state.unlockedMissions, 2);
-                saveGame(); // Guarda localmente para el HUB
-                
-                // Notifica al servidor para que el progreso sea permanente en la cuenta
-                fetch(`/update/${encodeURIComponent(ide)}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ missionCarlBriss1: true })
-                }).catch(err => console.error("Error al sincronizar progreso:", err));
-            }
-
-            // Exactamente 6 segundos después, cinemática y entrada al mundo físico
-            setTimeout(() => {
-                playCinematic("ACCESO A MISIONES DISPONIBLE", () => {
-                    toggleMissions(true);
-                });
-            }, 6000);
+            // Acceso directo al HUB tras sincronización
+            playCinematic("SISTEMA OPERATIVO: HUB_V2 // CONECTADO", () => {
+                toggleMissions(true);
+            });
         }
 
         loadGame();

@@ -37,8 +37,10 @@ const UserSchema = new mongoose.Schema({
   foto: { type: String, default: "pfp/p1.svg" },
   setup: { type: Boolean, default: false },
   aceptado: { type: Boolean, default: false },
-  noMostrar: { type: Boolean, default: false }
-});
+  noMostrar: { type: Boolean, default: false },
+  points: { type: Number, default: 0 },
+  weeklyDone: { type: Boolean, default: false }
+}, { minimize: false }); // 🚀 Fuerza a que los campos se guarden siempre en DB
 
 const User = mongoose.model("User", UserSchema);
 
@@ -109,7 +111,8 @@ app.post("/crear", async (req,res)=>{
       ide,
       foto: normalizeFoto(req.body.foto),
       aceptado: req.body.aceptado === true,
-      noMostrar: req.body.noMostrar === true
+      noMostrar: req.body.noMostrar === true,
+      points: 0 // Aseguramos que empiece con 0 en la DB
     });
 
     await nueva.save();
@@ -138,6 +141,15 @@ app.post("/login", async (req,res)=>{
       return res.status(404).json({ error:"No existe" });
     }
 
+    // 🛠️ REPARACIÓN: Si el campo 'points' no existe físicamente en el documento, lo creamos.
+    // Usamos toObject para verificar la existencia real en el BSON de MongoDB.
+    if (!user.toObject().hasOwnProperty('points')) {
+      user.set('points', 0);
+      await user.save();
+      console.log(`🛠️ Campo 'points' creado físicamente para ${user.apodo}`);
+    }
+
+    console.log(`🔑 Login: ${user.apodo} cargado con ${user.points} puntos.`);
     res.json(user);
 
   }catch(err){
@@ -149,13 +161,12 @@ app.post("/login", async (req,res)=>{
 /* ================= CUENTAS ================= */
 app.get("/cuentas", async (req,res)=>{
   try{
-    // Solo devolvemos cuentas que terminaron el proceso (aceptado: true)
-    const users = await User.find({ aceptado: true }).lean(); 
-    const normalizedUsers = [];
+    // 🛡️ SEGURIDAD: Nunca enviar el 'ide' en la lista pública
+    const users = await User.find({ aceptado: true })
+      .select("apodo foto points -_id")
+      .lean();
 
-    for(const user of users){
-      normalizedUsers.push({ ...user, foto: normalizeFoto(user.foto) });
-    }
+    const normalizedUsers = users.map(u => ({ ...u, foto: normalizeFoto(u.foto) }));
 
     res.json(normalizedUsers);
 
@@ -169,26 +180,49 @@ app.get("/cuentas", async (req,res)=>{
 app.put("/update/:ide", async (req,res)=>{
   try{
 
-    const updateData = { ...req.body };
-    if(updateData.foto){
-      updateData.foto = normalizeFoto(updateData.foto);
-    }
+    const ide = String(req.params.ide || "").trim();
+    const { points, foto, aceptado, weeklyDone } = req.body;
 
+    console.log(`📩 Petición UPDATE para ${ide}. Puntos a guardar: ${points}`);
+
+    const updateFields = {};
+    if (points !== undefined) updateFields.points = Number(points);
+    if (weeklyDone !== undefined) updateFields.weeklyDone = weeklyDone === true;
+    if (foto) updateFields.foto = normalizeFoto(foto);
+    if (aceptado !== undefined) updateFields.aceptado = aceptado === true;
+
+    // 🚀 Usamos findOneAndUpdate con $set para OBLIGAR a MongoDB a crear/actualizar el campo
     const user = await User.findOneAndUpdate(
-      { ide: String(req.params.ide) },
-      updateData,
-      { new:true }
+      { ide: ide },
+      { $set: updateFields },
+      { new: true, runValidators: true } // new: true para devolver el documento actualizado
     );
 
-    if(!user){
-      return res.status(404).json({ error:"No existe" });
+    if (!user) {
+      console.log(`⚠️ No se encontró el usuario con IDE: ${ide}`);
+      return res.status(404).json({ error: "No existe" });
     }
 
-    res.json(user);
-
+    console.log(`✅ DB Guardado Exitoso: ${user.apodo} -> ${user.points} pts.`);
+    res.json(user); // user ya es el documento actualizado
   }catch(err){
     console.log("❌ Error update:", err);
     res.status(500).json({ error:"Error update" });
+  }
+});
+
+/* ================= RANKING ================= */
+app.get("/ranking", async (req,res)=>{
+  try{
+    // Obtenemos los 10 usuarios con más puntos (que hayan aceptado la privacidad)
+    const top = await User.find({ aceptado: true })
+      .sort({ points: -1 })
+      .limit(10)
+      .select("apodo points foto -_id");
+    
+    res.json(top);
+  }catch(err){
+    res.status(500).json({ error: "Error al obtener ranking" });
   }
 });
 

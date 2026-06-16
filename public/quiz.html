@@ -81,6 +81,29 @@ button:hover{
   padding:8px 10px;
   border-radius:8px;
   border:1px solid #00ffcc;
+  transition: opacity 0.3s, transform 0.2s;
+}
+
+/* 👤 Badge de usuario (Arriba Izquierda) */
+#user-badge {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 5px 15px;
+  border-radius: 25px;
+  border: 1px solid #00ffcc;
+  z-index: 10;
+}
+
+#user-badge img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #00ffcc;
 }
 
 /* popup */
@@ -112,8 +135,78 @@ button:hover{
   margin:auto;
 }
 
+#weekly-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 3000;
+  justify-content: center;
+  align-items: center;
+}
+
+#weekly-card {
+  background: rgba(20,20,20,0.95);
+  border: 2px solid #00ffcc;
+  padding: 25px;
+  border-radius: 15px;
+  text-align: center;
+  width: 380px;
+  box-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
+}
+
+#weekly-input {
+  width: 80%;
+  padding: 12px;
+  margin: 20px 0;
+  background: #000;
+  border: 1px solid #00ffcc;
+  color: #00ffcc;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 18px;
+  font-family: monospace;
+}
+
 @keyframes spin{
   100%{transform:rotate(360deg);}
+}
+
+/* 🎬 Intro Cinemática */
+#intro-cinematic {
+  position: fixed;
+  inset: 0;
+  background: black;
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  font-family: 'Courier New', Courier, monospace;
+  color: #00ffcc;
+  text-align: center;
+}
+
+.typewriter {
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: .15em solid #00ffcc;
+  animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+}
+
+@keyframes typing { from { width: 0 } to { width: 100% } }
+@keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: #00ffcc } }
+
+.btn-correct {
+  background: #00ff99 !important;
+  box-shadow: 0 0 15px #00ff99;
+  transform: scale(1.05);
+}
+
+.btn-wrong {
+  background: #ff0055 !important;
+  box-shadow: 0 0 15px #ff0055;
+  opacity: 0.8;
 }
 </style>
 </head>
@@ -122,14 +215,30 @@ button:hover{
 
 <div id="bg"></div>
 
-<div id="points">⭐ Puntos: 0</div>
+<!-- INTRO CINEMÁTICA -->
+<div id="intro-cinematic">
+  <h1 class="typewriter">SYSTEM_LOAD: PROTOCOL_ORIGIN...</h1>
+  <p style="opacity:0.6; font-size: 12px; margin-top: 20px;">[ INICIALIZANDO INTERFAZ DE NEURONAS ]</p>
+  <p style="color: #666; font-size: 10px; margin-top: 50px;">Buscando individuos altamente inteligentes...</p>
+  <p style="color: #00ffcc; font-size: 11px; margin-top: 20px; font-weight: bold;">🛰️ SINCRONIZANDO CON NÚCLEO DE DATOS (CUENTA)</p>
+</div>
+
+<!-- IDENTIFICADOR DE CUENTA -->
+<div id="user-badge" style="display:none;">
+  <img id="user-foto" src="pfp/p1.svg">
+  <span id="user-apodo">---</span>
+</div>
+
+<div id="points">⭐ Cargando...</div>
 
 <!-- MENU -->
 <div id="menu">
   <h2>🧠 QUIZ PRO FINAL</h2>
   <button onclick="startGame()">▶ Empezar</button>
+  <button onclick="showRanking()">🏆 Ranking Global</button>
   <button onclick="weekly()">📅 Quiz semanal</button>
   <button onclick="shop()">🏪 Tienda</button>
+  <button onclick="window.location.href='index.html'" style="background: #333; margin-top: 15px; border: 1px solid #555;">⬅️ Volver al Menú Principal</button>
 </div>
 
 <!-- QUIZ -->
@@ -139,6 +248,29 @@ button:hover{
   <div id="hint"></div>
   <div id="answers"></div>
   <button onclick="goHome()">🔙 Volver</button>
+</div>
+
+<!-- RANKING BOX -->
+<div id="ranking-box" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:100; display:none; justify-content:center; align-items:center;">
+  <div class="card" style="width:300px; text-align:center;">
+    <h3>🏆 TOP 10 ANDELEROS</h3>
+    <div id="ranking-list" style="margin:15px 0; text-align:left; font-size:14px;"></div>
+    <button onclick="closeRanking()">Cerrar</button>
+  </div>
+</div>
+
+<!-- WEEKLY OVERLAY -->
+<div id="weekly-overlay">
+  <div id="weekly-card">
+    <h2 style="color: #00ffcc; margin-top: 0; letter-spacing: 2px; font-size: 1.2rem;">WEEKLY_CHALLENGE // GONGORA</h2>
+    <p style="font-size: 12px; opacity: 0.6; font-family: monospace;">DESCIFRA LA ECUACIÓN PARA OBTENER_CRÉDITOS:</p>
+    <h3 style="background: #111; padding: 20px; border: 1px dashed #00ffcc; font-family: monospace; color: #fff; letter-spacing: 2px;">6 * 2² + 567 - 98 / 90 * 5</h3>
+    <input type="text" id="weekly-input">
+    <div style="display: flex; gap: 10px;">
+      <button onclick="checkWeekly()" style="letter-spacing: 2px;">VALIDAR</button>
+      <button onclick="closeWeekly()" style="background: #222; color: #666; letter-spacing: 2px;">CANCELAR</button>
+    </div>
+  </div>
 </div>
 
 <!-- POPUP -->
@@ -152,15 +284,102 @@ button:hover{
 
 <script>
 
-/* 💰 puntos guardados */
-let points = parseInt(localStorage.getItem("points")) || 0;
-
+const LAST_ACTIVE_KEY = "andeleros_last_active";
+let currentUser = null;
+let points = 0;
+let isUserLoaded = false;
+let isSaving = false; // 🔒 Evita peticiones simultáneas
 const pointsUI = document.getElementById("points");
-pointsUI.innerText = "⭐ Puntos: " + points;
+
+/* 🔄 Sincronizar puntos con el Servidor */
+async function updatePointsUI(save = true) {
+  if (isNaN(points)) points = 0;
+  
+  // UI inmediata
+  pointsUI.innerText = "⭐ Puntos: " + (isUserLoaded ? points : "...");
+
+  if (save && currentUser && isUserLoaded) {
+    try {
+      pointsUI.style.opacity = "0.5";
+      
+      const res = await fetch(`/update/${currentUser.ide}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          points: points,
+          weeklyDone: currentUser.weeklyDone 
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        currentUser.points = data.points;
+        console.log("✅ Puntos guardados en DB:", data.points);
+      }
+    } finally {
+      pointsUI.style.opacity = "1";
+    }
+  }
+}
+
+/* 🎬 Manejo de la Intro */
+window.onload = () => {
+  setTimeout(() => {
+    const intro = document.getElementById("intro-cinematic");
+    intro.style.transition = "opacity 1s";
+    intro.style.opacity = "0";
+    intro.style.pointerEvents = "none";
+    setTimeout(() => intro.style.display = "none", 1000);
+  }, 4000);
+};
+
+/* 👤 Cargar cuenta desde DB */
+async function initAccount() {
+  const ide = localStorage.getItem("andeleros_last_active");
+  if (!ide) {
+    alert("Sesión no detectada. Redirigiendo...");
+    window.location.href = "index.html";
+    return;
+  }
+
+  try {
+    const res = await fetch("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ide })
+    });
+
+    if (res.ok) {
+      currentUser = await res.json();
+      points = currentUser.points || 0;
+      isUserLoaded = true;
+      
+      document.getElementById("user-apodo").innerText = currentUser.apodo;
+      document.getElementById("user-foto").src = currentUser.foto;
+      document.getElementById("user-badge").style.display = "flex";
+      
+      updatePointsUI(false);
+
+      // Feedback visual si ya completó el semanal al cargar la página
+      if (currentUser.weeklyDone) {
+        const btnWeekly = document.querySelector('button[onclick="weekly()"]');
+        if (btnWeekly) {
+          btnWeekly.innerText = "📅 Quiz semanal (Completado)";
+          btnWeekly.style.opacity = "0.5";
+        }
+      }
+    } else {
+      window.location.href = "index.html";
+    }
+  } catch(e) {
+    window.location.href = "index.html";
+  }
+}
+initAccount();
 
 /* 🧠 50 preguntas reales */
 const questions = [
-  {q:"Capital de España?",a:["Madrid","Barcelona","Sevilla","Valencia"],c:0,h:"Capital del país"},
+  {q:"¿Capital de España?",a:["Madrid","Barcelona","Sevilla","Valencia"],c:0,h:"Capital del país"},
   {q:"Planeta rojo?",a:["Venus","Marte","Júpiter","Saturno"],c:1,h:"Óxido"},
   {q:"2+2?",a:["3","4","5","6"],c:1,h:"básico"},
   {q:"Capital Francia?",a:["Roma","París","Madrid","Lisboa"],c:1,h:"Torre Eiffel"},
@@ -208,10 +427,12 @@ const questions = [
   {q:"H2O?",a:["Agua","Oxígeno","Hidrógeno","Sal"],c:0,h:"química"}
 ];
 
-let i=0;
+let currentQuestions = [];
+let currentIndex = 0;
 let score=0;
 let time=60;
 let interval;
+let isAnswering = false;
 
 /* UI */
 const menu=document.getElementById("menu");
@@ -222,13 +443,19 @@ const t=document.getElementById("timer");
 const h=document.getElementById("hint");
 
 /* start */
-function startGame(){
-  i = 0;
+function startGame() {
+  if (!isUserLoaded) return alert("Cargando datos de tu cuenta, espera un momento...");
+
+  // Mezclar preguntas para que cada partida sea distinta
+  currentQuestions = [...questions].sort(() => Math.random() - 0.5);
+  currentIndex = 0;
   score = 0;
   time = 60;
-  menu.style.display="none";
-  box.style.display="block";
-  show();
+  isAnswering = false;
+
+  menu.style.display = "none";
+  box.style.display = "block";
+  renderQuestion();
   timer();
 }
 
@@ -243,59 +470,140 @@ function timer(){
 }
 
 /* show */
-function show(){
-  let qd=questions[i];
+function renderQuestion() {
+  const qData = currentQuestions[currentIndex];
 
-  q.innerText=qd.q;
-  h.innerText="💡 "+qd.h;
-  a.innerHTML="";
+  q.innerText = `${currentIndex + 1}. ${qData.q}`;
+  h.innerText = "💡 Pista: " + qData.h;
+  a.innerHTML = "";
 
-  qd.a.forEach((opt,idx)=>{
-    let b=document.createElement("button");
-    b.innerText=opt;
+  qData.a.forEach((opt, idx) => {
+    const btn = document.createElement("button");
+    btn.innerText = opt;
 
-    b.onclick=()=>{
-      if(idx===qd.c){
+    btn.onclick = () => {
+      if (isAnswering) return; // Evitar múltiples clics
+      isAnswering = true;
+
+      if (idx === qData.c) {
+        btn.classList.add("btn-correct");
         score++;
-        points+=100;
+        points += 100;
       } else {
-        points+=20;
+        btn.classList.add("btn-wrong");
+        points += 20;
       }
 
-      localStorage.setItem("points",points);
-      pointsUI.innerText="⭐ Puntos: "+points;
+      updatePointsUI();
 
-      next();
+      // Pausa breve para ver el resultado antes de pasar
+      setTimeout(() => {
+        isAnswering = false;
+        next();
+      }, 600);
     };
 
-    a.appendChild(b);
+    a.appendChild(btn);
   });
 }
 
 /* next */
 function next(){
-  i++;
-  if(i>=questions.length || time<=0) end();
-  else show();
+  currentIndex++;
+  if(currentIndex >= currentQuestions.length || time <= 0) end();
+  else renderQuestion();
 }
 
 /* end */
 function end(){
   clearInterval(interval);
   q.innerHTML="🏁 FIN";
-  a.innerHTML="✔ Aciertos: "+score;
+  a.innerHTML = `
+    <h3>¡Juego Terminado!</h3>
+    <p>Has acertado ${score} preguntas.</p>
+    <h4 style="color:#00ffcc;">Saldo total en tu cuenta: ${points} ⭐</h4>
+    <button onclick="goHome()">🏠 Ir al Menú</button>`;
   h.innerHTML="";
   t.innerHTML="";
 }
 
+/* 🏆 RANKING LOGIC */
+async function showRanking() {
+  const list = document.getElementById("ranking-list");
+  list.innerHTML = "<p>Cargando ranking...</p>";
+  document.getElementById("ranking-box").style.display = "flex";
+
+  try {
+    const res = await fetch("/ranking");
+    const top = await res.json();
+    
+    list.innerHTML = "";
+    top.forEach((u, i) => {
+      const row = document.createElement("div");
+      row.style.display = "flex";
+      row.style.alignItems = "center";
+      row.style.gap = "10px";
+      row.style.marginBottom = "8px";
+      row.innerHTML = `
+        <b>${i+1}.</b> 
+        <img src="${u.foto}" style="width:24px; height:24px; border-radius:50%; border:1px solid #00ffcc;">
+        <span style="flex:1">${u.apodo}</span>
+        <span style="color:#00ffcc">${u.points} ⭐</span>
+      `;
+      list.appendChild(row);
+    });
+  } catch(e) {
+    list.innerHTML = "❌ Error al cargar ranking";
+  }
+}
+
+function closeRanking() {
+  document.getElementById("ranking-box").style.display = "none";
+}
+
 /* volver */
 function goHome(){
-  window.location.href="index.html";
+  box.style.display = "none";
+  menu.style.display = "block";
 }
 
 /* 📅 semanal */
-function weekly(){
-  showPopup("🚫 Quiz semanal no disponible");
+function weekly() {
+  if (currentUser && currentUser.weeklyDone) {
+    showPopup("🚫 PROTOCOLO DENEGADO: Este terminal ya ha procesado el desafío semanal.");
+    return;
+  }
+
+  document.getElementById("weekly-overlay").style.display = "flex";
+  document.getElementById("weekly-input").value = "";
+  document.getElementById("weekly-input").focus();
+}
+
+function closeWeekly() {
+  document.getElementById("weekly-overlay").style.display = "none";
+}
+
+function checkWeekly() {
+  const ans = document.getElementById("weekly-input").value.trim();
+  
+  if (ans === "585.56" || ans === "585.55") {
+    currentUser.weeklyDone = true;
+    points += 1000;
+    
+    showPopup("✅ SECUENCIA CORRECTA: +1000 CRÉDITOS ASIGNADOS.");
+    
+    updatePointsUI(true);
+
+    // Bloquear visualmente el botón semanal inmediatamente
+    const btnWeekly = document.querySelector('button[onclick="weekly()"]');
+    if (btnWeekly) {
+      btnWeekly.innerText = "📅 Quiz semanal (Completado)";
+      btnWeekly.style.opacity = "0.5";
+    }
+    closeWeekly();
+  } else {
+    alert("❌ Respuesta incorrecta. Pista: Realiza las operaciones en orden (Potencia, Multiplicación/División, Suma/Resta). El resultado tiene decimales.");
+  }
 }
 
 /* 🏪 tienda */

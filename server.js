@@ -39,7 +39,9 @@ const UserSchema = new mongoose.Schema({
   aceptado: { type: Boolean, default: false },
   noMostrar: { type: Boolean, default: false },
   points: { type: Number, default: 0 },
-  weeklyDone: { type: Boolean, default: false }
+  weeklyDone: { type: Boolean, default: false },
+  missionCarlBriss1: { type: Boolean, default: false },
+  missionCarlBriss2: { type: Boolean, default: false }
 }, { minimize: false }); // 🚀 Fuerza a que los campos se guarden siempre en DB
 
 const User = mongoose.model("User", UserSchema);
@@ -181,13 +183,15 @@ app.put("/update/:ide", async (req,res)=>{
   try{
 
     const ide = String(req.params.ide || "").trim();
-    const { points, foto, aceptado, weeklyDone } = req.body;
+    const { points, foto, aceptado, weeklyDone, missionCarlBriss1, missionCarlBriss2 } = req.body;
 
     console.log(`📩 Petición UPDATE para ${ide}. Puntos a guardar: ${points}`);
 
     const updateFields = {};
     if (points !== undefined) updateFields.points = Number(points);
     if (weeklyDone !== undefined) updateFields.weeklyDone = weeklyDone === true;
+    if (missionCarlBriss1 !== undefined) updateFields.missionCarlBriss1 = missionCarlBriss1 === true;
+    if (missionCarlBriss2 !== undefined) updateFields.missionCarlBriss2 = missionCarlBriss2 === true;
     if (foto) updateFields.foto = normalizeFoto(foto);
     if (aceptado !== undefined) updateFields.aceptado = aceptado === true;
 

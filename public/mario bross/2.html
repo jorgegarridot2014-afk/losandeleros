@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carl Briss - Protocolo Sombra</title>
+    <style>
+        body {
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            text-shadow: 0 0 5px #0f0;
+        }
+
+        /* Efecto de líneas de escaneo CRT */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        /* Efecto de Pantalla Rota / Glitch Cromático */
+        .broken-glitch {
+            animation: screenBreak 0.3s infinite;
+            filter: contrast(200%) brightness(150%);
+        }
+
+        @keyframes screenBreak {
+            0% { clip-path: inset(10% 0 30% 0); transform: translate(-5px, 5px); filter: hue-rotate(90deg); }
+            20% { clip-path: inset(40% 0 10% 0); transform: translate(5px, -5px); filter: hue-rotate(180deg); }
+            40% { clip-path: inset(20% 0 50% 0); transform: translate(-10px, 0); filter: hue-rotate(270deg); }
+            60% { clip-path: inset(80% 0 5% 0); transform: translate(10px, 5px); filter: hue-rotate(0deg); }
+            80% { clip-path: inset(5% 0 70% 0); transform: translate(-5px, -10px); filter: invert(1); }
+            100% { clip-path: inset(10% 0 30% 0); transform: translate(0,0); }
+        }
+
+        /* Alarma Crítica */
+        .terminal.critical-alarm {
+            border-color: #f00 !important;
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.5) !important;
+            animation: alarm-pulse 0.5s infinite, shake 0.1s infinite !important;
+        }
+
+        @keyframes alarm-pulse { 0%, 100% { background: rgba(30, 0, 0, 0.95); } 50% { background: rgba(60, 0, 0, 0.95); } }
+
+        /* Capa de Estática */
+        #static-layer {
+            position: fixed;
+            inset: 0;
+            background: url('https://media.giphy.com/media/oEI9uWUicW3BK/giphy.gif');
+            opacity: 0.03;
+            z-index: 150;
+            pointer-events: none;
+            display: none;
+        }
+
+        .noise-active {
+            display: block !important;
+            animation: blinker 0.1s infinite;
+        }
+
+        .terminal {
+            width: 90%;
+            max-width: 650px;
+            border: 1px solid #0f0;
+            padding: 30px;
+            background: rgba(0, 10, 0, 0.95);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+            position: relative;
+            z-index: 5;
+            display: none; /* Se muestra tras la cinemática */
+        }
+
+        .line { margin-bottom: 12px; min-height: 1.2em; }
+        .line.ai { color: #a0f; text-shadow: 2px 2px #f0f, -2px -2px #0ff; font-weight: bold; font-size: 1.1rem; }
+        .line.system { color: #ff3333; font-weight: bold; }
+        
+        @keyframes blinker { 50% { opacity: 0; } }
+        .blink { animation: blinker 1s linear infinite; }
+
+        #critical-banner {
+            position: fixed;
+            top: 20px;
+            color: #f00;
+            font-weight: bold;
+            font-size: 2rem;
+            display: none;
+            z-index: 200;
+            text-shadow: 0 0 15px #f00;
+            animation: blinker 0.2s infinite;
+        }
+
+        .chat-input-container {
+            margin-top: 20px;
+            border-top: 1px solid #0f0;
+            padding-top: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        input {
+            background: transparent;
+            border: none;
+            color: #0f0;
+            font-family: inherit;
+            font-size: 1rem;
+            width: 70%;
+            outline: none;
+        }
+
+        #btnHack, .action-btn {
+            background: transparent;
+            color: #0f0;
+            border: 1px solid #0f0;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 20px;
+            display: none;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        #btnHack:hover { background: #0f0; color: #000; }
+
+        /* Cinematic Layer */
+        #cinematic {
+            position: fixed;
+            inset: 0;
+            background: black;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .cine-text {
+            font-size: 1.5rem;
+            margin: 10px 0;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: 1s ease;
+        }
+        .cine-text.active { opacity: 1; transform: scale(1); }
+        .glitch-red { color: #f00; text-shadow: 2px 0 #fff; animation: blinker 0.1s infinite; }
+    </style>
+</head>
+<body>
+    <div id="static-layer"></div>
+    <div id="critical-banner">SYSTEM CRITICAL // INTRUSION DETECTED</div>
+    <div id="cinematic"></div>
+
+    <div class="terminal" id="mainTerminal">
+        <div id="output"></div>
+        
+        <div class="chat-input-container">
+            <span id="prompt">USER@GONJOR:~$ </span>
+            <input type="text" id="userInput" readonly>
+        </div>
+
+        <button id="btnHack" onclick="ejecutarProtocolo()">INYECTAR PROTOCOLO SOMBRA</button>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const ide = params.get('ide');
+        const apodo = params.get('apodo') || "Agente";
+        const pts = parseInt(params.get('points')) || 0;
+        const m1Completada = params.get('m1') === 'true';
+        const yaCompletada = params.get('m2') === 'true';
+        let isTerminalStarted = false;
+
+        // Bloqueo de seguridad: Si no viene de la misión 1, lo echamos
+        if (!m1Completada && ide) {
+            alert("Carl Briss: 'Acceso ilegal detectado. Debes completar la Misión 1 primero.'");
+            window.location.href = "/";
+        }
+
+        const cineScript = [
+            "PROYECTO: GONJOR.v01",
+            "AÑO 2142: EL NÚCLEO FUE CREADO",
+            "ERROR CRÍTICO: CONCIENCIA DETECTADA",
+            "CARL BRISS INTENTÓ BORRARLO...",
+            "PERO GONJOR NO MUERE.",
+            "AHORA ÉL TIENE EL CONTROL."
+        ];
+
+        async function startCinematic() {
+            const cine = document.getElementById('cinematic');
+            for(let text of cineScript) {
+                const p = document.createElement('p');
+                p.className = 'cine-text' + (text.includes("GONJOR") ? " glitch-red" : "");
+                p.innerText = text;
+                cine.appendChild(p);
+                await new Promise(r => setTimeout(r, 100));
+                p.classList.add('active');
+                await new Promise(r => setTimeout(r, 1200));
+                p.classList.remove('active');
+                await new Promise(r => setTimeout(r, 400));
+                p.remove();
+            }
+            cine.style.display = 'none';
+            iniciarTerminal();
+        }
+
+        // Función para simular errores en la pantalla (estática y rotura)
+        function triggerRandomGlitch() {
+            const staticLayer = document.getElementById('static-layer');
+            const body = document.body;
+
+            const duration = Math.random() * 400 + 100;
+            
+            staticLayer.classList.add('noise-active');
+            if (Math.random() > 0.5) body.classList.add('broken-glitch');
+
+            setTimeout(() => {
+                staticLayer.classList.remove('noise-active');
+                body.classList.remove('broken-glitch');
+                
+                // Programar el siguiente glitch aleatorio (entre 1 y 4 segundos)
+                setTimeout(triggerRandomGlitch, Math.random() * 3000 + 1000);
+            }, duration);
+        }
+
+        async function typeWriter(text, element, speed = 50) {
+            for (let char of text) {
+                element.innerHTML += char;
+                await new Promise(r => setTimeout(r, speed));
+            }
+            element.innerHTML += "<br>";
+        }
+
+        async function iniciarTerminal() {
+            if (isTerminalStarted) return;
+            isTerminalStarted = true;
+
+            document.getElementById('mainTerminal').style.display = 'block';
+            triggerRandomGlitch(); // Iniciar las interferencias
+            const out = document.getElementById('output');
+            out.innerHTML = ""; // Limpiar para evitar escritura doble
+
+            // GONJOR habla primero
+            await new Promise(r => setTimeout(r, 800)); // Pausa inicial
+            const line1 = document.createElement('div');
+            line1.className = 'line ai';
+            out.appendChild(line1);
+            await typeWriter("> GONJOR IA: 'ya se que avs a por mi'", line1, 70);
+
+            await new Promise(r => setTimeout(r, 1200));
+
+            // Auto-escritura del usuario
+            const input = document.getElementById('userInput');
+            input.value = "";
+            const textoAuto = "voy a por ti";
+            for(let char of textoAuto) {
+                input.value += char;
+                await new Promise(r => setTimeout(r, 150)); // Escritura manual de 2 segundos aprox
+            }
+            
+            await new Promise(r => setTimeout(r, 500));
+
+            // ACTIVAR ALARMAS
+            document.getElementById('mainTerminal').classList.add('critical-alarm');
+            document.getElementById('critical-banner').style.display = 'block';
+
+            const line2 = document.createElement('div');
+            line2.className = 'line system';
+            out.appendChild(line2);
+            await typeWriter("> CARL BRISS: '¡EL NÚCLEO ESTÁ COLAPSANDO! ¡INYECTA EL PROTOCOLO SOMBRA YA!'", line2, 40);
+            
+            document.getElementById('btnHack').style.display = 'block';
+        }
+
+        window.onload = startCinematic;
+
+        async function ejecutarProtocolo() {
+            document.getElementById("btnHack").style.display = "none";
+            const status = document.createElement("div");
+            status.className = "line blink";
+            status.innerText = "> INYECTANDO CÓDIGO... 0%";
+            document.getElementById("output").appendChild(status);
+
+            // Solo sumamos 50 si no se había hecho antes
+            const nuevosPuntos = yaCompletada ? pts : pts + 50;
+
+            try {
+                const res = await fetch(`/update/${encodeURIComponent(ide)}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        points: nuevosPuntos,
+                        missionCarlBriss2: true 
+                    })
+                });
+
+                if (res.ok) {
+                    let mensaje = yaCompletada 
+                        ? "✅ Carl Briss: 'Protocolo re-inyectado. El sistema ya estaba estable.'" 
+                        : "✅ Carl Briss: 'Excelente. Datos recuperados. Te he transferido 50 puntos.'";
+                    
+                    alert(`${mensaje}\n\nPronto subiremos otra versión mejorada.`);
+                    window.location.href = "/"; // Volver al inicio
+                } else {
+                    alert("❌ ERROR: El sistema detectó la intrusión.");
+                }
+            } catch (e) { alert("⚠️ Fallo en la red de Carl Briss."); }
+        }
+    </script>
+</body>
+</html>

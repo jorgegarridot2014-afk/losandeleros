@@ -369,7 +369,7 @@
         <div class="status-bar">
             <span>SISTEMA: <span id="sys-status">NOMINAL</span></span>
             <span style="cursor:pointer; color:var(--accent)" onclick="toggleMissions(true)">[ MISIONES ]</span>
-            <span style="cursor:pointer; color:var(--secondary)" onclick="window.location.href='menu.html'">[ SALIR ]</span>
+            <span style="cursor:pointer; color:var(--secondary)" onclick="window.location.href='/'">[ DESCONECTAR ]</span>
             <span>OBJETOS: [<span id="inv-display">Vacío</span>]</span>
         </div>
 
@@ -395,12 +395,19 @@
         
         // --- CARGAR PERSISTENCIA ---
         function loadGame() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const m1Status = urlParams.get('m1') === 'true';
+            const m2Status = urlParams.get('m2') === 'true';
+            const ide = urlParams.get('ide');
+
             const savedInv = localStorage.getItem('origin_inventory');
             if(savedInv) state.inventory = new Set(JSON.parse(savedInv));
             
-            const savedUnlocked = localStorage.getItem('origin_unlocked');
-            if(savedUnlocked) state.unlockedMissions = parseInt(savedUnlocked);
-            
+            // Sincronizar con el estado real del usuario en lugar de solo localStorage
+            if (m2Status) state.unlockedMissions = 3;
+            else if (m1Status) state.unlockedMissions = 2;
+            else state.unlockedMissions = 1;
+
             updateInvDisplay();
         }
 
@@ -662,6 +669,13 @@
         }
 
         function renderMissions() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userIde = urlParams.get('ide') || "";
+            const userApodo = urlParams.get('apodo') || "Invitado";
+            const userPoints = urlParams.get('points') || 0;
+            const userM1 = state.unlockedMissions >= 2; // Actualizamos según el estado actual
+            const userM2 = urlParams.get('m2') || "false";
+
             const container = document.getElementById('mission-list');
             container.innerHTML = '';
             
@@ -682,7 +696,16 @@
                 `;
                 
                 if(!isLocked) {
-                    div.onclick = () => window.location.href = `1.html?mission=${i}`;
+                    div.onclick = () => {
+                        const params = `?ide=${encodeURIComponent(userIde)}&apodo=${encodeURIComponent(userApodo)}&points=${userPoints}&m1=${userM1}&m2=${userM2}`;
+                        if (i === 1) {
+                            window.location.href = `game.html${params}`;
+                        } else if (i === 2) {
+                            window.location.href = `2.html${params}`;
+                        } else {
+                            window.location.href = `${i}.html${params}`;
+                        }
+                    };
                 }
                 container.appendChild(div);
             }
@@ -798,6 +821,21 @@
             
             await renderScene('intro');
             
+            // Desbloqueo automático al entrar (Misión 1 desbloquea la 2)
+            const urlParams = new URLSearchParams(window.location.search);
+            const ide = urlParams.get('ide');
+            if (ide) {
+                state.unlockedMissions = Math.max(state.unlockedMissions, 2);
+                saveGame(); // Guarda localmente para el HUB
+                
+                // Notifica al servidor para que el progreso sea permanente en la cuenta
+                fetch(`/update/${encodeURIComponent(ide)}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ missionCarlBriss1: true })
+                }).catch(err => console.error("Error al sincronizar progreso:", err));
+            }
+
             // Exactamente 6 segundos después, cinemática y entrada al mundo físico
             setTimeout(() => {
                 playCinematic("ACCESO A MISIONES DISPONIBLE", () => {

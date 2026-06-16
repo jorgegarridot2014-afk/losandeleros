@@ -482,6 +482,19 @@ function logout(){
   go();
 }
 
+/* ================= NAVEGACIÓN MISIONES ================= */
+function irMision2() {
+  if (!user || !user.ide) return alert("Carl Briss: '¿Quién eres? Identifícate antes de intentar acceder al núcleo.'");
+  
+  // Verificación de prerrequisito: Misión 1
+  if (!user.missionCarlBriss1) {
+    return alert("Carl Briss: 'Acceso denegado. Debes completar el Protocolo de Iniciación (Misión 1) antes de acceder al nivel 2.'");
+  }
+
+  // Pasamos los datos necesarios por URL para que 2.html tome el control
+  window.location.href = `mario%20bross/2.html?ide=${encodeURIComponent(user.ide)}&apodo=${encodeURIComponent(user.apodo)}&points=${user.points || 0}&m2=${user.missionCarlBriss2 || false}`;
+}
+
 /* ================= JUGAR ================= */
 function abrirJugar(){
   hideAll();
@@ -506,7 +519,8 @@ function irQuiz(){
 }
 
 function irMisterio(){
-  window.location.href = "/mario%20bross/menu.html";
+  if (!user || !user.ide) return alert("Carl Briss: 'Identifícate antes de entrar al Protocolo Origen.'");
+  window.location.href = `/mario%20bross/game.html?ide=${encodeURIComponent(user.ide)}&apodo=${encodeURIComponent(user.apodo)}&points=${user.points || 0}&m1=${user.missionCarlBriss1 || false}&m2=${user.missionCarlBriss2 || false}`;
 }
 
 function irLab(){
@@ -521,11 +535,25 @@ function irAdmin(){
 function abrirNoti(){
   hideAll();
   show("overlayNoti");
-  document.getElementById("notiText").innerText = "🔔 porfavor para tener una mjor esperiencia create una nueva cuenat para reiniciar al base de datos ,para evitar fallos, muchas gracias";
+  document.getElementById("notiText").innerText = "🔔 porfavor para tener una mjor esperiencia create una nueva cuenat para reiniciar al base de datos ,para evitar fallos, muchas gracias ya estabn activos los mjeugos";
 }
 
 function cerrarNoti(){
   go();
+}
+
+/* ================= MISIONES ================= */
+// La lógica principal ahora reside en mario bross/2.html
+function checkMision2() {
+    if (!user) return;
+    
+    if (user.missionCarlBriss2) {
+        alert("Carl Briss dice: 'Buen trabajo con el Protocolo Sombra, el sistema está estable.'");
+    } else if (user.missionCarlBriss1) {
+        irMision2();
+    } else {
+        alert("Carl Briss: 'Necesitas completar la Misión 1 primero.'");
+    }
 }
 
 /* ================= MODO ================= */

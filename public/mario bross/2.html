@@ -183,6 +183,8 @@
         const m1Completada = params.get('m1') === 'true';
         const yaCompletada = params.get('m2') === 'true';
         let isTerminalStarted = false;
+        let failureTimer = null;
+        let timeLeft = 15; // 15 segundos de margen
 
         // Bloqueo de seguridad: Si no viene de la misión 1, lo echamos
         if (!m1Completada && ide) {
@@ -283,11 +285,25 @@
             await typeWriter("> CARL BRISS: '¡EL NÚCLEO ESTÁ COLAPSANDO! ¡INYECTA EL PROTOCOLO SOMBRA YA!'", line2, 40);
             
             document.getElementById('btnHack').style.display = 'block';
+
+            // Iniciar cuenta atrás de fallo
+            failureTimer = setInterval(() => {
+                timeLeft--;
+                const banner = document.getElementById('critical-banner');
+                banner.innerText = `SYSTEM CRITICAL // AUTO-LOCKDOWN IN: ${timeLeft}s`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(failureTimer);
+                    alert("GONJOR: 'TIEMPO AGOTADO. ELIMINANDO RASTROS.'\n\nCarl Briss: '¡Maldición, nos han echado!'");
+                    window.location.href = `game.html?ide=${encodeURIComponent(ide)}&apodo=${encodeURIComponent(apodo)}&points=${pts}&m1=true&m2=${yaCompletada}`;
+                }
+            }, 1000);
         }
 
         window.onload = startCinematic;
 
         async function ejecutarProtocolo() {
+            if (failureTimer) clearInterval(failureTimer);
             document.getElementById("btnHack").style.display = "none";
             const status = document.createElement("div");
             status.className = "line blink";
@@ -295,7 +311,7 @@
             document.getElementById("output").appendChild(status);
 
             // Solo sumamos 50 si no se había hecho antes
-            const nuevosPuntos = yaCompletada ? pts : pts + 50;
+            const nuevosPuntos = yaCompletada ? pts : pts + 100;
 
             try {
                 const res = await fetch(`/update/${encodeURIComponent(ide)}`, {
@@ -310,10 +326,10 @@
                 if (res.ok) {
                     let mensaje = yaCompletada 
                         ? "✅ Carl Briss: 'Protocolo re-inyectado. El sistema ya estaba estable.'" 
-                        : "✅ Carl Briss: 'Excelente. Datos recuperados. Te he transferido 50 puntos.'";
+                        : "✅ Carl Briss: 'Excelente. Datos recuperados. Te he transferido 100 puntos.'";
                     
                     alert(`${mensaje}\n\nPronto subiremos otra versión mejorada.`);
-                    window.location.href = "/"; // Volver al inicio
+                    window.location.href = `game.html?ide=${encodeURIComponent(ide)}&apodo=${encodeURIComponent(apodo)}&points=${nuevosPuntos}&m1=true&m2=true`;
                 } else {
                     alert("❌ ERROR: El sistema detectó la intrusión.");
                 }

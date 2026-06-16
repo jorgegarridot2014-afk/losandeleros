@@ -4,44 +4,38 @@
     <meta charset="UTF-8">
     <title>SISTEMA DE CONTROL // Misión</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Misión 1: Infiltración Origen</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
-            background: #020205;
             background: #000;
             color: #00d4ff;
-            font-family: 'Courier New', monospace;
             font-family: 'Courier New', Courier, monospace;
             display: flex;
             flex-direction: row;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
             height: 100vh;
             margin: 0;
             overflow: hidden;
             text-shadow: 0 0 5px #00d4ff;
         }
-        
-        /* --- SIDEBAR --- */
         #sidebar {
             width: 300px;
-        }
-        .terminal {
-            width: 90%;
-            max-width: 650px;
-            border: 1px solid #00d4ff;
-            background: rgba(0, 212, 255, 0.05);
+            height: 100%;
+            border-right: 1px solid rgba(0, 212, 255, 0.5);
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            padding: 20px;
-            padding: 30px;
-            background: rgba(0, 10, 30, 0.95);
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
-            position: relative;
-            z-index: 5;
+            background: rgba(0, 20, 40, 0.3);
+            flex-shrink: 0;
         }
-
+        #main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            overflow-y: auto;
+        }
         .file-item {
             padding: 10px;
             cursor: pointer;
@@ -62,11 +56,10 @@
 
         /* --- EDITOR AREA --- */
         #editor {
-            flex-grow: 1;
+            height: 100%;
             display: flex;
             flex-direction: column;
         }
-        .line { margin-bottom: 12px; min-height: 1.2em; }
         .btn-action {
             background: transparent;
             color: #00d4ff;
@@ -102,9 +95,10 @@
             border: 1px solid #ff0055;
             cursor: pointer;
             font-family: inherit;
-            margin-top: 20px;
-            display: none;
+            margin-top: auto;
             text-transform: uppercase;
+            width: 100%;
+            font-weight: bold;
         }
 
         .back-btn:hover { background: #ff0055; color: white; }
@@ -115,27 +109,20 @@
     <div id="sidebar">
         <h2 style="font-size: 1.2rem;">SISTEMA_GONJOR v1.0</h2>
         <p style="font-size: 0.7rem; opacity: 0.6; margin-bottom: 20px;">DIRECTORIO: /PROYECTO_AETERNA</p>
-        
         <div class="file-item" onclick="viewFile('core.cpp')">📄 core.cpp</div>
         <div class="file-item" onclick="viewFile('neuron_sync.js')">📄 neuron_sync.js</div>
         <div class="file-item" onclick="viewFile('logs_carl.txt')">📄 logs_carl.txt</div>
         <div class="file-item" onclick="viewFile('protocol.cfg')">📄 protocol.cfg</div>
-        
-        <div style="margin-top: auto; padding-top: 20px;">
-            <button class="back-btn" onclick="window.location.href='/'">DESCONECTAR</button>
-        </div>
+        <button class="back-btn" onclick="volverAlHub()">DESCONECTAR</button>
     </div>
-    <div class="terminal">
-        <div id="output"></div>
-        <button id="btnContinue" class="btn-action" onclick="finalizarMision()">ESTABLECER PROTOCOLO DE INICIO</button>
-    </div>
-
-    <div id="editor">
-        <div id="editor-header">
-            <span id="file-name">SELECCIONE UN ARCHIVO</span>
-            <span id="status">READ-ONLY</span>
+    <div id="main-content">
+        <div id="editor">
+            <div id="editor-header">
+                <span id="file-name">SELECCIONE UN ARCHIVO</span>
+                <span id="status">READ-ONLY</span>
+            </div>
+            <div id="code-display">Cargando módulos de lectura...</div>
         </div>
-        <div id="code-display">Cargando módulos de lectura...</div>
     </div>
 
     <script>
@@ -149,6 +136,7 @@
         const ide = params.get('ide');
         const apodo = params.get('apodo') || "Agente";
         const pts = parseInt(params.get('points')) || 0;
+        let currentPts = pts;
 
         function viewFile(name) {
             // UI
@@ -169,40 +157,20 @@
             setTimeout(() => {
                 display.innerHTML = content;
             }, 100);
-        const script = [
-            `> BIENVENIDO AL SISTEMA, ${apodo.toUpperCase()}.`,
-            "> INICIANDO PROTOCOLO DE INFILTRACIÓN: ORIGEN.",
-            "> Carl Briss: '¿Me recibes? El sistema GONJOR ha fracturado mi conciencia.'",
-            "> 'Estoy atrapado en los subniveles de la estación.'",
-            "> 'Necesito que conectes tu terminal al núcleo principal para darme una salida.'",
-            "> 'Ten cuidado... el sistema está monitorizando cada paquete de datos.'"
-        ];
+        }
 
-        let line = 0;
-        async function printScript() {
-            if (line < script.length) {
-                const div = document.createElement("div");
-                div.className = "line";
-                div.innerText = script[line];
-                document.getElementById("output").appendChild(div);
-                line++;
-                setTimeout(printScript, 1000);
-            } else {
-                document.getElementById("btnContinue").style.display = "block";
-            }
+        function volverAlHub() {
+            window.location.href = `game.html?ide=${encodeURIComponent(ide)}&apodo=${encodeURIComponent(apodo)}&points=${currentPts}&m1=true&m2=${params.get('m2') || 'false'}`;
         }
 
         window.onload = () => {
             viewFile('core.cpp');
-            printScript();
+            sincronizarMision();
         };
 
-        async function finalizarMision() {
-            document.getElementById("btnContinue").style.display = "none";
-            const out = document.getElementById("output");
-            const status = document.createElement("div");
-            status.innerText = "> SINCRONIZANDO CON CARL BRISS... OK";
-            out.appendChild(status);
+        async function sincronizarMision() {
+            const m1YaHecha = params.get('m1') === 'true';
+            if (m1YaHecha) return; // Ya recibió los puntos antes
 
             try {
                 const res = await fetch(`/update/${encodeURIComponent(ide)}`, {
@@ -210,19 +178,15 @@
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ 
                         missionCarlBriss1: true,
-                        points: pts + 25 
+                        points: pts + 100
                     })
                 });
-
                 if (res.ok) {
-                    alert("✅ Protocolo de Iniciación completado. Misión 2 desbloqueada.");
-                    const m2Status = params.get('m2') || 'false';
-                    window.location.href = `game.html?ide=${encodeURIComponent(ide)}&apodo=${encodeURIComponent(apodo)}&points=${pts + 25}&m1=true&m2=${m2Status}`;
-                } else {
-                    alert("❌ Error al sincronizar con el servidor.");
+                    currentPts = pts + 100;
+                    console.log("Misión 1 completada: +100 puntos.");
                 }
             } catch (e) {
-                alert("⚠️ Fallo en la red de la estación.");
+                console.error("Fallo en la sincronización.");
             }
         }
     </script>

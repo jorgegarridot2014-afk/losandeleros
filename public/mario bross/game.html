@@ -403,9 +403,9 @@
             const savedInv = localStorage.getItem('origin_inventory');
             if(savedInv) state.inventory = new Set(JSON.parse(savedInv));
             
-            // Sincronizar con el estado real del usuario en lugar de solo localStorage
+            // La misión 2 se desbloquea si m1 es true
             if (m2Status) state.unlockedMissions = 3;
-            else if (m1Status) state.unlockedMissions = 2;
+            else if (m1Status || localStorage.getItem('m1_visited')) state.unlockedMissions = 2;
             else state.unlockedMissions = 1;
 
             updateInvDisplay();

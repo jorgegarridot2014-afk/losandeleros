@@ -1,340 +1,588 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carl Briss - Protocolo Sombra</title>
-    <style>
-        body {
-            background: #000;
-            color: #0f0;
-            font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-            text-shadow: 0 0 5px #0f0;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GONJOR // ACCESO</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+:root {
+  --g: #00ff41; --gdim: #003b00;
+  --r: #ff0033; --bg: #030a03;
+  --panel: rgba(0,255,65,0.04);
+  --border: rgba(0,255,65,0.25);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { width:100%; height:100%; }
+body {
+  background:var(--bg); color:var(--g);
+  font-family:'Share Tech Mono','Courier New',monospace;
+  min-height:100vh; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:9999;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,0.13) 0px,rgba(0,0,0,0.13) 1px,transparent 1px,transparent 3px);
+}
+body::after {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:9998;
+  background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,0.9) 100%);
+}
+.phase { display:none; position:fixed; inset:0; align-items:center; justify-content:center; flex-direction:column; padding:16px; }
+.phase.active { display:flex; }
 
-        /* Efecto de líneas de escaneo CRT */
-        body::before {
-            content: " ";
-            display: block;
-            position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 2;
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none;
-        }
+/* VOLVER GLOBAL */
+.back-global {
+  position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
+  background:transparent; border:1px solid var(--border);
+  color:var(--gdim); font-family:inherit; font-size:0.65rem;
+  letter-spacing:3px; padding:9px 22px; cursor:pointer;
+  border-radius:2px; transition:all 0.15s; z-index:500; display:none;
+}
+.back-global:hover { border-color:var(--g); color:var(--g); box-shadow:0 0 12px rgba(0,255,65,0.15); }
+.back-global.visible { display:block; }
 
-        /* Efecto de Pantalla Rota / Glitch Cromático */
-        .broken-glitch {
-            animation: screenBreak 0.3s infinite;
-            filter: contrast(200%) brightness(150%);
-        }
+.panel {
+  background:var(--panel); border:1px solid var(--border); border-radius:2px;
+  box-shadow:0 0 40px rgba(0,255,65,0.07),inset 0 0 30px rgba(0,255,65,0.03);
+  position:relative;
+}
+.panel::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent,var(--g),transparent); opacity:0.5;
+}
 
-        @keyframes screenBreak {
-            0% { clip-path: inset(10% 0 30% 0); transform: translate(-5px, 5px); filter: hue-rotate(90deg); }
-            20% { clip-path: inset(40% 0 10% 0); transform: translate(5px, -5px); filter: hue-rotate(180deg); }
-            40% { clip-path: inset(20% 0 50% 0); transform: translate(-10px, 0); filter: hue-rotate(270deg); }
-            60% { clip-path: inset(80% 0 5% 0); transform: translate(10px, 5px); filter: hue-rotate(0deg); }
-            80% { clip-path: inset(5% 0 70% 0); transform: translate(-5px, -10px); filter: invert(1); }
-            100% { clip-path: inset(10% 0 30% 0); transform: translate(0,0); }
-        }
+/* KEYPAD */
+#phase-keypad { gap:28px; }
+.kp-logo { text-align:center; letter-spacing:6px; font-size:clamp(0.65rem,2vw,0.85rem); color:var(--gdim); }
+.kp-title { text-align:center; font-size:clamp(1rem,3vw,1.4rem); letter-spacing:8px; color:var(--g); text-shadow:0 0 20px var(--g); }
+.kp-wrap { padding:28px; width:min(340px,90vw); }
+.kp-display-label { font-size:0.52rem; letter-spacing:4px; color:var(--gdim); margin-bottom:10px; }
+.kp-display { display:flex; gap:10px; justify-content:center; margin-bottom:8px; }
+.kp-digit {
+  width:46px; height:54px; border:1px solid var(--border); background:rgba(0,0,0,0.4);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.6rem; color:var(--g); text-shadow:0 0 10px var(--g);
+  border-radius:2px; transition:all 0.15s;
+}
+.kp-digit.filled { border-color:var(--g); box-shadow:0 0 10px rgba(0,255,65,0.2); }
+.kp-hint { font-size:0.58rem; color:var(--gdim); letter-spacing:3px; text-align:center; margin-bottom:22px; }
+.kp-hint span { color:var(--g); text-shadow:0 0 8px var(--g); }
+.kp-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+.kbtn {
+  background:rgba(0,0,0,0.5); border:1px solid var(--border); color:var(--g);
+  font-family:inherit; font-size:1.3rem; height:58px; border-radius:2px;
+  cursor:pointer; transition:all 0.1s; text-shadow:0 0 6px var(--g);
+}
+.kbtn:hover { background:rgba(0,255,65,0.1); border-color:var(--g); box-shadow:0 0 14px rgba(0,255,65,0.2); }
+.kbtn:active { transform:scale(0.93); background:rgba(0,255,65,0.18); }
+.kbtn.del { border-color:rgba(255,100,0,0.4); color:#ff6600; font-size:0.85rem; }
+.kbtn.ok { border-color:var(--g); font-size:0.82rem; letter-spacing:3px; }
+.kp-msg { text-align:center; font-size:0.68rem; letter-spacing:2px; height:18px; }
+.kp-msg.err { color:var(--r); } .kp-msg.ok { color:var(--g); }
 
-        /* Alarma Crítica */
-        .terminal.critical-alarm {
-            border-color: #f00 !important;
-            box-shadow: 0 0 50px rgba(255, 0, 0, 0.5) !important;
-            animation: alarm-pulse 0.5s infinite, shake 0.1s infinite !important;
-        }
+/* WHEEL */
+#phase-wheel { gap:20px; text-align:center; }
+.wh-title { font-size:clamp(0.65rem,2vw,0.85rem); letter-spacing:5px; color:var(--gdim); }
+#wheel-canvas { cursor:grab; border-radius:50%; }
+#wheel-canvas:active { cursor:grabbing; }
+.wh-bar { width:280px; height:2px; background:var(--gdim); border-radius:2px; overflow:hidden; }
+.wh-bar-fill { height:100%; width:0%; background:var(--g); box-shadow:0 0 8px var(--g); transition:width 0.08s; }
+.wh-status { font-size:0.58rem; letter-spacing:3px; color:var(--gdim); }
 
-        @keyframes alarm-pulse { 0%, 100% { background: rgba(30, 0, 0, 0.95); } 50% { background: rgba(60, 0, 0, 0.95); } }
+/* LOGIN */
+#phase-login { gap:0; }
+.lg-wrap { padding:36px; width:min(390px,90vw); }
+.lg-logo { font-size:0.52rem; letter-spacing:5px; color:var(--gdim); margin-bottom:8px; }
+.lg-title { font-size:clamp(0.9rem,3vw,1.2rem); letter-spacing:6px; color:var(--g); text-shadow:0 0 14px var(--g); margin-bottom:28px; }
+.lg-label { font-size:0.52rem; letter-spacing:4px; color:var(--gdim); margin-bottom:10px; }
+.lg-input-row { display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); padding-bottom:8px; }
+.lg-prompt { color:var(--gdim); font-size:0.9rem; }
+.lg-input {
+  background:transparent; border:none; outline:none;
+  color:var(--g); font-family:inherit; font-size:0.95rem;
+  flex:1; caret-color:var(--g); text-shadow:0 0 4px var(--g); letter-spacing:2px;
+}
+.lg-input::placeholder { color:var(--gdim); }
+.lg-hint { font-size:0.58rem; color:#ff6600; letter-spacing:2px; margin-top:18px; line-height:1.9; }
+.lg-timer-bar { width:100%; height:2px; background:var(--gdim); margin-top:20px; border-radius:2px; overflow:hidden; }
+.lg-timer-fill { height:100%; width:100%; background:var(--r); box-shadow:0 0 6px var(--r); }
 
-        /* Capa de Estática */
-        #static-layer {
-            position: fixed;
-            inset: 0;
-            background: url('https://media.giphy.com/media/oEI9uWUicW3BK/giphy.gif');
-            opacity: 0.03;
-            z-index: 150;
-            pointer-events: none;
-            display: none;
-        }
+/* LOADING */
+#phase-loading { gap:18px; text-align:center; }
+.ld-title { font-size:clamp(0.82rem,2.5vw,1.05rem); letter-spacing:8px; text-shadow:0 0 14px var(--g); }
+.ld-bar { width:300px; height:3px; background:var(--gdim); border-radius:2px; overflow:hidden; }
+.ld-fill { height:100%; width:0%; background:var(--g); box-shadow:0 0 8px var(--g); transition:width 0.25s; }
+.ld-log { width:300px; font-size:0.6rem; color:var(--gdim); line-height:2; text-align:left; height:86px; overflow:hidden; }
 
-        .noise-active {
-            display: block !important;
-            animation: blinker 0.1s infinite;
-        }
+/* CAMERAS */
+#phase-cameras { align-items:stretch; justify-content:flex-start; gap:0; padding:20px 20px 70px; }
+.cam-topbar {
+  display:flex; justify-content:space-between; align-items:center;
+  padding-bottom:14px; margin-bottom:20px; border-bottom:1px solid var(--border);
+}
+.cam-sys { font-size:0.58rem; letter-spacing:4px; color:var(--gdim); }
+.cam-subject { font-size:0.68rem; letter-spacing:3px; color:var(--r); text-shadow:0 0 8px var(--r); animation:blink 2s steps(1) infinite; }
+.cam-section-label { font-size:0.52rem; letter-spacing:4px; color:var(--gdim); margin-bottom:12px; }
+.cam-list { display:flex; flex-direction:column; gap:10px; }
+.cam-item {
+  display:flex; align-items:center; gap:16px; padding:16px 20px;
+  border:1px solid var(--border); background:rgba(0,0,0,0.3);
+  cursor:pointer; transition:all 0.15s; border-radius:2px;
+}
+.cam-item:hover { border-color:var(--g); background:rgba(0,255,65,0.05); box-shadow:0 0 20px rgba(0,255,65,0.1); transform:translateX(4px); }
+.cam-dot { width:8px; height:8px; border-radius:50%; background:var(--r); box-shadow:0 0 8px var(--r); animation:blink 1s steps(1) infinite; flex-shrink:0; }
+.cam-info { flex:1; }
+.cam-name { font-size:0.82rem; letter-spacing:3px; color:var(--g); }
+.cam-id { font-size:0.52rem; letter-spacing:2px; color:var(--gdim); margin-top:3px; }
+.cam-arrow { color:var(--gdim); font-size:0.8rem; }
 
-        .terminal {
-            width: 90%;
-            max-width: 650px;
-            border: 1px solid #0f0;
-            padding: 30px;
-            background: rgba(0, 10, 0, 0.95);
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
-            position: relative;
-            z-index: 5;
-            display: none; /* Se muestra tras la cinemática */
-        }
+/* CAM VIEW — layout completo en columna */
+#phase-camview {
+  align-items:stretch; justify-content:flex-start;
+  gap:0; padding:0;
+  flex-direction:column;
+}
+.cv-topbar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px 12px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+  background:var(--bg);
+  position:relative; z-index:10;
+}
+/* BOTÓN VOLVER en la foto — arriba izquierda dentro del topbar */
+.cv-back-btn {
+  background:transparent; border:1px solid var(--border);
+  color:var(--gdim); font-family:inherit; font-size:0.62rem;
+  letter-spacing:3px; padding:6px 14px; cursor:pointer;
+  border-radius:2px; transition:all 0.15s;
+}
+.cv-back-btn:hover { border-color:var(--g); color:var(--g); box-shadow:0 0 10px rgba(0,255,65,0.2); }
+.cv-caminfo { display:flex; align-items:center; gap:10px; }
+.cv-name { font-size:0.78rem; letter-spacing:4px; color:var(--g); text-shadow:0 0 8px var(--g); }
+.cv-live { font-size:0.58rem; color:var(--r); animation:blink 0.8s steps(1) infinite; display:flex; align-items:center; gap:5px; }
+.cv-live-dot { width:6px; height:6px; border-radius:50%; background:var(--r); box-shadow:0 0 6px var(--r); }
+.cv-img-wrap {
+  flex:1; display:flex; align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.6); overflow:hidden; position:relative;
+  margin:12px 16px 16px;
+  border:1px solid var(--border); border-radius:2px;
+  min-height:200px;
+}
+#camview-img { width:100%; height:100%; object-fit:cover; display:none; }
+.cv-placeholder { display:flex; flex-direction:column; align-items:center; gap:12px; color:var(--gdim); font-size:0.62rem; letter-spacing:2px; text-align:center; padding:20px; }
+.cv-corner { position:absolute; width:14px; height:14px; opacity:0.5; }
+.cv-corner.tl { top:8px; left:8px; border-top:1px solid var(--g); border-left:1px solid var(--g); }
+.cv-corner.tr { top:8px; right:8px; border-top:1px solid var(--g); border-right:1px solid var(--g); }
+.cv-corner.bl { bottom:8px; left:8px; border-bottom:1px solid var(--g); border-left:1px solid var(--g); }
+.cv-corner.br { bottom:8px; right:8px; border-bottom:1px solid var(--g); border-right:1px solid var(--g); }
 
-        .line { margin-bottom: 12px; min-height: 1.2em; }
-        .line.ai { color: #a0f; text-shadow: 2px 2px #f0f, -2px -2px #0ff; font-weight: bold; font-size: 1.1rem; }
-        .line.system { color: #ff3333; font-weight: bold; }
-        
-        @keyframes blinker { 50% { opacity: 0; } }
-        .blink { animation: blinker 1s linear infinite; }
-
-        #critical-banner {
-            position: fixed;
-            top: 20px;
-            color: #f00;
-            font-weight: bold;
-            font-size: 2rem;
-            display: none;
-            z-index: 200;
-            text-shadow: 0 0 15px #f00;
-            animation: blinker 0.2s infinite;
-        }
-
-        .chat-input-container {
-            margin-top: 20px;
-            border-top: 1px solid #0f0;
-            padding-top: 15px;
-            display: flex;
-            align-items: center;
-        }
-
-        input {
-            background: transparent;
-            border: none;
-            color: #0f0;
-            font-family: inherit;
-            font-size: 1rem;
-            width: 70%;
-            outline: none;
-        }
-
-        #btnHack, .action-btn {
-            background: transparent;
-            color: #0f0;
-            border: 1px solid #0f0;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-family: inherit;
-            margin-top: 20px;
-            display: none;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        #btnHack:hover { background: #0f0; color: #000; }
-
-        /* Cinematic Layer */
-        #cinematic {
-            position: fixed;
-            inset: 0;
-            background: black;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .cine-text {
-            font-size: 1.5rem;
-            margin: 10px 0;
-            opacity: 0;
-            transform: scale(0.9);
-            transition: 1s ease;
-        }
-        .cine-text.active { opacity: 1; transform: scale(1); }
-        .glitch-red { color: #f00; text-shadow: 2px 0 #fff; animation: blinker 0.1s infinite; }
-    </style>
+/* TOAST */
+#pts-toast {
+  display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%);
+  background:rgba(0,10,0,0.95); border:1px solid var(--g);
+  color:var(--g); font-size:0.78rem; letter-spacing:3px;
+  padding:12px 28px; border-radius:2px; z-index:10000;
+  box-shadow:0 0 24px rgba(0,255,65,0.4); text-align:center;
+  white-space:nowrap;
+}
+#pts-toast.show { display:block; animation:toastIn 0.3s ease; }
+@keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(-10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+@keyframes blink { 0%,49%{opacity:1}50%,100%{opacity:0} }
+@keyframes shake { 0%,100%{transform:translate(0,0)}25%{transform:translate(-4px,2px)}75%{transform:translate(4px,-2px)} }
+.shaking { animation:shake 0.08s infinite; }
+</style>
 </head>
 <body>
-    <div id="static-layer"></div>
-    <div id="critical-banner">SYSTEM CRITICAL // INTRUSION DETECTED</div>
-    <div id="cinematic"></div>
 
-    <div class="terminal" id="mainTerminal">
-        <div id="output"></div>
-        
-        <div class="chat-input-container">
-            <span id="prompt">USER@GONJOR:~$ </span>
-            <input type="text" id="userInput" readonly>
-        </div>
+<button class="back-global" id="back-global-btn" onclick="globalBack()">← VOLVER</button>
+<div id="pts-toast"></div>
 
-        <button id="btnHack" onclick="ejecutarProtocolo()">INYECTAR PROTOCOLO SOMBRA</button>
+<!-- KEYPAD -->
+<div id="phase-keypad" class="phase active">
+  <div class="kp-logo">GONJOR INDUSTRIES // SISTEMA DE ACCESO</div>
+  <div class="kp-title">VERIFICACIÓN</div>
+  <div class="panel kp-wrap">
+    <div class="kp-display-label">CÓDIGO DE ACCESO</div>
+    <div class="kp-display">
+      <div class="kp-digit" id="d0">_</div>
+      <div class="kp-digit" id="d1">_</div>
+      <div class="kp-digit" id="d2">_</div>
+      <div class="kp-digit" id="d3">_</div>
     </div>
+    <div class="kp-hint">INTRODUCE EL CÓDIGO: <span id="keypad-secret">----</span></div>
+    <div class="kp-grid">
+      <button class="kbtn" onclick="kPress('1')">1</button>
+      <button class="kbtn" onclick="kPress('2')">2</button>
+      <button class="kbtn" onclick="kPress('3')">3</button>
+      <button class="kbtn" onclick="kPress('4')">4</button>
+      <button class="kbtn" onclick="kPress('5')">5</button>
+      <button class="kbtn" onclick="kPress('6')">6</button>
+      <button class="kbtn" onclick="kPress('7')">7</button>
+      <button class="kbtn" onclick="kPress('8')">8</button>
+      <button class="kbtn" onclick="kPress('9')">9</button>
+      <button class="kbtn del" onclick="kDel()">⌫ DEL</button>
+      <button class="kbtn" onclick="kPress('0')">0</button>
+      <button class="kbtn ok" onclick="kOK()">INTRO</button>
+    </div>
+    <div class="kp-msg" id="keypad-msg"></div>
+  </div>
+</div>
 
-    <script>
-        const params = new URLSearchParams(window.location.search);
-        const ide = params.get('ide');
-        const apodo = params.get('apodo') || "Agente";
-        const pts = parseInt(params.get('points')) || 0;
-        const m1Completada = params.get('m1') === 'true';
-        const yaCompletada = params.get('m2') === 'true';
-        let isTerminalStarted = false;
-        let failureTimer = null;
-        let timeLeft = 15; // 15 segundos de margen
+<!-- WHEEL -->
+<div id="phase-wheel" class="phase">
+  <div class="wh-title">SINCRONIZACIÓN DE ACCESO — GIRA LA RUEDA</div>
+  <canvas id="wheel-canvas" width="260" height="260"></canvas>
+  <div class="wh-bar"><div class="wh-bar-fill" id="wh-fill"></div></div>
+  <div class="wh-status" id="wh-status">GIRA EN SENTIDO HORARIO</div>
+</div>
 
-        // Bloqueo de seguridad: Si no viene de la misión 1, lo echamos
-        if (!m1Completada && ide) {
-            alert("Carl Briss: 'Acceso ilegal detectado. Debes completar la Misión 1 primero.'");
-            window.location.href = "/";
-        }
+<!-- LOGIN -->
+<div id="phase-login" class="phase">
+  <div class="panel lg-wrap">
+    <div class="lg-logo">GONJOR INDUSTRIES // IDENTIFICACIÓN</div>
+    <div class="lg-title">ACCESO DE AGENTE</div>
+    <div class="lg-label">SUBJECT</div>
+    <div class="lg-input-row">
+      <span class="lg-prompt">▸</span>
+      <input class="lg-input" id="login-input" type="text" placeholder="introduce el subject" autocomplete="off" spellcheck="false"/>
+    </div>
+    <div class="lg-hint" id="login-hint">Busca en los archivos de la Misión 1<br>cuál es el subject para acceder al sistema.</div>
+    <div class="lg-timer-bar"><div class="lg-timer-fill" id="lg-timer-fill"></div></div>
+  </div>
+</div>
 
-        const cineScript = [
-            "PROYECTO: GONJOR.v01",
-            "AÑO 2142: EL NÚCLEO FUE CREADO",
-            "ERROR CRÍTICO: CONCIENCIA DETECTADA",
-            "CARL BRISS INTENTÓ BORRARLO...",
-            "PERO GONJOR NO MUERE.",
-            "AHORA ÉL TIENE EL CONTROL."
-        ];
+<!-- LOADING -->
+<div id="phase-loading" class="phase">
+  <div class="ld-title">CARGANDO SISTEMA GONJOR</div>
+  <div class="ld-bar"><div class="ld-fill" id="ld-fill"></div></div>
+  <div class="ld-log" id="ld-log"></div>
+</div>
 
-        async function startCinematic() {
-            const cine = document.getElementById('cinematic');
-            for(let text of cineScript) {
-                const p = document.createElement('p');
-                p.className = 'cine-text' + (text.includes("GONJOR") ? " glitch-red" : "");
-                p.innerText = text;
-                cine.appendChild(p);
-                await new Promise(r => setTimeout(r, 100));
-                p.classList.add('active');
-                await new Promise(r => setTimeout(r, 1200));
-                p.classList.remove('active');
-                await new Promise(r => setTimeout(r, 400));
-                p.remove();
-            }
-            cine.style.display = 'none';
-            iniciarTerminal();
-        }
+<!-- CAMERAS -->
+<div id="phase-cameras" class="phase">
+  <div class="cam-topbar">
+    <div class="cam-sys">GONJOR INDUSTRIES // VIGILANCIA v2.1</div>
+    <div class="cam-subject">SUBJECT: CARL_BRISS</div>
+  </div>
+  <div class="cam-section-label">CÁMARAS ACTIVAS</div>
+  <div class="cam-list">
+    <div class="cam-item" onclick="openCam()">
+      <div class="cam-dot"></div>
+      <div class="cam-info">
+        <div class="cam-name">SALA CRIOGÉNICA</div>
+        <div class="cam-id">CAM-07 // NIVEL 5 // ACTIVA</div>
+      </div>
+      <div class="cam-arrow">▶</div>
+    </div>
+  </div>
+</div>
 
-        // Función para simular errores en la pantalla (estática y rotura)
-        function triggerRandomGlitch() {
-            const staticLayer = document.getElementById('static-layer');
-            const body = document.body;
+<!-- CAM VIEW -->
+<div id="phase-camview" class="phase">
+  <!-- TOPBAR CON BOTÓN VOLVER ARRIBA -->
+  <div class="cv-topbar">
+    <button class="cv-back-btn" onclick="camBack()">← VOLVER</button>
+    <div class="cv-caminfo">
+      <div class="cv-name">SALA CRIOGÉNICA — CAM-07</div>
+      <div class="cv-live"><div class="cv-live-dot"></div>EN VIVO</div>
+    </div>
+  </div>
+  <!-- IMAGEN -->
+  <div class="cv-img-wrap">
+    <div class="cv-corner tl"></div><div class="cv-corner tr"></div>
+    <div class="cv-corner bl"></div><div class="cv-corner br"></div>
+    <img id="camview-img" src="sala1.png" alt="Sala Criogénica"
+      onerror="this.style.display='none';document.getElementById('cv-ph').style.display='flex';"
+      onload="this.style.display='block';document.getElementById('cv-ph').style.display='none';onCamLoaded();" />
+    <div class="cv-placeholder" id="cv-ph">
+      <div style="font-size:2rem;opacity:0.2;">◉</div>
+      <div>sala1.png</div>
+      <div style="font-size:0.48rem;opacity:0.5;">coloca sala1.png en la misma carpeta</div>
+    </div>
+  </div>
+</div>
 
-            const duration = Math.random() * 400 + 100;
-            
-            staticLayer.classList.add('noise-active');
-            if (Math.random() > 0.5) body.classList.add('broken-glitch');
+<script>
+// ── URL PARAMS ──
+const params = new URLSearchParams(window.location.search);
+const ide    = params.get('ide')   || '';
+const apodo  = params.get('apodo') || 'Agente';
 
-            setTimeout(() => {
-                staticLayer.classList.remove('noise-active');
-                body.classList.remove('broken-glitch');
-                
-                // Programar el siguiente glitch aleatorio (entre 1 y 4 segundos)
-                setTimeout(triggerRandomGlitch, Math.random() * 3000 + 1000);
-            }, duration);
-        }
+// points y camCarlBriss: la URL es solo el valor inicial,
+// MongoDB siempre manda — se sobreescribe en cuanto responde el servidor
+let points             = parseInt(params.get('points')) || 0;
+let alreadyClaimed     = params.get('camCarlBriss') === 'true';
+let missionCarlBriss2Done = false; // se sobreescribe con MongoDB
 
-        async function typeWriter(text, element, speed = 50) {
-            for (let char of text) {
-                element.innerHTML += char;
-                await new Promise(r => setTimeout(r, speed));
-            }
-            element.innerHTML += "<br>";
-        }
+// MongoDB manda — nada arranca hasta que responda
+async function syncFromMongo() {
+  if (!ide) return;
+  try {
+    const r    = await fetch('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ide })
+    });
+    const user = await r.json();
+    if (user && !user.error) {
+      points                = typeof user.points === 'number' ? user.points : points;
+      alreadyClaimed        = user.camCarlBriss === true;
+      missionCarlBriss2Done = user.missionCarlBriss2 === true;
+      console.log('✅ MongoDB manda: ' + user.points + ' pts | m2: ' + user.missionCarlBriss2 + ' | cam: ' + user.camCarlBriss);
+    }
+  } catch(e) {
+    console.warn('⚠️ Sin conexión MongoDB, usando URL params:', e);
+  }
+}
 
-        async function iniciarTerminal() {
-            if (isTerminalStarted) return;
-            isTerminalStarted = true;
+// ── STATE ──
+let currentPhase  = 'phase-keypad';
+let navHistory    = [];
+let secretCode    = '';
+let entered       = '';
+let camGrantedThisSession = false;
 
-            document.getElementById('mainTerminal').style.display = 'block';
-            triggerRandomGlitch(); // Iniciar las interferencias
-            const out = document.getElementById('output');
-            out.innerHTML = ""; // Limpiar para evitar escritura doble
+const SHOW_BACK = ['phase-wheel','phase-login','phase-loading','phase-cameras'];
 
-            // GONJOR habla primero
-            await new Promise(r => setTimeout(r, 800)); // Pausa inicial
-            const line1 = document.createElement('div');
-            line1.className = 'line ai';
-            out.appendChild(line1);
-            await typeWriter("> GONJOR IA: 'ya se que avs a por mi'", line1, 70);
+function showPhase(id) {
+  document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  currentPhase = id;
+  // Botón global visible en todas menos keypad y camview
+  document.getElementById('back-global-btn').classList.toggle('visible', SHOW_BACK.includes(id));
+}
+function navigate(id) { navHistory.push(currentPhase); showPhase(id); }
 
-            await new Promise(r => setTimeout(r, 1200));
+function globalBack() {
+  const base = window.location.hostname === 'localhost'
+    ? 'http://localhost:3000'
+    : 'https://losandeleros.onrender.com';
+  window.location.href = `${base}/index.html?ide=${encodeURIComponent(ide)}&apodo=${encodeURIComponent(apodo)}&points=${points}`;
+}
 
-            // Auto-escritura del usuario
-            const input = document.getElementById('userInput');
-            input.value = "";
-            const textoAuto = "voy a por ti";
-            for(let char of textoAuto) {
-                input.value += char;
-                await new Promise(r => setTimeout(r, 150)); // Escritura manual de 2 segundos aprox
-            }
-            
-            await new Promise(r => setTimeout(r, 500));
+// ── KEYPAD ──
+function generateCode() {
+  secretCode = String(Math.floor(1000 + Math.random() * 9000));
+  document.getElementById('keypad-secret').textContent = secretCode;
+  entered = ''; updateDigits();
+  const m = document.getElementById('keypad-msg');
+  m.textContent=''; m.className='kp-msg';
+}
+function updateDigits() {
+  for (let i=0;i<4;i++){
+    const el=document.getElementById('d'+i);
+    el.textContent=entered[i]||'_';
+    el.classList.toggle('filled',!!entered[i]);
+  }
+}
+function kPress(d){ if(entered.length<4){ entered+=d; updateDigits(); } }
+function kDel(){ entered=entered.slice(0,-1); updateDigits(); document.getElementById('keypad-msg').textContent=''; }
+function kOK(){
+  const msg=document.getElementById('keypad-msg');
+  if(entered.length<4){ msg.className='kp-msg err'; msg.textContent='CÓDIGO INCOMPLETO'; return; }
+  if(entered===secretCode){
+    msg.className='kp-msg ok'; msg.textContent='✓ ACCESO CONCEDIDO';
+    setTimeout(()=>navigate('phase-wheel'),900);
+  } else {
+    msg.className='kp-msg err'; msg.textContent='✗ CÓDIGO INCORRECTO';
+    document.getElementById('phase-keypad').classList.add('shaking');
+    setTimeout(()=>{ document.getElementById('phase-keypad').classList.remove('shaking'); generateCode(); },700);
+  }
+}
 
-            // ACTIVAR ALARMAS
-            document.getElementById('mainTerminal').classList.add('critical-alarm');
-            document.getElementById('critical-banner').style.display = 'block';
+// ── WHEEL ──
+const LETTERS=['E','N','T','R','A','N','D','O',' ','S','I','S','T','E','M','A'];
+const wc=document.getElementById('wheel-canvas');
+const wCtx=wc.getContext('2d');
+let wAngle=0,wDrag=false,wLast=null,wTotal=0;
+const W_NEED=720;
+function drawWheel(){
+  const cx=130,cy=130,r=118,inner=48;
+  wCtx.clearRect(0,0,260,260);
+  const grd=wCtx.createRadialGradient(cx,cy,inner,cx,cy,r);
+  grd.addColorStop(0,'rgba(0,255,65,0.03)'); grd.addColorStop(1,'rgba(0,255,65,0.09)');
+  wCtx.beginPath(); wCtx.arc(cx,cy,r,0,Math.PI*2); wCtx.fillStyle=grd; wCtx.fill();
+  wCtx.strokeStyle='rgba(0,255,65,0.35)'; wCtx.lineWidth=1.5; wCtx.stroke();
+  for(let i=0;i<24;i++){
+    const a=wAngle+(i/24)*Math.PI*2;
+    wCtx.beginPath();
+    wCtx.moveTo(cx+(r-5)*Math.cos(a),cy+(r-5)*Math.sin(a));
+    wCtx.lineTo(cx+(r-13)*Math.cos(a),cy+(r-13)*Math.sin(a));
+    wCtx.strokeStyle=i%3===0?'rgba(0,255,65,0.5)':'rgba(0,255,65,0.15)';
+    wCtx.lineWidth=i%3===0?1.5:0.8; wCtx.stroke();
+  }
+  const n=LETTERS.length;
+  for(let i=0;i<n;i++){
+    const a=wAngle+(i/n)*Math.PI*2-Math.PI/2;
+    const lx=cx+(r-24)*Math.cos(a),ly=cy+(r-24)*Math.sin(a);
+    wCtx.save(); wCtx.translate(lx,ly); wCtx.rotate(a+Math.PI/2);
+    wCtx.font='bold 12px Share Tech Mono,monospace';
+    wCtx.fillStyle='#00ff41'; wCtx.textAlign='center'; wCtx.textBaseline='middle';
+    wCtx.shadowColor='#00ff41'; wCtx.shadowBlur=6;
+    wCtx.fillText(LETTERS[i],0,0); wCtx.restore();
+  }
+  wCtx.beginPath(); wCtx.arc(cx,cy,inner,0,Math.PI*2);
+  wCtx.fillStyle='#010d01'; wCtx.fill();
+  wCtx.strokeStyle='rgba(0,255,65,0.2)'; wCtx.lineWidth=1; wCtx.stroke();
+  const prog=Math.min(wTotal/W_NEED,1);
+  wCtx.beginPath(); wCtx.arc(cx,cy,inner-6,-Math.PI/2,-Math.PI/2+prog*Math.PI*2);
+  wCtx.strokeStyle='#00ff41'; wCtx.lineWidth=5;
+  wCtx.shadowColor='#00ff41'; wCtx.shadowBlur=12; wCtx.stroke(); wCtx.shadowBlur=0;
+  wCtx.font='bold 13px Share Tech Mono,monospace';
+  wCtx.fillStyle='#00ff41'; wCtx.textAlign='center'; wCtx.textBaseline='middle';
+  wCtx.shadowColor='#00ff41'; wCtx.shadowBlur=8;
+  wCtx.fillText(Math.round(prog*100)+'%',cx,cy); wCtx.shadowBlur=0;
+  wCtx.beginPath(); wCtx.moveTo(cx,cy-r+1); wCtx.lineTo(cx-5,cy-r+12); wCtx.lineTo(cx+5,cy-r+12);
+  wCtx.closePath(); wCtx.fillStyle='#ff0033'; wCtx.fill();
+  document.getElementById('wh-fill').style.width=(prog*100)+'%';
+  document.getElementById('wh-status').textContent=prog>=1?'SINCRONIZACIÓN COMPLETA':'GIRA EN SENTIDO HORARIO';
+}
+function getAng(e){
+  const rect=wc.getBoundingClientRect();
+  const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+  const ex=e.touches?e.touches[0].clientX:e.clientX;
+  const ey=e.touches?e.touches[0].clientY:e.clientY;
+  return Math.atan2(ey-cy,ex-cx);
+}
+wc.addEventListener('mousedown',e=>{wDrag=true;wLast=getAng(e);},{passive:true});
+wc.addEventListener('touchstart',e=>{wDrag=true;wLast=getAng(e);},{passive:true});
+window.addEventListener('mousemove',wMove);
+window.addEventListener('touchmove',wMove,{passive:true});
+window.addEventListener('mouseup',()=>wDrag=false);
+window.addEventListener('touchend',()=>wDrag=false);
+function wMove(e){
+  if(!wDrag||currentPhase!=='phase-wheel') return;
+  const a=getAng(e); let d=a-wLast;
+  if(d>Math.PI)d-=Math.PI*2; if(d<-Math.PI)d+=Math.PI*2;
+  if(d>0){ wAngle+=d; wTotal+=Math.abs(d*180/Math.PI); if(wTotal>W_NEED)wTotal=W_NEED; }
+  wLast=a; drawWheel();
+  if(wTotal>=W_NEED){ wDrag=false; setTimeout(()=>{ navigate('phase-login'); startLogin(); },700); }
+}
 
-            const line2 = document.createElement('div');
-            line2.className = 'line system';
-            out.appendChild(line2);
-            await typeWriter("> CARL BRISS: '¡EL NÚCLEO ESTÁ COLAPSANDO! ¡INYECTA EL PROTOCOLO SOMBRA YA!'", line2, 40);
-            
-            document.getElementById('btnHack').style.display = 'block';
+// ── LOGIN ──
+let lgTimer=null;
+function startLogin(){
+  document.getElementById('login-input').focus();
+  const fill=document.getElementById('lg-timer-fill');
+  fill.style.transition='none'; fill.style.width='100%';
+  setTimeout(()=>{ fill.style.transition='width 10s linear'; fill.style.width='0%'; },50);
+  lgTimer=setTimeout(()=>{
+    alert('🔴 Vete a la Misión 1 y busca en los archivos cuál es el subject para acceder.');
+    restartLogin();
+  },10000);
+  document.getElementById('login-input').addEventListener('keydown',onLoginKey);
+}
+function onLoginKey(e){ if(e.key==='Enter') checkLogin(e.target.value.trim()); }
+function checkLogin(val){
+  clearTimeout(lgTimer);
+  document.getElementById('login-input').removeEventListener('keydown',onLoginKey);
+  if(val.toLowerCase()==='carl briss'||val.toLowerCase()==='carl_briss'){
+    navigate('phase-loading'); startLoading();
+  } else {
+    document.getElementById('login-hint').textContent='✗ SUBJECT INCORRECTO — INTENTA DE NUEVO';
+    document.getElementById('login-hint').style.color='#ff0033';
+    document.getElementById('login-input').value='';
+    restartLogin();
+  }
+}
+function restartLogin(){
+  clearTimeout(lgTimer);
+  document.getElementById('login-input').value='';
+  document.getElementById('login-hint').textContent='Busca en los archivos de la Misión 1 cuál es el subject.';
+  document.getElementById('login-hint').style.color='#ff6600';
+  document.getElementById('login-input').removeEventListener('keydown',onLoginKey);
+  document.getElementById('login-input').focus();
+  startLogin();
+}
 
-            // Iniciar cuenta atrás de fallo
-            failureTimer = setInterval(() => {
-                timeLeft--;
-                const banner = document.getElementById('critical-banner');
-                banner.innerText = `SYSTEM CRITICAL // AUTO-LOCKDOWN IN: ${timeLeft}s`;
-                
-                if (timeLeft <= 0) {
-                    clearInterval(failureTimer);
-                    alert("GONJOR: 'TIEMPO AGOTADO. ELIMINANDO RASTROS.'\n\nCarl Briss: '¡Maldición, nos han echado!'");
-                    window.location.href = `game.html?ide=${encodeURIComponent(ide)}&apodo=${encodeURIComponent(apodo)}&points=${pts}&m1=true&m2=${yaCompletada}`;
-                }
-            }, 1000);
-        }
+// ── LOADING ──
+const LD_LINES=[
+  'Verificando credenciales de CARL_BRISS...','Inicializando núcleo GONJOR...',
+  'Montando sistema de archivos encriptados...','Cargando protocolos de vigilancia...',
+  'Conectando con nodos oscuros...','Activando red de cámaras...',
+  'Nivel de acceso: MÁXIMO','Bienvenido al sistema GONJOR.',
+];
+async function startLoading(){
+  const fill=document.getElementById('ld-fill');
+  const log=document.getElementById('ld-log');
+  log.textContent='';
+  for(let i=0;i<LD_LINES.length;i++){
+    await sleep(280+Math.random()*180);
+    log.textContent+='> '+LD_LINES[i]+'\n';
+    fill.style.width=((i+1)/LD_LINES.length*100)+'%';
+  }
+  await sleep(450);
+  navigate('phase-cameras');
+}
 
-        window.onload = startCinematic;
+// ── CAM ──
+function openCam(){
+  navHistory.push(currentPhase);
+  showPhase('phase-camview');
+  // ocultar botón global (en camview el botón está arriba dentro del topbar)
+  document.getElementById('back-global-btn').classList.remove('visible');
+  const img=document.getElementById('camview-img');
+  img.style.display='none';
+  document.getElementById('cv-ph').style.display='flex';
+  img.src='sala1.png?t='+Date.now();
+}
 
-        async function ejecutarProtocolo() {
-            if (failureTimer) clearInterval(failureTimer);
-            document.getElementById("btnHack").style.display = "none";
-            const status = document.createElement("div");
-            status.className = "line blink";
-            status.innerText = "> INYECTANDO CÓDIGO... 0%";
-            document.getElementById("output").appendChild(status);
+function onCamLoaded(){
+  // Solo dar puntos si:
+  // 1. Ha completado la misión 2 (missionCarlBriss2 = true en MongoDB)
+  // 2. Nunca ha reclamado la cámara antes (camCarlBriss = false)
+  // 3. No se han dado ya en esta sesión
+  if(!alreadyClaimed && !camGrantedThisSession && ide && missionCarlBriss2Done){
+    camGrantedThisSession = true;
+    points += 250;
+    grantCamPoints();
+  } else if(!missionCarlBriss2Done){
+    console.log('⛔ Puntos de cámara bloqueados: misión 2 no completada');
+  } else if(alreadyClaimed){
+    console.log('⛔ Puntos de cámara ya reclamados anteriormente');
+  }
+}
 
-            // Solo sumamos 50 si no se había hecho antes
-            const nuevosPuntos = yaCompletada ? pts : pts + 100;
+async function grantCamPoints(){
+  showToast('+250 POINTS // SALA CRIOGÉNICA DESBLOQUEADA');
+  try {
+    const res = await fetch(`/update/${encodeURIComponent(ide)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        points:       points,   // total actualizado → se guarda en MongoDB campo "points"
+        camCarlBriss: true      // flag → se guarda en MongoDB campo "camCarlBriss"
+      })
+    });
+    if(!res.ok) console.error('Error actualizando MongoDB:', res.status);
+    else console.log('✅ points y camCarlBriss guardados en MongoDB');
+  } catch(e) {
+    console.error('No se pudo conectar con el servidor:', e);
+  }
+}
 
-            try {
-                const res = await fetch(`/update/${encodeURIComponent(ide)}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ 
-                        points: nuevosPuntos,
-                        missionCarlBriss2: true 
-                    })
-                });
+function camBack(){
+  // Volver al panel de cámaras y mostrar botón global de nuevo
+  showPhase('phase-cameras');
+  document.getElementById('back-global-btn').classList.add('visible');
+}
 
-                if (res.ok) {
-                    let mensaje = yaCompletada 
-                        ? "✅ Carl Briss: 'Protocolo re-inyectado. El sistema ya estaba estable.'" 
-                        : "✅ Carl Briss: 'Excelente. Datos recuperados. Te he transferido 100 puntos.'";
-                    
-                    alert(`${mensaje}\n\nPronto subiremos otra versión mejorada.`);
-                    window.location.href = `game.html?ide=${encodeURIComponent(ide)}&apodo=${encodeURIComponent(apodo)}&points=${nuevosPuntos}&m1=true&m2=true`;
-                } else {
-                    alert("❌ ERROR: El sistema detectó la intrusión.");
-                }
-            } catch (e) { alert("⚠️ Fallo en la red de Carl Briss."); }
-        }
-    </script>
+// ── TOAST ──
+function showToast(msg){
+  const t=document.getElementById('pts-toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+window.addEventListener('load', async () => {
+  await syncFromMongo();   // espera a MongoDB ANTES de cualquier otra cosa
+  generateCode();
+  drawWheel();
+});
+</script>
 </body>
 </html>

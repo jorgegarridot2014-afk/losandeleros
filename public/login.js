@@ -535,7 +535,8 @@ function irAdmin(){
 function abrirNoti(){
   hideAll();
   show("overlayNoti");
-  document.getElementById("notiText").innerText = "🔔 hola ,porfavor cretae una nueva cuenta si no lo has hecho todavia para evitar errores con la base de datos muchas gracias";
+  document.getElementById("notiText").innerText = "🔔 hola ,porfavor cretae una nueva cuenta si no lo has hecho todavia para evitar errores con la base de datos muchas gracias, no van los ultuim os 3 minijueegos
+  ";
 }
 
 function cerrarNoti(){

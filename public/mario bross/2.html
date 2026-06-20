@@ -356,10 +356,7 @@ function showPhase(id) {
 function navigate(id) { navHistory.push(currentPhase); showPhase(id); }
 
 function globalBack() {
-  const base = window.location.hostname === 'localhost'
-    ? 'http://localhost:3000'
-    : 'https://losandeleros.onrender.com';
-  window.location.href = `${base}/index.html?ide=${encodeURIComponent(ide)}&apodo=${encodeURIComponent(apodo)}&points=${points}`;
+  window.location.href = `/index.html?ide=${encodeURIComponent(ide)}&apodo=${encodeURIComponent(apodo)}&points=${points}`;
 }
 
 // ── KEYPAD ──

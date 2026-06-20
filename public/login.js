@@ -535,7 +535,7 @@ function irAdmin(){
 function abrirNoti(){
   hideAll();
   show("overlayNoti");
-  document.getElementById("notiText").innerText = "🔔 porfavor para tener una mjor esperiencia create una nueva cuenat para reiniciar al base de datos ,para evitar fallos, muchas gracias ya estabn activos los mjeugos";
+  document.getElementById("notiText").innerText = "🔔 hola ,porfavor cretae una nueva cuenta si no lo has hecho todavia para evitar errores con la base de datos muchas gracias";
 }
 
 function cerrarNoti(){

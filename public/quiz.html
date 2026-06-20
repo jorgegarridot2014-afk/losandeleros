@@ -156,17 +156,29 @@ button:hover{
   box-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
 }
 
-#weekly-input {
+#weekly-input, #weekly-input1, #weekly-input2 {
   width: 80%;
   padding: 12px;
-  margin: 20px 0;
+  margin: 10px 0;
   background: #000;
-  border: 1px solid #00ffcc;
+  border: 2px solid #00ffcc;
   color: #00ffcc;
-  border-radius: 8px;
+  border-radius: 10px;
   text-align: center;
   font-size: 18px;
   font-family: monospace;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+#weekly-input:focus, #weekly-input1:focus, #weekly-input2:focus {
+  border-color: #00ff99;
+  box-shadow: 0 0 15px rgba(0, 255, 153, 0.4);
+}
+
+#weekly-input::placeholder, #weekly-input1::placeholder, #weekly-input2::placeholder {
+  color: #555;
+  font-size: 14px;
 }
 
 @keyframes spin{
@@ -264,10 +276,17 @@ button:hover{
 <div id="weekly-overlay">
   <div id="weekly-card">
     <h2 style="color: #00ffcc; margin-top: 0; letter-spacing: 2px; font-size: 1.2rem;">WEEKLY_CHALLENGE // GONGORA</h2>
-    <p style="font-size: 12px; opacity: 0.6; font-family: monospace;">DESCIFRA LA ECUACIÓN PARA OBTENER_CRÉDITOS:</p>
-    <h3 style="background: #111; padding: 20px; border: 1px dashed #00ffcc; font-family: monospace; color: #fff; letter-spacing: 2px;">6 * 2² + 567 - 98 / 90 * 5</h3>
-    <input type="text" id="weekly-input">
-    <div style="display: flex; gap: 10px;">
+    <p style="font-size: 12px; opacity: 0.6; font-family: monospace;">DESCIFRA LAS ECUACIONES PARA OBTENER_CRÉDITOS:</p>
+    
+    <p style="font-size: 11px; opacity: 0.5; font-family: monospace; margin-top: 10px;">ECUACIÓN 1:</p>
+    <h3 style="background: #111; padding: 15px; border: 1px dashed #00ffcc; font-family: monospace; color: #fff; letter-spacing: 2px; font-size: 16px;">6 * 2² + 567 - 98 / 90 * 5</h3>
+    <input type="text" id="weekly-input1" placeholder="Respuesta 1">
+    
+    <p style="font-size: 11px; opacity: 0.5; font-family: monospace; margin-top: 15px;">ECUACIÓN 2:</p>
+    <h3 style="background: #111; padding: 15px; border: 1px dashed #00ffcc; font-family: monospace; color: #fff; letter-spacing: 2px; font-size: 16px;">4² * 3 + 200 / 10 - 15</h3>
+    <input type="text" id="weekly-input2" placeholder="Respuesta 2">
+    
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
       <button onclick="checkWeekly()" style="letter-spacing: 2px;">VALIDAR</button>
       <button onclick="closeWeekly()" style="background: #222; color: #666; letter-spacing: 2px;">CANCELAR</button>
     </div>
@@ -306,9 +325,10 @@ async function updatePointsUI(save = true) {
       const res = await fetch(`/update/${currentUser.ide}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+      body: JSON.stringify({ 
           points: points,
-          weeklyDone: currentUser.weeklyDone 
+          weeklyDone: currentUser.weeklyDone,
+          englishQuizPurchased: currentUser.englishQuizPurchased
         })
       });
 
@@ -367,6 +387,15 @@ async function initAccount() {
         if (btnWeekly) {
           btnWeekly.innerText = "📅 Quiz semanal (Completado)";
           btnWeekly.style.opacity = "0.5";
+        }
+      }
+
+      // Feedback visual si ya compró el quiz de inglés
+      if (currentUser.englishQuizPurchased) {
+        const btnShop = document.querySelector('button[onclick="shop()"]');
+        if (btnShop) {
+          btnShop.innerText = "tienda";
+          btnShop.style.opacity = "0.5";
         }
       }
     } else {
@@ -576,8 +605,9 @@ function weekly() {
   }
 
   document.getElementById("weekly-overlay").style.display = "flex";
-  document.getElementById("weekly-input").value = "";
-  document.getElementById("weekly-input").focus();
+  document.getElementById("weekly-input1").value = "";
+  document.getElementById("weekly-input2").value = "";
+  document.getElementById("weekly-input1").focus();
 }
 
 function closeWeekly() {
@@ -585,9 +615,19 @@ function closeWeekly() {
 }
 
 function checkWeekly() {
-  const ans = document.getElementById("weekly-input").value.trim();
+  const ans1 = document.getElementById("weekly-input1").value.trim();
+  const ans2 = document.getElementById("weekly-input2").value.trim();
   
-  if (ans === "585.56" || ans === "585.55") {
+  // Validar que ambos inputs estén completos
+  if (!ans1 || !ans2) {
+    alert("❌ Debes completar ambas ecuaciones antes de validar.");
+    return;
+  }
+  
+  const correct1 = (ans1 === "585.56" || ans1 === "585.55");
+  const correct2 = (ans2 === "53");
+  
+  if (correct1 && correct2) {
     currentUser.weeklyDone = true;
     points += 1000;
     
@@ -603,13 +643,73 @@ function checkWeekly() {
     }
     closeWeekly();
   } else {
-    alert("❌ Respuesta incorrecta. Pista: Realiza las operaciones en orden (Potencia, Multiplicación/División, Suma/Resta). El resultado tiene decimales.");
+    let msg = "❌ Respuesta incorrecta.\n\n";
+    if (!correct1) msg += "Ecuación 1: Recuerda el orden de operaciones (Potencia, Multiplicación/División, Suma/Resta). Tiene decimales.\n";
+    if (!correct2) msg += "Ecuación 2: Revisa tus cálculos.";
+    alert(msg);
   }
 }
 
 /* 🏪 tienda */
 function shop(){
-  showPopup("🏪 Tienda no disponible aún");
+  const popupText = document.getElementById("popupText");
+  
+  if (currentUser && currentUser.englishQuizPurchased) {
+    // Ya comprado: mostrar botón de acceso
+    popupText.innerHTML = `
+      <h3 style="color: #00ffcc; margin-bottom: 15px;">🏪 TIENDA</h3>
+      <div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 15px;">
+        <p style="margin: 5px 0;">📚 <b>Quiz de Inglés</b></p>
+        <p style="margin: 5px 0; color: #00ff99; font-size: 13px;">✅ Ya tienes acceso a este quiz</p>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button onclick="closePopup(); setTimeout(() => window.location.href='quizenglis.html', 300);" style="letter-spacing: 1px;">jugar</button>
+        <button onclick="closePopup()" style="background: #222; color: #666; letter-spacing: 1px;">CANCELAR</button>
+      </div>
+    `;
+  } else {
+    // No comprado: mostrar opción de compra
+    popupText.innerHTML = `
+      <h3 style="color: #00ffcc; margin-bottom: 15px;">🏪 TIENDA</h3>
+      <div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 15px;">
+        <p style="margin: 5px 0;">📚 <b>Quiz de Inglés</b></p>
+        <p style="margin: 5px 0; color: #aaa; font-size: 13px;">Accede a un quiz especial de inglés</p>
+        <p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 500 ⭐</p>
+        <p style="margin: 5px 0; color: #00ffcc; font-size: 12px;">Tu saldo: ${points} ⭐</p>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button onclick="buyEnglishQuiz()" style="letter-spacing: 1px;">COMPRAR</button>
+        <button onclick="closePopup()" style="background: #222; color: #666; letter-spacing: 1px;">CANCELAR</button>
+      </div>
+    `;
+  }
+  document.getElementById("popup").style.display = "flex";
+}
+
+function buyEnglishQuiz() {
+  if (points < 500) {
+    showPopup("❌ No tienes suficientes créditos.\nNecesitas 500 ⭐.\nSaldo actual: " + points + " ⭐");
+    setTimeout(closePopup, 2000);
+    return;
+  }
+  
+  points -= 500;
+  currentUser.englishQuizPurchased = true;
+  updatePointsUI(true);
+  closePopup();
+  
+  showPopup("✅ Compra realizada: -500 ⭐\nRedirigiendo al Quiz de Inglés...");
+  
+  // Actualizar botón del menú
+  const btnShop = document.querySelector('button[onclick="shop()"]');
+  if (btnShop) {
+    btnShop.innerText = "tienda";
+    btnShop.style.opacity = "0.5";
+  }
+  
+  setTimeout(() => {
+    window.location.href = "quizenglis.html";
+  }, 1500);
 }
 
 /* popup */

@@ -41,7 +41,8 @@ const UserSchema = new mongoose.Schema({
   points: { type: Number, default: 0 },
   weeklyDone: { type: Boolean, default: false },
   missionCarlBriss1: { type: Boolean, default: false },
-  missionCarlBriss2: { type: Boolean, default: false }
+  missionCarlBriss2: { type: Boolean, default: false },
+  englishQuizPurchased: { type: Boolean, default: false }
 }, { minimize: false }); // 🚀 Fuerza a que los campos se guarden siempre en DB
 
 const User = mongoose.model("User", UserSchema);
@@ -97,6 +98,7 @@ async function generarIDUnico(){
 /* ================= CREAR (SOLO BASE) ================= */
 app.post("/crear", async (req,res)=>{
   try{
+    console.log("📥 Recibida petición de crear cuenta:", req.body);
 
     if(!req.body.apodo){
       return res.status(400).json({ error:"Apodo requerido" });
@@ -107,6 +109,7 @@ app.post("/crear", async (req,res)=>{
     }
 
     const ide = await generarIDUnico();
+    console.log("🆔 ID generado:", ide);
 
     const nueva = new User({
       apodo: req.body.apodo,
@@ -123,7 +126,7 @@ app.post("/crear", async (req,res)=>{
     res.json(nueva);
 
   }catch(err){
-    console.log("❌ Error crear:", err);
+    console.error("❌ Error crear:", err);
     res.status(500).json({ error:"Error creando cuenta" });
   }
 });
@@ -183,7 +186,7 @@ app.put("/update/:ide", async (req,res)=>{
   try{
 
     const ide = String(req.params.ide || "").trim();
-    const { points, foto, aceptado, weeklyDone, missionCarlBriss1, missionCarlBriss2 } = req.body;
+    const { points, foto, aceptado, weeklyDone, missionCarlBriss1, missionCarlBriss2, englishQuizPurchased } = req.body;
 
     console.log(`📩 Petición UPDATE para ${ide}. Puntos a guardar: ${points}`);
 
@@ -194,6 +197,7 @@ app.put("/update/:ide", async (req,res)=>{
     if (missionCarlBriss2 !== undefined) updateFields.missionCarlBriss2 = missionCarlBriss2 === true;
     if (foto) updateFields.foto = normalizeFoto(foto);
     if (aceptado !== undefined) updateFields.aceptado = aceptado === true;
+    if (englishQuizPurchased !== undefined) updateFields.englishQuizPurchased = englishQuizPurchased === true;
 
     // 🚀 Usamos findOneAndUpdate con $set para OBLIGAR a MongoDB a crear/actualizar el campo
     const user = await User.findOneAndUpdate(

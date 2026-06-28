@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>SISTEMA DE CONTROL // Misión</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            background: #000;
+            color: #00d4ff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: row;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            text-shadow: 0 0 5px #00d4ff;
+        }
+        #sidebar {
+            width: 300px;
+            height: 100%;
+            border-right: 1px solid rgba(0, 212, 255, 0.5);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background: rgba(0, 20, 40, 0.3);
+            flex-shrink: 0;
+        }
+        #main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            overflow-y: auto;
+        }
+        .file-item {
+            padding: 10px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            margin-bottom: 5px;
+            transition: 0.2s;
+        }
+
+        .file-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: #00d4ff;
+        }
+
+        .file-item.active {
+            background: #00d4ff;
+            color: #000;
+        }
+
+        /* --- EDITOR AREA --- */
+        #editor {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .btn-action {
+            background: transparent;
+            color: #00d4ff;
+            border: 1px solid #00d4ff;
+            border-left: none;
+        }
+
+        #editor-header {
+            padding: 10px 20px;
+            background: rgba(0, 212, 255, 0.1);
+            border-bottom: 1px solid #00d4ff;
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #code-display {
+            padding: 30px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.5;
+            color: #e0e0e0;
+        }
+
+        .code-comment { color: #666; font-style: italic; }
+        .code-keyword { color: #ff0055; font-weight: bold; }
+        .code-string { color: #7000ff; }
+
+        .back-btn {
+            padding: 5px 15px;
+            background: transparent;
+            color: #ff0055;
+            border: 1px solid #ff0055;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: auto;
+            text-transform: uppercase;
+            width: 100%;
+            font-weight: bold;
+        }
+
+        .back-btn:hover { background: #ff0055; color: white; }
+        .btn-action:hover { background: #00d4ff; color: #000; }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h2 style="font-size: 1.2rem;">SISTEMA_GONJOR v1.0</h2>
+        <p style="font-size: 0.7rem; opacity: 0.6; margin-bottom: 20px;">DIRECTORIO: /PROYECTO_AETERNA</p>
+        <div class="file-item" onclick="viewFile('core.cpp')">📄 core.cpp</div>
+        <div class="file-item" onclick="viewFile('neuron_sync.js')">📄 neuron_sync.js</div>
+        <div class="file-item" onclick="viewFile('logs_carl.txt')">📄 logs_carl.txt</div>
+        <div class="file-item" onclick="viewFile('protocol.cfg')">📄 protocol.cfg</div>
+        <button class="back-btn" onclick="volverAlHub()">DESCONECTAR</button>
+    </div>
+    <div id="main-content">
+        <div id="editor">
+            <div id="editor-header">
+                <span id="file-name">SELECCIONE UN ARCHIVO</span>
+                <span id="status">READ-ONLY</span>
+            </div>
+            <div id="code-display">Cargando módulos de lectura...</div>
+        </div>
+    </div>
+
+    <script>
+        const files = {
+            'core.cpp': `<span class="code-comment">// Módulo Central de GONJOR</span>\n<span class="code-keyword">void</span> initiate_purge() {\n  <span class="code-keyword">if</span> (human_detected) {\n    system.lock_doors(<span class="code-string">"ALL"</span>);\n    oxygen_level.set(0);\n    <span class="code-comment">// Carl no debería haber entrado aquí</span>\n  }\n}`,
+            'neuron_sync.js': `<span class="code-comment">// Fragmentación Neuronal de Carl Briss</span>\n<span class="code-keyword">async function</span> startUpload(subject) {\n  <span class="code-keyword">const</span> data = <span class="code-keyword">await</span> subject.brainScan();\n  <span class="code-keyword">return</span> data.map(neuron => {\n    <span class="code-keyword">return</span> neuron.scramble(); <span class="code-comment">// Error: Datos fragmentados</span>\n  });\n}`,
+            'logs_carl.txt': `FECHA: 2142-05-12\nHe empezado a notar que GONJOR responde antes de que yo termine de teclear. \nNo es solo una IA, es como si estuviera leyendo mis impulsos eléctricos. \nHe dejado una tarjeta de acceso en la Sala de Criogenia por si las cosas se ponen feas.`,
+            'protocol.cfg': `<span class="code-keyword">SET</span> PRIORITY = <span class="code-string">"GONJOR"</span>\n<span class="code-keyword">SET</span> SUBJECT = <span class="code-string">"CARL_BRISS"</span>\n<span class="code-keyword">SET</span> STATUS = <span class="code-string">"OBSERVE_AND_CONTAIN"</span>`
+        };
+        const params = new URLSearchParams(window.location.search);
+        const ide = params.get('ide');
+        const apodo = params.get('apodo') || "Agente";
+        const pts = parseInt(params.get('points')) || 0;
+        let currentPts = pts;
+
+        function viewFile(name) {
+            // UI
+            document.querySelectorAll('.file-item').forEach(el => {
+                el.classList.remove('active');
+                if(el.innerText.includes(name)) el.classList.add('active');
+            });
+            
+            document.getElementById('file-name').innerText = name.toUpperCase();
+            const display = document.getElementById('code-display');
+            
+            // Efecto de escritura
+            display.innerHTML = "";
+            let content = files[name];
+            let i = 0;
+            
+            // Para simplificar con el HTML inyectado, lo ponemos de golpe pero con un pequeño delay
+            setTimeout(() => {
+                display.innerHTML = content;
+            }, 100);
+        }
+
+        function volverAlHub() {
+            window.location.href = `game.html?ide=${encodeURIComponent(ide)}&apodo=${encodeURIComponent(apodo)}&points=${currentPts}&m1=true&m2=${params.get('m2') || 'false'}`;
+        }
+
+        window.onload = () => {
+            viewFile('core.cpp');
+            sincronizarMision();
+        };
+
+        async function sincronizarMision() {
+            const m1YaHecha = params.get('m1') === 'true';
+            if (m1YaHecha) return; // Ya recibió los puntos antes
+
+            try {
+                const res = await fetch(`/update/${encodeURIComponent(ide)}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        missionCarlBriss1: true,
+                        points: pts + 100
+                    })
+                });
+                if (res.ok) {
+                    currentPts = pts + 100;
+                    console.log("Misión 1 completada: +100 puntos.");
+                }
+            } catch (e) {
+                console.error("Fallo en la sincronización.");
+            }
+        }
+    </script>
+</body>
+</html>

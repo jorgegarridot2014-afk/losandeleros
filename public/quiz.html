@@ -250,7 +250,8 @@ button:hover{
   <button onclick="startGame()">▶ Empezar</button>
   <button onclick="showRanking()">🏆 Ranking Global</button>
   <button onclick="weekly()">📅 Quiz semanal</button>
-  <button onclick="shop()">🏪 Tienda</button>
+  <button id="btnTiendaQuiz" onclick="shop()">🏪 Tienda</button>
+  <button id="btnQuizHistoria" style="display:none" onclick="window.location.href='quizhistoria.html'">📜 Quiz de Historia</button>
   <button onclick="window.location.href='index.html'" style="background: #333; margin-top: 15px; border: 1px solid #555;">⬅️ Volver al Menú Principal</button>
 </div>
 
@@ -392,11 +393,21 @@ async function initAccount() {
 
       // Feedback visual si ya compró el quiz de inglés
       if (currentUser.englishQuizPurchased) {
-        const btnShop = document.querySelector('button[onclick="shop()"]');
+        const btnShop = document.getElementById("btnTiendaQuiz");
         if (btnShop) {
-          btnShop.innerText = "tienda";
-          btnShop.style.opacity = "0.5";
+          btnShop.innerText = "📚 Quiz de Inglés";
+          btnShop.setAttribute("onclick", "window.location.href='quizenglis.html'");
+          btnShop.style.opacity = "1";
         }
+      } else {
+        const btnShop = document.getElementById("btnTiendaQuiz");
+        if (btnShop) btnShop.remove();
+      }
+
+      // Mostrar botón de Quiz de Historia si lo ha comprado
+      if (currentUser.historyQuizPurchased) {
+        const btnHistoria = document.getElementById("btnQuizHistoria");
+        if (btnHistoria) btnHistoria.style.display = "inline-block";
       }
     } else {
       window.location.href = "index.html";

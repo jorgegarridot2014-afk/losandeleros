@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Geografía</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    background: #0a0f1e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  .earth-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .earth-sphere {
+    position: absolute;
+    width: 700px;
+    height: 700px;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background:
+      radial-gradient(circle at 35% 35%, rgba(255,255,255,0.08) 0%, transparent 50%),
+      conic-gradient(
+        from 0deg,
+        #0d3b6e 0deg, #1a5c9a 20deg, #0d3b6e 40deg,
+        #1e7a4a 50deg, #0d3b6e 60deg,
+        #1a5c9a 80deg, #145e34 100deg,
+        #0d3b6e 120deg, #1a5c9a 140deg,
+        #0d3b6e 160deg, #1e7a4a 180deg,
+        #0d3b6e 200deg, #1a5c9a 220deg,
+        #145e34 240deg, #0d3b6e 260deg,
+        #1a5c9a 280deg, #0d3b6e 300deg,
+        #1e7a4a 320deg, #1a5c9a 340deg,
+        #0d3b6e 360deg
+      );
+    box-shadow:
+      0 0 80px 20px rgba(30,100,220,0.25),
+      0 0 160px 40px rgba(10,60,140,0.15),
+      inset 0 0 60px rgba(0,0,0,0.5),
+      inset 40px 40px 80px rgba(255,255,255,0.04);
+    animation: rotate 60s linear infinite;
+  }
+
+  .earth-continents {
+    position: absolute;
+    width: 700px;
+    height: 700px;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+    animation: rotate 60s linear infinite;
+    opacity: 0.45;
+  }
+
+  .earth-continents svg { width: 100%; height: 100%; }
+
+  .earth-atmosphere {
+    position: absolute;
+    width: 760px;
+    height: 760px;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, transparent 45%, rgba(20,100,220,0.12) 60%, rgba(10,50,150,0.25) 70%, transparent 80%);
+  }
+
+  .stars { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
+  .star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle var(--dur) ease-in-out infinite alternate;
+  }
+
+  @keyframes twinkle {
+    from { opacity: var(--min-op); }
+    to { opacity: var(--max-op); }
+  }
+  @keyframes rotate {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5,10,25,0.6);
+    z-index: 1;
+  }
+
+  /* ---- CARD ---- */
+  .card {
+    position: relative;
+    z-index: 2;
+    background: rgba(10,18,40,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(100,160,255,0.18);
+    border-radius: 24px;
+    padding: 2.25rem 2.25rem 2rem;
+    width: 100%;
+    max-width: 580px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.04) inset, 0 32px 80px rgba(0,0,0,0.6), 0 0 60px rgba(40,100,255,0.07);
+  }
+
+  .quiz-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1.75rem;
+  }
+
+  .globe-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, #1a6fd4, #0d4a94);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 0 20px rgba(30,100,220,0.4);
+    flex-shrink: 0;
+  }
+
+  .quiz-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #e8f0ff;
+  }
+
+  .quiz-subtitle {
+    font-size: 11px;
+    color: rgba(160,190,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 500;
+  }
+
+  /* ---- MENU ---- */
+  .menu-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: #f0f4ff;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+
+  .menu-desc {
+    font-size: 13px;
+    color: rgba(160,190,255,0.55);
+    margin-bottom: 1.75rem;
+  }
+
+  .modes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .mode-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(100,150,255,0.14);
+    border-radius: 14px;
+    padding: 1.1rem 1.1rem 1rem;
+    cursor: pointer;
+    transition: background 0.18s, border-color 0.18s, transform 0.18s;
+    position: relative;
+    overflow: hidden;
+    text-align: left;
+  }
+
+  .mode-card:hover {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(100,160,255,0.35);
+    transform: translateY(-2px);
+  }
+
+  .mode-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 14px 14px 0 0;
+    background: var(--accent);
+  }
+
+  .mode-card.easy   { --accent: linear-gradient(90deg,#22c55e,#4ade80); }
+  .mode-card.medium { --accent: linear-gradient(90deg,#3b82f6,#60a5fa); }
+  .mode-card.hard   { --accent: linear-gradient(90deg,#f97316,#fb923c); }
+  .mode-card.expert { --accent: linear-gradient(90deg,#a855f7,#c084fc); }
+
+  .mode-icon { font-size: 26px; margin-bottom: 8px; display: block; }
+
+  .mode-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #e8f0ff;
+    margin-bottom: 3px;
+  }
+
+  .mode-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-bottom: 7px;
+  }
+
+  .mode-card.easy   .mode-tag { background: rgba(34,197,94,0.15); color: #4ade80; }
+  .mode-card.medium .mode-tag { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .mode-card.hard   .mode-tag { background: rgba(249,115,22,0.15); color: #fb923c; }
+  .mode-card.expert .mode-tag { background: rgba(168,85,247,0.15); color: #c084fc; }
+
+  .mode-info {
+    font-size: 12px;
+    color: rgba(160,190,255,0.5);
+    line-height: 1.4;
+  }
+
+  .mode-questions {
+    font-size: 22px;
+    font-weight: 600;
+    color: rgba(200,220,255,0.85);
+    margin-bottom: 2px;
+    display: block;
+  }
+
+  /* ---- QUIZ ---- */
+  .progress-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: rgba(160,190,255,0.5);
+    font-weight: 500;
+  }
+
+  .progress-track {
+    width: 100%;
+    height: 3px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 2px;
+    margin-bottom: 1.75rem;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2563eb, #60a5fa);
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    box-shadow: 0 0 8px rgba(96,165,250,0.5);
+  }
+
+  .question-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #f0f4ff;
+    line-height: 1.45;
+    margin-bottom: 1.25rem;
+    min-height: 58px;
+  }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    margin-bottom: 1rem;
+  }
+
+  .opt-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(100,150,255,0.14);
+    border-radius: 11px;
+    padding: 11px 13px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #c8d8ff;
+    cursor: pointer;
+    text-align: left;
+    line-height: 1.35;
+    transition: all 0.15s;
+  }
+
+  .opt-btn:hover:not(:disabled) {
+    background: rgba(96,165,250,0.08);
+    border-color: rgba(96,165,250,0.35);
+    color: #e8f0ff;
+  }
+
+  .opt-btn:disabled { cursor: default; }
+  .opt-btn.correct { background: rgba(16,120,60,0.22); border-color: rgba(52,211,153,0.55); color: #6ee7b7; box-shadow: 0 0 14px rgba(52,211,153,0.12); }
+  .opt-btn.wrong   { background: rgba(140,20,30,0.22); border-color: rgba(248,113,113,0.45); color: #fca5a5; }
+  .opt-btn.reveal  { background: rgba(16,120,60,0.14); border-color: rgba(52,211,153,0.3); color: #6ee7b7; opacity: 0.75; }
+
+  .feedback {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(160,190,255,0.6);
+    min-height: 18px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .feedback.ok  { color: #6ee7b7; }
+  .feedback.err { color: #fca5a5; }
+
+  .bottom-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .back-link {
+    font-size: 12px;
+    color: rgba(160,190,255,0.4);
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    transition: color 0.15s;
+    padding: 0;
+  }
+
+  .back-link:hover { color: rgba(160,190,255,0.8); }
+
+  .next-btn {
+    display: none;
+    background: linear-gradient(135deg,#1e40af,#2563eb);
+    border: none;
+    border-radius: 11px;
+    padding: 11px 28px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.15s;
+    box-shadow: 0 4px 18px rgba(37,99,235,0.35);
+    margin-left: auto;
+  }
+
+  .next-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  /* ---- SCORE ---- */
+  .score-screen { text-align: center; padding: 0.5rem 0 0.25rem; }
+
+  .score-emoji {
+    font-size: 52px;
+    display: block;
+    margin-bottom: 0.5rem;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .score-fraction {
+    font-family: 'Playfair Display', serif;
+    font-size: 50px;
+    font-weight: 700;
+    color: #e8f0ff;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .score-fraction span { font-size: 26px; color: rgba(160,190,255,0.4); }
+
+  .score-pct {
+    font-size: 12px;
+    color: rgba(160,190,255,0.45);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 500;
+    margin-bottom: 1rem;
+  }
+
+  .score-bar-wrap { background: rgba(255,255,255,0.06); border-radius: 8px; height: 7px; margin-bottom: 1.25rem; overflow: hidden; }
+  .score-bar-fill { height: 100%; border-radius: 8px; background: linear-gradient(90deg,#1e40af,#60a5fa); box-shadow: 0 0 10px rgba(96,165,250,0.4); transition: width 1s cubic-bezier(.4,0,.2,1); }
+
+  .score-mode-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 0.75rem;
+  }
+
+  .score-msg {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: #c8d8ff;
+    margin-bottom: 1.5rem;
+    line-height: 1.4;
+  }
+
+  .score-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+  .btn-primary {
+    background: linear-gradient(135deg,#1e40af,#2563eb);
+    border: none;
+    border-radius: 11px;
+    padding: 11px 28px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.15s;
+    box-shadow: 0 4px 18px rgba(37,99,235,0.3);
+  }
+
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  .btn-ghost {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(100,150,255,0.2);
+    border-radius: 11px;
+    padding: 11px 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(160,190,255,0.7);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-ghost:hover { background: rgba(255,255,255,0.08); color: #e8f0ff; }
+
+  @media (max-width: 480px) {
+    .card { padding: 1.5rem 1.1rem 1.25rem; }
+    .modes-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .options-grid { grid-template-columns: 1fr; }
+    .question-text { font-size: 17px; }
+    .earth-sphere, .earth-continents, .earth-atmosphere { width: 420px; height: 420px; }
+    .menu-heading { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="earth-bg">
+  <div class="earth-sphere"></div>
+  <div class="earth-continents">
+    <svg viewBox="0 0 700 700" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="355" cy="240" rx="28" ry="22" fill="#2d7a45" opacity="0.9"/>
+      <ellipse cx="360" cy="340" rx="32" ry="52" fill="#2d7a45" opacity="0.85"/>
+      <ellipse cx="210" cy="250" rx="52" ry="58" fill="#2d7a45" opacity="0.85"/>
+      <ellipse cx="255" cy="400" rx="32" ry="55" fill="#2d7a45" opacity="0.8"/>
+      <ellipse cx="470" cy="240" rx="75" ry="48" fill="#2d7a45" opacity="0.9"/>
+      <ellipse cx="500" cy="390" rx="35" ry="25" fill="#2d7a45" opacity="0.8"/>
+      <ellipse cx="350" cy="620" rx="120" ry="18" fill="#cce8ff" opacity="0.3"/>
+      <ellipse cx="295" cy="170" rx="22" ry="16" fill="#cce8ff" opacity="0.4"/>
+      <ellipse cx="200" cy="310" rx="40" ry="8" fill="white" opacity="0.07"/>
+      <ellipse cx="430" cy="180" rx="55" ry="10" fill="white" opacity="0.08"/>
+    </svg>
+  </div>
+  <div class="earth-atmosphere"></div>
+</div>
+
+<div class="overlay"></div>
+
+<div class="card">
+  <div class="quiz-header">
+    <div class="globe-icon">🌍</div>
+    <div>
+      <div class="quiz-subtitle">Pon a prueba tus conocimientos</div>
+      <div class="quiz-title">Quiz de Geografía</div>
+    </div>
+  </div>
+
+  <!-- MENU -->
+  <div id="menu-section">
+    <div class="menu-heading">Elige tu modo</div>
+    <div class="menu-desc">Cuanto más difícil, más preguntas y más exigentes.</div>
+    <div class="modes-grid">
+      <div class="mode-card easy" onclick="startMode('easy')">
+        <span class="mode-icon">🟢</span>
+        <div class="mode-name">Fácil</div>
+        <div class="mode-tag">Principiante</div>
+        <span class="mode-questions">10</span>
+        <div class="mode-info">Preguntas básicas sobre el mundo</div>
+      </div>
+      <div class="mode-card medium" onclick="startMode('medium')">
+        <span class="mode-icon">🔵</span>
+        <div class="mode-name">Medio</div>
+        <div class="mode-tag">Intermedio</div>
+        <span class="mode-questions">20</span>
+        <div class="mode-info">Capitales, ríos y geografía general</div>
+      </div>
+      <div class="mode-card hard" onclick="startMode('hard')">
+        <span class="mode-icon">🟠</span>
+        <div class="mode-name">Difícil</div>
+        <div class="mode-tag">Avanzado</div>
+        <span class="mode-questions">50</span>
+        <div class="mode-info">Preguntas superexigentes de todo el mundo</div>
+      </div>
+      <div class="mode-card expert" onclick="startMode('expert')">
+        <span class="mode-icon">🟣</span>
+        <div class="mode-name">Experto</div>
+        <div class="mode-tag">Hiperdifícil</div>
+        <span class="mode-questions">100</span>
+        <div class="mode-info">Solo para auténticos geógrafos</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="quiz-section" style="display:none">
+    <div class="progress-row">
+      <span class="progress-label" id="q-count"></span>
+      <span class="progress-label" id="score-live">✓ 0</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+    <div class="question-text" id="q-text"></div>
+    <div class="options-grid" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="bottom-row">
+      <button class="back-link" onclick="goMenu()">← Cambiar modo</button>
+      <button class="next-btn" id="next-btn">Siguiente →</button>
+    </div>
+  </div>
+
+  <!-- SCORE -->
+  <div id="score-section" style="display:none">
+    <div class="score-screen">
+      <span class="score-emoji" id="score-emoji">🌍</span>
+      <div class="score-fraction" id="score-frac">0<span>/10</span></div>
+      <div class="score-pct" id="score-pct"></div>
+      <div class="score-bar-wrap"><div class="score-bar-fill" id="score-bar" style="width:0%"></div></div>
+      <div class="score-mode-badge" id="score-badge"></div>
+      <div class="score-msg" id="score-msg"></div>
+      <div class="score-btns">
+        <button class="btn-primary" id="retry-btn" onclick="retryMode()">Reintentar modo</button>
+        <button class="btn-ghost" onclick="goMenu()">Cambiar modo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Stars
+const starsEl = document.getElementById('stars');
+for (let i = 0; i < 120; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  const sz = Math.random() * 2 + 0.5;
+  s.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--min-op:${(Math.random()*.2+.1).toFixed(2)};--max-op:${(Math.random()*.5+.4).toFixed(2)};--dur:${(Math.random()*3+2).toFixed(1)}s;animation-delay:${(Math.random()*3).toFixed(1)}s;`;
+  starsEl.appendChild(s);
+}
+
+// ---- ALL QUESTIONS ----
+const ALL_QUESTIONS = [
+  // === EASY (basic) ===
+  { q:"¿Cuál es la capital de Francia?", opts:["Lyon","Marsella","París","Burdeos"], ans:2, lvl:1 },
+  { q:"¿Cuál es el océano más grande del mundo?", opts:["Atlántico","Índico","Ártico","Pacífico"], ans:3, lvl:1 },
+  { q:"¿En qué continente está Brasil?", opts:["África","Europa","América del Sur","Asia"], ans:2, lvl:1 },
+  { q:"¿Cuál es la capital de España?", opts:["Barcelona","Madrid","Sevilla","Valencia"], ans:1, lvl:1 },
+  { q:"¿Cuántos continentes hay en la Tierra?", opts:["5","6","7","8"], ans:2, lvl:1 },
+  { q:"¿Cuál es el río más largo del mundo?", opts:["Amazonas","Nilo","Misisipi","Yangtsé"], ans:1, lvl:1 },
+  { q:"¿Cuál es el país más grande del mundo?", opts:["China","Canadá","Estados Unidos","Rusia"], ans:3, lvl:1 },
+  { q:"¿Cuál es la capital de Alemania?", opts:["Múnich","Hamburgo","Berlín","Fráncfort"], ans:2, lvl:1 },
+  { q:"¿Qué océano separa Europa de América?", opts:["Índico","Pacífico","Atlántico","Ártico"], ans:2, lvl:1 },
+  { q:"¿Cuál es el desierto más grande del mundo?", opts:["Sahara","Gobi","Ártico","Kalahari"], ans:2, lvl:1 },
+
+  // === MEDIUM ===
+  { q:"¿Cuál es la capital de Australia?", opts:["Sídney","Melbourne","Canberra","Brisbane"], ans:2, lvl:2 },
+  { q:"¿En qué continente está Mongolia?", opts:["Europa","Asia","África","Oceanía"], ans:1, lvl:2 },
+  { q:"¿Cuál es la capital de Canadá?", opts:["Toronto","Vancouver","Ottawa","Montreal"], ans:2, lvl:2 },
+  { q:"¿Cuántos países hay en América del Sur?", opts:["10","12","14","16"], ans:1, lvl:2 },
+  { q:"¿Cuál es la montaña más alta del mundo?", opts:["K2","Mont Blanc","Kilimanjaro","Everest"], ans:3, lvl:2 },
+  { q:"¿Qué país tiene más islas del mundo?", opts:["Indonesia","Suecia","Filipinas","Noruega"], ans:1, lvl:2 },
+  { q:"¿Cuál es el lago más profundo del mundo?", opts:["Lago Superior","Mar Caspio","Baikal","Tanganica"], ans:2, lvl:2 },
+  { q:"¿En qué país está la ciudad de Dubái?", opts:["Arabia Saudí","Qatar","Omán","Emiratos Árabes"], ans:3, lvl:2 },
+  { q:"¿Cuál es la capital de Argentina?", opts:["Córdoba","Rosario","Buenos Aires","Mendoza"], ans:2, lvl:2 },
+  { q:"¿Qué país es más pequeño del mundo?", opts:["Mónaco","San Marino","Liechtenstein","Ciudad del Vaticano"], ans:3, lvl:2 },
+  { q:"¿Cuál es la capital de Japón?", opts:["Osaka","Kioto","Tokio","Hiroshima"], ans:2, lvl:2 },
+  { q:"¿En qué continente está Egipto?", opts:["Asia","Europa","África","América"], ans:2, lvl:2 },
+  { q:"¿Cuál es el volcán más alto del mundo?", opts:["Kilimanjaro","Etna","Fuji","Ojos del Salado"], ans:3, lvl:2 },
+  { q:"¿Cuál es la capital de México?", opts:["Guadalajara","Monterrey","Puebla","Ciudad de México"], ans:3, lvl:2 },
+  { q:"¿Qué río pasa por El Cairo?", opts:["Éufrates","Congo","Níger","Nilo"], ans:3, lvl:2 },
+  { q:"¿Cuántos países tiene África?", opts:["48","54","60","66"], ans:1, lvl:2 },
+  { q:"¿Cuál es el país más poblado del mundo?", opts:["China","India","Estados Unidos","Indonesia"], ans:1, lvl:2 },
+  { q:"¿En qué país está la Torre Eiffel?", opts:["Bélgica","Italia","Francia","Suiza"], ans:2, lvl:2 },
+  { q:"¿Cuál es la capital de Sudáfrica?", opts:["Ciudad del Cabo","Johannesburgo","Durban","Pretoria"], ans:3, lvl:2 },
+  { q:"¿Qué mar baña las costas de España por el este?", opts:["Mar del Norte","Mar Báltico","Mar Mediterráneo","Mar Cantábrico"], ans:2, lvl:2 },
+
+  // === HARD ===
+  { q:"¿Cuál es la capital de Kazajistán?", opts:["Almatý","Astana","Shymkent","Karagandá"], ans:1, lvl:3 },
+  { q:"¿Qué país tiene más fronteras terrestres del mundo?", opts:["Rusia","Brasil","China","Alemania"], ans:2, lvl:3 },
+  { q:"¿Cuál es el punto más bajo de la Tierra sobre tierra firme?", opts:["Lago Assal","Mar Muerto","Valle de la Muerte","Depresión de Qattara"], ans:1, lvl:3 },
+  { q:"¿Cuál es la capital de Myanmar?", opts:["Rangún","Mandalay","Naypyidaw","Bago"], ans:2, lvl:3 },
+  { q:"¿Qué país es el mayor productor de café del mundo?", opts:["Colombia","Vietnam","Brasil","Etiopía"], ans:2, lvl:3 },
+  { q:"¿Cuál es el río más largo de Europa?", opts:["Danubio","Rin","Volga","Loira"], ans:2, lvl:3 },
+  { q:"¿En qué país está la región de Cataluña?", opts:["Francia","Italia","Portugal","España"], ans:3, lvl:3 },
+  { q:"¿Cuál es la capital de Nueva Zelanda?", opts:["Auckland","Wellington","Christchurch","Hamilton"], ans:1, lvl:3 },
+  { q:"¿Qué estrecho separa Europa de África?", opts:["Bering","Ormuz","Gibraltar","Malaca"], ans:2, lvl:3 },
+  { q:"¿Cuál es el lago más grande de América del Sur?", opts:["Titicaca","Maracaibo","Poopó","Nahuel Huapi"], ans:1, lvl:3 },
+  { q:"¿En qué país está el monte Kilimanjaro?", opts:["Kenia","Uganda","Tanzania","Mozambique"], ans:2, lvl:3 },
+  { q:"¿Cuál es la capital de Bielorrusia?", opts:["Minsk","Kiev","Vilna","Varsovia"], ans:0, lvl:3 },
+  { q:"¿Qué país tiene el mayor número de lenguas oficiales?", opts:["India","Sudáfrica","Suiza","Bolivia"], ans:1, lvl:3 },
+  { q:"¿Cuál es el nombre del archipiélago más grande del mundo?", opts:["Islas Canarias","Islandia","Indonesia","Islas Británicas"], ans:2, lvl:3 },
+  { q:"¿Qué ciudad es la más alta del mundo sobre el nivel del mar (capital)?", opts:["Quito","La Paz","Bogotá","Addis Abeba"], ans:1, lvl:3 },
+  { q:"¿Cuál es el país más largo de norte a sur del mundo?", opts:["Brasil","Argentina","Chile","Noruega"], ans:2, lvl:3 },
+  { q:"¿En qué continente se encuentra la mayor parte de la Cordillera de los Andes?", opts:["América del Norte","América del Sur","Asia","Europa"], ans:1, lvl:3 },
+  { q:"¿Cuál es el canal que une el Mar Rojo con el Mediterráneo?", opts:["Canal de Panamá","Canal de Suez","Canal de Kiel","Canal de Corinto"], ans:1, lvl:3 },
+  { q:"¿Cuál es la nación más grande de Oceanía?", opts:["Nueva Zelanda","Papua Nueva Guinea","Australia","Fiji"], ans:2, lvl:3 },
+  { q:"¿Cuál es la capital de Azerbaiyán?", opts:["Ereván","Tiflis","Bakú","Alma Ata"], ans:2, lvl:3 },
+  { q:"¿Qué país tiene la costa más larga del mundo?", opts:["Rusia","Noruega","Canadá","Indonesia"], ans:2, lvl:3 },
+  { q:"¿En qué país está el desierto de Atacama?", opts:["Argentina","Perú","Chile","Bolivia"], ans:2, lvl:3 },
+  { q:"¿Cuál es el río más largo de Asia?", opts:["Mekong","Obi","Yangtsé","Indo"], ans:2, lvl:3 },
+  { q:"¿Qué país es completamente rodeado por Sudáfrica?", opts:["Suazilandia","Botsuana","Zimbabue","Lesoto"], ans:3, lvl:3 },
+  { q:"¿Cuál es la capital de Irlanda?", opts:["Cork","Belfast","Galway","Dublín"], ans:3, lvl:3 },
+  { q:"¿Cuántos países componen la Península Ibérica?", opts:["2","3","4","5"], ans:1, lvl:3 },
+  { q:"¿Qué país tiene más tiempo de zonas horarias?", opts:["Rusia","Estados Unidos","China","Australia"], ans:0, lvl:3 },
+  { q:"¿Cuál es la montaña más alta de Europa (excl. Cáucaso)?", opts:["Elbrus","Mont Blanc","Matterhorn","Mulhacén"], ans:1, lvl:3 },
+  { q:"¿Cuál es el único país de América que tiene el francés como única lengua oficial?", opts:["Haití","Guayana Francesa","Quebec","Paraguay"], ans:0, lvl:3 },
+  { q:"¿Qué mar interior no tiene salida al océano?", opts:["Mar Rojo","Mar Caspio","Mar Báltico","Mar Negro"], ans:1, lvl:3 },
+  { q:"¿Cuál es la capital de Bangladesh?", opts:["Chittagong","Dhaka","Sylhet","Rajshahi"], ans:1, lvl:3 },
+  { q:"¿En qué país está la ciudad de Marrakech?", opts:["Argelia","Túnez","Egipto","Marruecos"], ans:3, lvl:3 },
+  { q:"¿Qué océano baña las costas de Brasil?", opts:["Pacífico","Índico","Atlántico","Ártico"], ans:2, lvl:3 },
+  { q:"¿Cuál es el país más pequeño de América del Sur?", opts:["Uruguay","Paraguay","Surinam","Guyana"], ans:2, lvl:3 },
+  { q:"¿Cuál es la capital de Etiopía?", opts:["Nairobi","Lagos","Addis Abeba","Jartum"], ans:2, lvl:3 },
+  { q:"¿Cuál es la isla más grande del mundo?", opts:["Borneo","Groenlandia","Nueva Guinea","Madagascar"], ans:1, lvl:3 },
+  { q:"¿En qué país está el lago Baikal?", opts:["Mongolia","China","Rusia","Kazajistán"], ans:2, lvl:3 },
+  { q:"¿Cuál es la capital de Portugal?", opts:["Oporto","Braga","Faro","Lisboa"], ans:3, lvl:3 },
+  { q:"¿Qué río atraviesa Bagdad?", opts:["Éufrates","Tigris","Indo","Orontes"], ans:1, lvl:3 },
+  { q:"¿Cuántos países comparten la Península Arábiga?", opts:["4","5","6","7"], ans:3, lvl:3 },
+  { q:"¿En qué continente se encuentran los Alpes?", opts:["Asia","América del Norte","Europa","África"], ans:2, lvl:3 },
+  { q:"¿Cuál es la capital de Filipinas?", opts:["Cebú","Davao","Quezon City","Manila"], ans:3, lvl:3 },
+  { q:"¿Qué río forma la frontera natural entre México y Estados Unidos?", opts:["Colorado","Missouri","Río Bravo","Arkansas"], ans:2, lvl:3 },
+  { q:"¿Cuál es el país más densamente poblado de Europa?", opts:["Países Bajos","Bélgica","Mónaco","Malta"], ans:2, lvl:3 },
+  { q:"¿En qué país se encuentra la ciudad de Petra?", opts:["Jordania","Israel","Turquía","Siria"], ans:0, lvl:3 },
+  { q:"¿Cuál es la capital de Senegal?", opts:["Abiyán","Dakar","Bamako","Conakri"], ans:1, lvl:3 },
+  { q:"¿Cuál es el punto más austral de América del Sur?", opts:["Tierra del Fuego","Cabo de Hornos","Ushuaia","Punta Arenas"], ans:1, lvl:3 },
+  { q:"¿Cuántos países no tienen salida al mar en África?", opts:["10","14","16","18"], ans:1, lvl:3 },
+  { q:"¿Cuál es el río más largo de América del Norte?", opts:["Colorado","Misisipi-Misuri","McKenzie","Yukon"], ans:1, lvl:3 },
+  { q:"¿Cuál es la capital de Vietnam?", opts:["Ho Chi Minh","Da Nang","Hanói","Hue"], ans:2, lvl:3 },
+
+  // === EXPERT ===
+  { q:"¿Cuál es el nombre oficial de Turquía desde 2022?", opts:["Türkiye","Anatolia","Turquia","Ottomanya"], ans:0, lvl:4 },
+  { q:"¿En qué país africano se encuentra el lago Tanganica en su mayor extensión?", opts:["Zambia","Tanzania","RD Congo","Burundi"], ans:2, lvl:4 },
+  { q:"¿Cuál es la capital de Mauritania?", opts:["Nuakchot","Dakar","Bamako","Tombuctú"], ans:0, lvl:4 },
+  { q:"¿Cuál es el paso de montaña más alto del mundo transitable por carretera?", opts:["Paso Khardung La","Paso Zoji La","Paso Umling La","Paso Nathu La"], ans:2, lvl:4 },
+  { q:"¿Cuál es el país con la mayor extensión de selva amazónica?", opts:["Colombia","Perú","Bolivia","Brasil"], ans:3, lvl:4 },
+  { q:"¿En qué isla se encuentra la ciudad de Reikiavik?", opts:["Groenlandia","Islandia","Feroe","Svalbard"], ans:1, lvl:4 },
+  { q:"¿Cuál es el río más largo de África?", opts:["Congo","Níger","Zambeze","Nilo"], ans:3, lvl:4 },
+  { q:"¿Qué país se llama oficialmente 'República Helénica'?", opts:["Chipre","Albania","Grecia","Macedonia"], ans:2, lvl:4 },
+  { q:"¿Cuál es la profundidad máxima del océano Pacífico?", opts:["8.376 m","10.994 m","9.241 m","11.521 m"], ans:1, lvl:4 },
+  { q:"¿Cuál es la región más fría habitada de la Tierra?", opts:["Yakutia, Rusia","Alaska, EE.UU.","Nunavut, Canadá","Groenlandia"], ans:0, lvl:4 },
+  { q:"¿Cuántos países de la Unión Europea tienen al euro como moneda?", opts:["19","20","22","24"], ans:1, lvl:4 },
+  { q:"¿En qué país está la ciudad de Uagadugú?", opts:["Mali","Níger","Burkina Faso","Chad"], ans:2, lvl:4 },
+  { q:"¿Cuál es el archipiélago más alejado de cualquier masa continental?", opts:["Hawái","Tristán de Acuña","Isla de Pascua","Galápagos"], ans:1, lvl:4 },
+  { q:"¿Cuál es la capital de Eritrea?", opts:["Addis Abeba","Asmara","Mogadiscio","Yibuti"], ans:1, lvl:4 },
+  { q:"¿En qué año se dividió Sudán en dos países?", opts:["2008","2010","2011","2013"], ans:2, lvl:4 },
+  { q:"¿Cuál es la ciudad más septentrional del mundo con más de 1.000 habitantes?", opts:["Barrow (Utqiagvik)","Longyearbyen","Hammerfest","Norilsk"], ans:1, lvl:4 },
+  { q:"¿Cuál es el nombre del mar entre Suecia y Finlandia?", opts:["Mar Báltico","Golfo de Botnia","Mar del Norte","Golfo de Finlandia"], ans:1, lvl:4 },
+  { q:"¿Cuántos países tienen el español como idioma oficial?", opts:["18","20","21","23"], ans:2, lvl:4 },
+  { q:"¿Qué nación insular se conoce como 'El País de los Maorís'?", opts:["Samoa","Fiji","Nueva Zelanda","Tonga"], ans:2, lvl:4 },
+  { q:"¿Cuál es la ciudad más poblada de África?", opts:["El Cairo","Lagos","Kinshasa","Johannesburgo"], ans:1, lvl:4 },
+  { q:"¿En qué país está la ciudad de Samarkanda?", opts:["Tayikistán","Turquía","Uzbekistán","Kazajistán"], ans:2, lvl:4 },
+  { q:"¿Qué país ocupa la mayor parte de la Meseta del Tíbet?", opts:["India","Nepal","Bután","China"], ans:3, lvl:4 },
+  { q:"¿Cuál es el nombre del fiordo más largo del mundo?", opts:["Sognefjord","Scoresby Sund","Milford Sound","Hardangerfjord"], ans:1, lvl:4 },
+  { q:"¿Qué ciudad es conocida como la 'Ciudad Blanca' de África?", opts:["Túnez","Argel","Casablanca","Trípoli"], ans:1, lvl:4 },
+  { q:"¿Cuál es el único país de América del Sur sin salida al mar?", opts:["Paraguay y Bolivia","Bolivia","Paraguay","Ecuador"], ans:0, lvl:4 },
+  { q:"¿En qué mar se encuentra la isla de Malta?", opts:["Adriático","Tirreno","Mediterráneo","Jónico"], ans:2, lvl:4 },
+  { q:"¿Cuál es la capital de Kirguistán?", opts:["Almaty","Bishkek","Tashkent","Dushanbe"], ans:1, lvl:4 },
+  { q:"¿Cuál es el nombre del golfo entre la Península Arábiga y el cuerno de África?", opts:["Golfo Pérsico","Mar Rojo","Golfo de Adén","Mar Arábigo"], ans:2, lvl:4 },
+  { q:"¿Cuántos países integran la Unión Africana?", opts:["49","55","58","62"], ans:1, lvl:4 },
+  { q:"¿Cuál es el país de habla portuguesa más poblado?", opts:["Portugal","Mozambique","Angola","Brasil"], ans:3, lvl:4 },
+  { q:"¿Cuál es la capital de Timor Oriental?", opts:["Kupang","Dili","Baucau","Same"], ans:1, lvl:4 },
+  { q:"¿En qué cordillera nace el río Amazonas?", opts:["Serra do Mar","Andes","Tepuyes","Cerro Aconcagua"], ans:1, lvl:4 },
+  { q:"¿Qué país está dividido por el trópico de Cáncer y el Ecuador a la vez?", opts:["Brasil","Colombia","Somalia","Ecuador"], ans:2, lvl:4 },
+  { q:"¿Cuál es la única capital del mundo con dos nombres oficiales?", opts:["Bombay/Mumbai","El Ivory/Abiyán","Pretoria/Tshwane","Pekín/Beijing"], ans:2, lvl:4 },
+  { q:"¿Cuál es el lago salado más grande del mundo?", opts:["Lago Assal","Mar Muerto","Mar Caspio","Gran Lago Salado"], ans:2, lvl:4 },
+  { q:"¿En qué país se encuentra el monte Elbrus?", opts:["Ucrania","Georgia","Rusia","Armenia"], ans:2, lvl:4 },
+  { q:"¿Cuál es la capital de Papúa Nueva Guinea?", opts:["Suva","Port Moresby","Honiara","Apia"], ans:1, lvl:4 },
+  { q:"¿Qué país tiene el mayor número de refugiados acogidos del mundo (2023)?", opts:["Turquía","Alemania","Pakistán","Colombia"], ans:0, lvl:4 },
+  { q:"¿Cuál es el nombre del mar entre Italia y los Balcanes?", opts:["Tirreno","Jónico","Adriático","Egeo"], ans:2, lvl:4 },
+  { q:"¿En qué país se encuentra la famosa región vinícola de Rioja?", opts:["Francia","Chile","Argentina","España"], ans:3, lvl:4 },
+  { q:"¿Cuál es el país productor de petróleo más grande del mundo?", opts:["Arabia Saudí","Rusia","Irak","Estados Unidos"], ans:3, lvl:4 },
+  { q:"¿Qué isla pertenece a Francia y es la más grande del Mediterráneo occidental?", opts:["Cerdeña","Córcega","Mallorca","Sicilia"], ans:1, lvl:4 },
+  { q:"¿Cuál es la capital de Surinam?", opts:["Georgetown","Paramaribo","Cayena","Belem"], ans:1, lvl:4 },
+  { q:"¿Cuál es el mar más pequeño del mundo?", opts:["Mar de Mármara","Mar de Coral","Mar de Liguria","Mar de Azov"], ans:3, lvl:4 },
+  { q:"¿En qué país está la ciudad de Medellín?", opts:["Venezuela","Ecuador","Colombia","Perú"], ans:2, lvl:4 },
+  { q:"¿Cuál es el nombre del estrecho entre Nueva Zelanda y Australia?", opts:["Estrecho de Malacca","Estrecho de Tasmania","Estrecho de Cook","Estrecho de Bass"], ans:3, lvl:4 },
+  { q:"¿Qué país tiene mayor superficie cultivable del mundo?", opts:["India","Estados Unidos","Rusia","China"], ans:0, lvl:4 },
+  { q:"¿Cuál es la capital de Lesoto?", opts:["Mbabane","Maseru","Blantyre","Gaborone"], ans:1, lvl:4 },
+  { q:"¿Cuál es el volcán activo más alto del mundo?", opts:["Kilimanjaro","Mauna Loa","Cotopaxi","Ojos del Salado"], ans:2, lvl:4 },
+  { q:"¿En qué continente está la mayor concentración de países sin salida al mar?", opts:["Asia","América del Sur","África","Europa"], ans:2, lvl:4 },
+  { q:"¿Cuál es la capital de Bután?", opts:["Katmandú","Paro","Timbu","Punakha"], ans:2, lvl:4 },
+];
+
+const MODES = {
+  easy:   { count:10, label:"Fácil",  badge:"🟢", badgeStyle:"background:rgba(34,197,94,.15);color:#4ade80;", levels:[1,2] },
+  medium: { count:20, label:"Medio",  badge:"🔵", badgeStyle:"background:rgba(59,130,246,.15);color:#60a5fa;", levels:[1,2,3] },
+  hard:   { count:50, label:"Difícil",badge:"🟠", badgeStyle:"background:rgba(249,115,22,.15);color:#fb923c;", levels:[1,2,3,4] },
+  expert: { count:100,label:"Experto",badge:"🟣", badgeStyle:"background:rgba(168,85,247,.15);color:#c084fc;", levels:[1,2,3,4] },
+};
+
+let current = 0, score = 0, answered = false, activeMode = null, activeQuestions = [];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startMode(mode) {
+  activeMode = mode;
+  const cfg = MODES[mode];
+  const pool = shuffle(ALL_QUESTIONS.filter(q => cfg.levels.includes(q.lvl)));
+  activeQuestions = pool.slice(0, Math.min(cfg.count, pool.length));
+  current = 0; score = 0;
+  document.getElementById('menu-section').style.display = 'none';
+  document.getElementById('score-section').style.display = 'none';
+  document.getElementById('quiz-section').style.display = 'block';
+  loadQuestion();
+}
+
+function loadQuestion() {
+  const q = activeQuestions[current];
+  const total = activeQuestions.length;
+  document.getElementById('q-count').textContent = `Pregunta ${current+1} de ${total}`;
+  document.getElementById('score-live').textContent = `✓ ${score}`;
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('prog').style.width = `${(current/total)*100}%`;
+  const fb = document.getElementById('feedback');
+  fb.textContent = ''; fb.className = 'feedback';
+  document.getElementById('next-btn').style.display = 'none';
+  answered = false;
+
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  q.opts.forEach((o, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.textContent = o;
+    btn.onclick = () => pick(i);
+    opts.appendChild(btn);
+  });
+}
+
+function pick(i) {
+  if (answered) return;
+  answered = true;
+  const q = activeQuestions[current];
+  const btns = document.querySelectorAll('.opt-btn');
+  btns.forEach(b => b.disabled = true);
+  const fb = document.getElementById('feedback');
+
+  if (i === q.ans) {
+    btns[i].classList.add('correct');
+    fb.textContent = '✓ ¡Correcto!'; fb.className = 'feedback ok';
+    score++;
+    document.getElementById('score-live').textContent = `✓ ${score}`;
+  } else {
+    btns[i].classList.add('wrong');
+    btns[q.ans].classList.add('reveal');
+    fb.textContent = `✗ La respuesta era: ${q.opts[q.ans]}`; fb.className = 'feedback err';
+  }
+
+  const nb = document.getElementById('next-btn');
+  nb.style.display = 'block';
+  nb.textContent = current < activeQuestions.length-1 ? 'Siguiente →' : 'Ver resultado';
+}
+
+document.getElementById('next-btn').onclick = () => {
+  current++;
+  if (current < activeQuestions.length) {
+    loadQuestion();
+  } else {
+    showScore();
+  }
+};
+
+function showScore() {
+  document.getElementById('quiz-section').style.display = 'none';
+  const total = activeQuestions.length;
+  const pct = Math.round((score/total)*100);
+  const cfg = MODES[activeMode];
+  let msg, emoji;
+  if (pct >= 90) { msg = "Rendimiento extraordinario. Eres un maestro de la geografía."; emoji = "🏆"; }
+  else if (pct >= 75) { msg = "Excelente conocimiento del planeta. ¡Muy por encima de la media!"; emoji = "🌍"; }
+  else if (pct >= 55) { msg = "Buen nivel. El mundo tiene más secretos por descubrir."; emoji = "✈️"; }
+  else if (pct >= 35) { msg = "Hay margen de mejora. ¡El globo te espera!"; emoji = "🧭"; }
+  else { msg = "El viaje comienza ahora. ¡Sigue explorando!"; emoji = "🗺️"; }
+
+  document.getElementById('score-emoji').textContent = emoji;
+  document.getElementById('score-frac').innerHTML = `${score}<span>/${total}</span>`;
+  document.getElementById('score-pct').textContent = `${pct}% de aciertos`;
+  document.getElementById('score-msg').textContent = msg;
+  const badge = document.getElementById('score-badge');
+  badge.textContent = `${cfg.badge} Modo ${cfg.label}`;
+  badge.style.cssText = cfg.badgeStyle + 'font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;padding:3px 10px;border-radius:20px;margin-bottom:0.75rem;display:inline-block;';
+
+  document.getElementById('score-section').style.display = 'block';
+  setTimeout(() => { document.getElementById('score-bar').style.width = pct+'%'; }, 100);
+}
+
+function retryMode() { startMode(activeMode); }
+
+function goMenu() {
+  document.getElementById('quiz-section').style.display = 'none';
+  document.getElementById('score-section').style.display = 'none';
+  document.getElementById('menu-section').style.display = 'block';
+}
+</script>
+</body>
+</html>

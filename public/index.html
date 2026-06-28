@@ -127,6 +127,7 @@
 <!-- ================= MENU JUGAR ================= -->
 <div id="menuJugar" class="hidden">
 
+  <button onclick="irTrivialPlayers()">Quiz Multiplayer</button>
   <button onclick="irMinijuegos()">Minijuegos</button>
   <button onclick="irEscape()">Escape Room</button>
   <button onclick="irQuiz()">Quiz</button>
@@ -155,6 +156,15 @@
   <button id="btnJugar" style="display:none" onclick="abrirJugar()">Jugar</button>
   <button id="btnPerfil" style="display:none" onclick="verPerfil()">Perfil</button>
   <button id="btnNoti" style="display:none" onclick="abrirNoti()">Noti</button>
+  <button id="btnTienda" style="display:none" onclick="shop()">🏪 Tienda</button>
+</div>
+
+<!-- SHOP POPUP -->
+<div id="popup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:5000; justify-content:center; align-items:center;">
+  <div id="popupBox" style="width:300px; padding:20px; background:#111; border-radius:10px; text-align:center; border:1px solid #00ffcc;">
+    <div id="popupText"></div>
+    <button onclick="closePopup()" style="margin-top:10px;">Cerrar</button>
+  </div>
 </div>
 
 <!-- ================= AUDIO ================= -->

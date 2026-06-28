@@ -1,286 +1,259 @@
 /* ================= RESET ================= */
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
-
-html,body{
-  height:100%;
-  overflow-x:hidden;
-  overflow-y:auto;
-  font-family:'Poppins', sans-serif;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 /* ================= BODY ================= */
-body{
-  text-align:center;
-  color:white;
-  min-height:100vh;
-  position:relative;
-
-  padding-bottom:80px;
-
-  background: linear-gradient(-45deg,#05060f,#0b0f2a,#1a1a40,#0ea5e9);
-  background-size:400% 400%;
-  animation:bgMove 12s ease infinite;
-
-  /* 🔥 SCROLL SUAVE */
-  scroll-behavior:smooth;
+body {
+  text-align: center;
+  color: white;
+  min-height: 100vh;
+  position: relative;
+  padding-bottom: 80px;
+  background: linear-gradient(-45deg, #05060f, #0b0f2a, #1a1a40, #0ea5e9);
+  background-size: 400% 400%;
+  animation: bgMove 12s ease infinite;
+  scroll-behavior: smooth;
 }
 
-@keyframes bgMove{
-  0%{background-position:0% 50%}
-  50%{background-position:100% 50%}
-  100%{background-position:0% 50%}
+@keyframes bgMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* ================= MODOS ================= */
-body.oscuro{
-  background:#05060f !important;
-  animation:none !important;
+body.oscuro {
+  background: #05060f !important;
+  animation: none !important;
 }
 
-body.claro{
-  background:#f5f5f5 !important;
-  color:#111;
-  animation:none !important;
+body.claro {
+  background: #f5f5f5 !important;
+  color: #111 !important;
+  animation: none !important;
 }
 
-body.neon{
-  animation:bgMove 6s ease infinite;
+body.neon {
+  animation: bgMove 6s ease infinite;
 }
 
 /* ================= FONDO 3D ================= */
-body::before{
-  content:"";
-  position:fixed;
-  inset:-20%;
-  z-index:0;
-  pointer-events:none;
-
+body::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: 0;
+  pointer-events: none;
   background:
-    radial-gradient(circle at 20% 20%, rgba(0,255,255,0.25), transparent 25%),
-    radial-gradient(circle at 80% 30%, rgba(139,92,246,0.25), transparent 25%),
-    radial-gradient(circle at 40% 70%, rgba(34,197,94,0.25), transparent 25%),
-    radial-gradient(circle at 70% 80%, rgba(255,255,255,0.08), transparent 30%);
-
+    radial-gradient(circle at 20% 20%, rgba(0, 255, 255, 0.25), transparent 25%),
+    radial-gradient(circle at 80% 30%, rgba(139, 92, 246, 0.25), transparent 25%),
+    radial-gradient(circle at 40% 70%, rgba(34, 197, 94, 0.25), transparent 25%),
+    radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.08), transparent 30%);
   animation: floatBG 10s infinite ease-in-out;
 }
 
-@keyframes floatBG{
-  0%{transform:translate(0,0) scale(1);}
-  50%{transform:translate(15px,-15px) scale(1.1);}
-  100%{transform:translate(0,0) scale(1);}
+@keyframes floatBG {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(15px, -15px) scale(1.1); }
+  100% { transform: translate(0, 0) scale(1); }
 }
 
 /* ================= PARTÍCULAS ================= */
-body::after{
-  content:"";
-  position:fixed;
-  inset:0;
-  z-index:0;
-  pointer-events:none;
-
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
   background:
     radial-gradient(circle at 10% 20%, white 0 2px, transparent 3px),
     radial-gradient(circle at 30% 80%, cyan 0 2px, transparent 3px),
     radial-gradient(circle at 60% 40%, purple 0 2px, transparent 3px),
     radial-gradient(circle at 80% 70%, lime 0 2px, transparent 3px);
-
   animation: particlesMove 6s linear infinite;
 }
 
-@keyframes particlesMove{
-  0%{transform:translateY(0);}
-  100%{transform:translateY(-40px);}
+@keyframes particlesMove {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-40px); }
 }
 
 /* ================= CONTENEDORES ================= */
-#menu,#crear,#login,#panel,#perfil,#menuJugar,#setup{
-  margin:20px auto;
-  padding:18px;
-  width:90%;
-  max-width:360px;
-
-  background:rgba(0,0,0,0.55);
-  backdrop-filter:blur(18px);
-  border-radius:20px;
-
-  position:relative;
-  z-index:10;
-
-  pointer-events:auto;
-
-  animation:pop .25s ease;
-
-  /* 🔥 EFECTO APP */
-  box-shadow:0 0 20px rgba(0,255,255,0.1);
+#menu, #crear, #login, #panel, #perfil, #menuJugar, #setup {
+  margin: 20px auto;
+  padding: 20px;
+  width: 90%;
+  max-width: 360px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
+  animation: pop .3s ease;
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
 }
 
-@keyframes pop{
-  from{transform:translateY(40px) scale(0.9);opacity:0}
-  to{transform:translateY(0) scale(1);opacity:1}
+@keyframes pop {
+  from { transform: translateY(40px) scale(0.9); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
 }
 
 /* ================= INPUTS ================= */
-input{
-  width:85%;
-  padding:12px;
-  margin:8px auto;
-
-  border:none;
-  border-radius:12px;
-
-  background:rgba(0,0,0,0.4);
-  color:white;
-
-  outline:none;
-
-  position:relative;
-  z-index:20;
-
-  display:block;
-
-  /* 🔥 FIX INPUT */
-  pointer-events:auto;
+input {
+  width: 85%;
+  padding: 14px;
+  margin: 10px auto;
+  border: none;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  outline: none;
+  position: relative;
+  z-index: 20;
+  display: block;
+  pointer-events: auto;
+  transition: box-shadow 0.2s, transform 0.2s;
 }
 
-input:focus{
-  box-shadow:0 0 12px cyan;
-  transform:scale(1.03);
+input:focus {
+  box-shadow: 0 0 20px cyan;
+  transform: scale(1.05);
 }
 
 /* ================= BOTONES ================= */
-button{
-  width:85%;
-  margin:6px auto;
-  padding:10px;
-
-  border:none;
-  border-radius:12px;
-
-  font-weight:bold;
-  cursor:pointer;
-
-  color:white;
-  background:linear-gradient(90deg,#00f0ff,#8b5cf6,#22c55e);
-
-  transition:0.2s;
-
-  position:relative;
-  z-index:20;
-
-  pointer-events:auto;
+button {
+  width: 85%;
+  margin: 8px auto;
+  padding: 12px;
+  border: none;
+  border-radius: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  color: white;
+  background: linear-gradient(90deg, #00f0ff, #8b5cf6, #22c55e);
+  transition: 0.3s ease;
+  position: relative;
+  z-index: 20;
+  pointer-events: auto;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.15);
 }
 
-button:hover{
-  transform:scale(1.05);
-  box-shadow:0 0 15px cyan;
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px cyan;
 }
 
-button:active{
-  transform:scale(0.92);
+button:active {
+  transform: scale(0.95);
 }
 
 /* ================= BARRA ================= */
-#barra{
-  position:fixed;
-  bottom:0;
-  left:0;
-  width:100%;
-
-  display:flex;
-  justify-content:space-around;
-  align-items:center;
-
-  padding:10px;
-  background:rgba(0,0,0,0.9);
-  backdrop-filter:blur(10px);
-
-  z-index:1000;
+#barra {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(15px);
+  z-index: 6000;
+  box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.5);
 }
 
-#barra button{
-  width:auto;
-  padding:6px 10px;
-  font-size:12px;
+#barra button {
+  width: auto;
+  padding: 8px 16px;
+  font-size: 14px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(90deg, #00f0ff, #8b5cf6, #22c55e);
+  color: white;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+#barra button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px cyan;
 }
 
 /* ================= OVERLAY ================= */
-.overlay{
-  position:fixed;
-  inset:0;
-
-  display:flex;
-  justify-content:center;
-  align-items:center;
-
-  background:rgba(0,0,0,0.85);
-
-  z-index:999;
-  pointer-events:auto;
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 999;
+  pointer-events: auto;
 }
 
-/* 🔥 IMPORTANTE */
-.overlay.hidden{
-  display:none !important;
-  pointer-events:none !important;
+.overlay.hidden {
+  display: none !important;
+  pointer-events: none !important;
 }
 
 /* ================= CARD ================= */
-.card{
-  background:#111;
-  padding:20px;
-  border-radius:16px;
-  width:90%;
-  max-width:320px;
-
-  z-index:1000;
-
-  box-shadow:0 0 20px rgba(0,255,255,0.2);
+.card {
+  background: #111;
+  padding: 24px;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 320px;
+  z-index: 1000;
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
 }
 
 /* ================= FOTO PERFIL ================= */
-#fotoPerfil{
-  width:120px;
-  height:120px;
-  border-radius:50%;
-  object-fit:cover;
-
-  border:3px solid cyan;
-  box-shadow:0 0 20px cyan;
-
-  position:relative;
-  z-index:20;
+#fotoPerfil {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid cyan;
+  box-shadow: 0 0 20px cyan;
+  position: relative;
+  z-index: 20;
 }
 
 /* ================= MINI FOTOS ================= */
-.fotos{
+.fotos {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 10px;
-  margin: 15px 0;
+  gap: 15px;
+  margin: 20px 0;
 }
 
-.fotos img{
-  width:50px;
-  height:50px;
-  border-radius:50%;
-  object-fit:cover;
-
-  cursor:pointer;
-  transition:0.2s;
+.fotos img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  transition: 0.3s ease;
 }
 
-.fotos img:hover{
-  transform:scale(1.15);
-  box-shadow:0 0 12px cyan;
+.fotos img:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 20px cyan;
 }
 
 /* ================= HIDDEN ================= */
-.hidden{
-  display:none !important;
-  pointer-events:none !important;
+.hidden {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+/* ================= POLÍTICA DE PRIVACIDAD ================= */
+#privacidad p {
+  color: white !important;
 }

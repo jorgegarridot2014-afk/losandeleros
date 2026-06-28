@@ -123,6 +123,7 @@ function updateBar(){
   document.getElementById("btnJugar").style.display = logged ? "inline-block":"none";
   document.getElementById("btnPerfil").style.display = logged ? "inline-block":"none";
   document.getElementById("btnNoti").style.display = logged ? "inline-block":"none";
+  document.getElementById("btnTienda").style.display = logged ? "inline-block":"none";
 }
 
 /* ================= FLOW ================= */
@@ -515,6 +516,14 @@ function irEscape(){
 }
 
 function irQuiz(){
+  window.location.href = "/trivialplayers.html";
+}
+
+function irTrivialPlayers(){
+  window.location.href = "/trivialplayers.html";
+}
+
+function irQuizIndividual(){
   window.location.href = "/quiz.html";
 }
 
@@ -590,7 +599,7 @@ async function eliminarCuenta(){
   if(!confirm(`¿Seguro que quieres borrar a ${user.apodo}? Esta acción no se puede deshacer.`)) return;
 
   try {
-    const idADel = user.ide; // Guardamos referencia antes de limpiar
+    const idADel = user.ide;
     const res = await fetch(`${API_BASE}/delete/${encodeURIComponent(idADel)}`, {
       method: "DELETE"
     });
@@ -600,14 +609,242 @@ async function eliminarCuenta(){
       return alert(data.error || "Error eliminando cuenta");
     }
 
-    // Limpiar localstorage y estado global
     localStorage.removeItem(LOCAL_ACCOUNT_KEY + idADel);
+    localStorage.removeItem(LAST_ACTIVE_KEY);
     user = null;
     go();
   } catch(err){
     console.error(err);
     alert("Error eliminando cuenta");
   }
+}
+
+/* ================= TIENDA ================= */
+function shop(){
+  const popupText = document.getElementById("popupText");
+  const saldo = user.points || 0;
+
+  let secciones = "";
+
+  if (user.englishQuizPurchased) {
+    secciones += `
+      <div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 10px;">
+        <p style="margin: 5px 0;">📚 <b>Quiz de Inglés</b></p>
+        <p style="margin: 5px 0; color: #00ff99; font-size: 13px;">✅ Ya tienes acceso a este quiz</p>
+      </div>
+      <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+        <button onclick="closePopup(); setTimeout(() => window.location.href='quizenglis.html', 300);" style="letter-spacing: 1px;">jugar</button>
+      </div>
+    `;
+  } else {
+    secciones += `
+      <div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 10px;">
+        <p style="margin: 5px 0;">📚 <b>Quiz de Inglés</b></p>
+        <p style="margin: 5px 0; color: #aaa; font-size: 13px;">Accede a un quiz especial de inglés</p>
+        <p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 500 ⭐</p>
+        <p style="margin: 5px 0; color: #00ffcc; font-size: 12px;">Tu saldo: ${saldo} ⭐</p>
+      </div>
+      <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+        <button onclick="buyEnglishQuiz()" style="letter-spacing: 1px;">COMPRAR</button>
+      </div>
+    `;
+  }
+
+  if (user.historyQuizPurchased) {
+    secciones += `
+      <div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 10px;">
+        <p style="margin: 5px 0;">📜 <b>Quiz de Historia</b></p>
+        <p style="margin: 5px 0; color: #00ff99; font-size: 13px;">✅ Ya tienes acceso a este quiz</p>
+      </div>
+      <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+        <button onclick="closePopup(); setTimeout(() => window.location.href='quizhistoria.html', 300);" style="letter-spacing: 1px;">jugar</button>
+      </div>
+    `;
+  } else {
+    secciones += `
+      <div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 10px;">
+        <p style="margin: 5px 0;">📜 <b>Quiz de Historia</b></p>
+        <p style="margin: 5px 0; color: #aaa; font-size: 13px;">Accede a un quiz especial de historia</p>
+        <p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 500 ⭐</p>
+        <p style="margin: 5px 0; color: #00ffcc; font-size: 12px;">Tu saldo: ${saldo} ⭐</p>
+      </div>
+      <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+        <button onclick="buyHistoryQuiz()" style="letter-spacing: 1px;">COMPRAR</button>
+      </div>
+    `;
+  }
+
+  popupText.innerHTML = `
+    <h3 style="color: #00ffcc; margin-bottom: 15px;">🏪 TIENDA</h3>
+    ${secciones}
+  `;
+  document.getElementById("popup").style.display = "flex";
+}
+
+async function buyEnglishQuiz(){
+  if ((user.points || 0) < 500) {
+    showPopup("❌ No tienes suficientes créditos.\nNecesitas 500 ⭐.\nSaldo actual: " + (user.points || 0) + " ⭐");
+    setTimeout(closePopup, 2000);
+    return;
+  }
+  
+  user.points -= 500;
+  user.englishQuizPurchased = true;
+  
+  showPopup("✅ Compra realizada: -500 ⭐\nRedirigiendo al Quiz de Inglés...");
+  
+  saveCurrentUserLocalData();
+  
+  try {
+    const res = await fetch(`${API_BASE}/update/${encodeURIComponent(user.ide)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        points: user.points,
+        englishQuizPurchased: true
+      })
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      user.points = data.points;
+    }
+  } catch(err) {
+    console.error("Error actualizando compra:", err);
+  }
+  
+  setTimeout(() => {
+    window.location.href = "quizenglis.html";
+  }, 1500);
+}
+
+async function buyHistoryQuiz(){
+  if ((user.points || 0) < 500) {
+    showPopup("❌ No tienes suficientes créditos.\nNecesitas 500 ⭐.\nSaldo actual: " + (user.points || 0) + " ⭐");
+    setTimeout(closePopup, 2000);
+    return;
+  }
+  
+  user.points -= 500;
+  user.historyQuizPurchased = true;
+  
+  showPopup("✅ Compra realizada: -500 ⭐\nRedirigiendo al Quiz de Historia...");
+  
+  saveCurrentUserLocalData();
+  
+  try {
+    const res = await fetch(`${API_BASE}/update/${encodeURIComponent(user.ide)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        points: user.points,
+        historyQuizPurchased: true
+      })
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      user.points = data.points;
+    }
+  } catch(err) {
+    console.error("Error actualizando compra:", err);
+  }
+  
+  setTimeout(() => {
+    window.location.href = "quizhistoria.html";
+  }, 1500);
+}
+
+function showPopup(text){
+  document.getElementById("popupText").innerText = text;
+  document.getElementById("popup").style.display = "flex";
+}
+
+function closePopup(){
+  document.getElementById("popup").style.display = "none";
+}
+
+async function buyEnglishQuiz(){
+  if ((user.points || 0) < 500) {
+    showPopup("❌ No tienes suficientes créditos.\nNecesitas 500 ⭐.\nSaldo actual: " + (user.points || 0) + " ⭐");
+    setTimeout(closePopup, 2000);
+    return;
+  }
+  
+  user.points -= 500;
+  user.englishQuizPurchased = true;
+  
+  showPopup("✅ Compra realizada: -500 ⭐\nRedirigiendo al Quiz de Inglés...");
+  
+  saveCurrentUserLocalData();
+  
+  try {
+    const res = await fetch(`${API_BASE}/update/${encodeURIComponent(user.ide)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        points: user.points,
+        englishQuizPurchased: true
+      })
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      user.points = data.points;
+    }
+  } catch(err) {
+    console.error("Error actualizando compra:", err);
+  }
+  
+  setTimeout(() => {
+    window.location.href = "quizenglis.html";
+  }, 1500);
+}
+
+async function buyHistoryQuiz(){
+  if ((user.points || 0) < 500) {
+    showPopup("❌ No tienes suficientes créditos.\nNecesitas 500 ⭐.\nSaldo actual: " + (user.points || 0) + " ⭐");
+    setTimeout(closePopup, 2000);
+    return;
+  }
+  
+  user.points -= 500;
+  user.historyQuizPurchased = true;
+  
+  showPopup("✅ Compra realizada: -500 ⭐\nRedirigiendo al Quiz de Historia...");
+  
+  saveCurrentUserLocalData();
+  
+  try {
+    const res = await fetch(`${API_BASE}/update/${encodeURIComponent(user.ide)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        points: user.points,
+        historyQuizPurchased: true
+      })
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      user.points = data.points;
+    }
+  } catch(err) {
+    console.error("Error actualizando compra:", err);
+  }
+  
+  setTimeout(() => {
+    window.location.href = "quizhistoria.html";
+  }, 1500);
+}
+
+function showPopup(text){
+  document.getElementById("popupText").innerText = text;
+  document.getElementById("popup").style.display = "flex";
+}
+
+function closePopup(){
+  document.getElementById("popup").style.display = "none";
 }
 
 /* ================= MUSICA ================= */

@@ -17,7 +17,6 @@ body{
   overflow:hidden;
 }
 
-/* 🌌 fondo pro */
 #bg{
   position:fixed;
   inset:0;
@@ -33,7 +32,6 @@ body{
   100%{filter:brightness(1.3);}
 }
 
-/* caja */
 #menu,#box{
   width:420px;
   padding:18px;
@@ -44,7 +42,6 @@ body{
   box-shadow:0 0 20px rgba(0,255,150,0.25);
 }
 
-/* botones */
 button{
   width:100%;
   margin:5px 0;
@@ -60,19 +57,16 @@ button:hover{
   transform:scale(1.05);
 }
 
-/* timer */
 #timer{
   font-size:20px;
   color:yellow;
 }
 
-/* pista */
 #hint{
   font-size:12px;
   color:#00d9ff;
 }
 
-/* puntos */
 #points{
   position:fixed;
   top:8px;
@@ -84,7 +78,6 @@ button:hover{
   transition: opacity 0.3s, transform 0.2s;
 }
 
-/* 👤 Badge de usuario (Arriba Izquierda) */
 #user-badge {
   position: fixed;
   top: 8px;
@@ -106,7 +99,6 @@ button:hover{
   border: 1px solid #00ffcc;
 }
 
-/* popup */
 #popup{
   position:fixed;
   inset:0;
@@ -114,7 +106,7 @@ button:hover{
   justify-content:center;
   align-items:center;
   background:rgba(0,0,0,0.7);
-  z-index: 5000; /* Asegurar que esté por encima de todo */
+  z-index: 5000;
 }
 
 #popupBox{
@@ -185,7 +177,6 @@ button:hover{
   100%{transform:rotate(360deg);}
 }
 
-/* 🎬 Intro Cinemática */
 #intro-cinematic {
   position: fixed;
   inset: 0;
@@ -228,7 +219,6 @@ button:hover{
 
 <div id="bg"></div>
 
-<!-- INTRO CINEMÁTICA -->
 <div id="intro-cinematic">
   <h1 class="typewriter">SYSTEM_LOAD: PROTOCOL_ORIGIN...</h1>
   <p style="opacity:0.6; font-size: 12px; margin-top: 20px;">[ INICIALIZANDO INTERFAZ DE NEURONAS ]</p>
@@ -236,7 +226,6 @@ button:hover{
   <p style="color: #00ffcc; font-size: 11px; margin-top: 20px; font-weight: bold;">🛰️ SINCRONIZANDO CON NÚCLEO DE DATOS (CUENTA)</p>
 </div>
 
-<!-- IDENTIFICADOR DE CUENTA -->
 <div id="user-badge" style="display:none;">
   <img id="user-foto" src="pfp/p1.svg">
   <span id="user-apodo">---</span>
@@ -244,18 +233,26 @@ button:hover{
 
 <div id="points">⭐ Cargando...</div>
 
-<!-- MENU -->
 <div id="menu">
   <h2>🧠 QUIZ PRO FINAL</h2>
-  <button onclick="startGame()">▶ Empezar</button>
+  <button onclick="startGame()">▶ Empezar Quiz General</button>
   <button onclick="showRanking()">🏆 Ranking Global</button>
   <button onclick="weekly()">📅 Quiz semanal</button>
-  <button id="btnTiendaQuiz" onclick="shop()">🏪 Tienda</button>
-  <button id="btnQuizHistoria" style="display:none" onclick="window.location.href='quizhistoria.html'">📜 Quiz de Historia</button>
-  <button onclick="window.location.href='index.html'" style="background: #333; margin-top: 15px; border: 1px solid #555;">⬅️ Volver al Menú Principal</button>
+  <button onclick="shop()">🏪 Tienda</button>
+  
+  <!-- Botones de quizzes comprados -->
+  <div id="quizIndividualButtons" style="margin-top: 15px; display: none;">
+    <hr style="border: 1px solid #333; margin: 10px 0;">
+    <p style="font-size: 12px; color: #888; margin-bottom: 8px;">📚 QUIZ INDIVIDUALES COMPRADOS</p>
+    <button id="btnEnglishQuiz" onclick="window.location.href='/quizzes/quizenglis.html'" style="background: linear-gradient(90deg,#1e40af,#3b82f6); display: none;">🇬🇧 Quiz de Inglés</button>
+    <button id="btnHistoryQuiz" onclick="window.location.href='/quizzes/quizhistoria.html'" style="background: linear-gradient(90deg,#0ea5e9,#06b6d4); display: none;">📜 Quiz de Historia</button>
+    <button id="btnGeographyQuiz" onclick="window.location.href='/quizzes/quizmundo.html'" style="background: linear-gradient(90deg,#059669,#10b981); display: none;">🌍 Quiz de Geografía</button>
+  </div>
+  
+  <button onclick="window.location.href='/quizzes/trivialplayers.html'" style="background: #333; margin-top: 15px; border: 1px solid #555;">👥 Quiz Multiplayer</button>
+  <button onclick="window.location.href='/index.html'" style="background: #333; margin-top: 15px; border: 1px solid #555;">⬅️ Volver al Menú Principal</button>
 </div>
 
-<!-- QUIZ -->
 <div id="box" style="display:none;">
   <div id="timer"></div>
   <div id="question"></div>
@@ -264,7 +261,6 @@ button:hover{
   <button onclick="goHome()">🔙 Volver</button>
 </div>
 
-<!-- RANKING BOX -->
 <div id="ranking-box" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:4000; justify-content:center; align-items:center;">
   <div class="card" style="width:320px; text-align:center; background:#111; border:2px solid #00ffcc; padding:20px; border-radius:15px;">
     <h3>🏆 TOP 10 ANDELEROS</h3>
@@ -273,10 +269,9 @@ button:hover{
   </div>
 </div>
 
-<!-- WEEKLY OVERLAY -->
 <div id="weekly-overlay">
   <div id="weekly-card">
-    <h2 style="color: #00ffcc; margin-top: 0; letter-spacing: 2px; font-size: 1.2rem;">WEEKLY_CHALLENGE // GONGORA</h2>
+    <h2 style="color: #00ffcc; margin-top: 0; letter-spacing: 2px; font-size: 1.2rem;">WEEKLY_CHALLENGE // GONJOR/h2>
     <p style="font-size: 12px; opacity: 0.6; font-family: monospace;">DESCIFRA LAS ECUACIONES PARA OBTENER_CRÉDITOS:</p>
     
     <p style="font-size: 11px; opacity: 0.5; font-family: monospace; margin-top: 10px;">ECUACIÓN 1:</p>
@@ -294,29 +289,29 @@ button:hover{
   </div>
 </div>
 
-<!-- POPUP -->
 <div id="popup">
-  <div id="popupBox">
-    <div class="spinner"></div>
-    <p id="popupText"></p>
-    <button onclick="closePopup()">Cerrar</button>
-  </div>
-</div>
+   <div id="popupBox">
+     <div class="spinner"></div>
+     <p id="popupText"></p>
+   </div>
+ </div>
 
-<script>
+ <script src="/socket.io/socket.io.js"></script>
+  <script>
+ const socket = io();
+socket.on("admin-broadcast", (data) => {
+  alert(data.user + ": " + data.message);
+});
 
 const LAST_ACTIVE_KEY = "andeleros_last_active";
 let currentUser = null;
 let points = 0;
 let isUserLoaded = false;
-let isSaving = false; // 🔒 Evita peticiones simultáneas
+let isSaving = false;
 const pointsUI = document.getElementById("points");
 
-/* 🔄 Sincronizar puntos con el Servidor */
 async function updatePointsUI(save = true) {
   if (isNaN(points)) points = 0;
-  
-  // UI inmediata
   pointsUI.innerText = "⭐ Puntos: " + (isUserLoaded ? points : "...");
 
   if (save && currentUser && isUserLoaded) {
@@ -326,11 +321,13 @@ async function updatePointsUI(save = true) {
       const res = await fetch(`/update/${currentUser.ide}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-          points: points,
-          weeklyDone: currentUser.weeklyDone,
-          englishQuizPurchased: currentUser.englishQuizPurchased
-        })
+        body: JSON.stringify({ 
+            points: points,
+            weeklyDone: currentUser.weeklyDone,
+            englishQuizPurchased: currentUser.englishQuizPurchased,
+            historyQuizPurchased: currentUser.historyQuizPurchased,
+            geographyQuizPurchased: currentUser.geographyQuizPurchased
+         })
       });
 
       if (res.ok) {
@@ -344,7 +341,6 @@ async function updatePointsUI(save = true) {
   }
 }
 
-/* 🎬 Manejo de la Intro */
 window.onload = () => {
   setTimeout(() => {
     const intro = document.getElementById("intro-cinematic");
@@ -355,12 +351,11 @@ window.onload = () => {
   }, 4000);
 };
 
-/* 👤 Cargar cuenta desde DB */
 async function initAccount() {
   const ide = localStorage.getItem("andeleros_last_active");
   if (!ide) {
     alert("Sesión no detectada. Redirigiendo...");
-    window.location.href = "index.html";
+    window.location.href = "/index.html";
     return;
   }
 
@@ -382,7 +377,6 @@ async function initAccount() {
       
       updatePointsUI(false);
 
-      // Feedback visual si ya completó el semanal al cargar la página
       if (currentUser.weeklyDone) {
         const btnWeekly = document.querySelector('button[onclick="weekly()"]');
         if (btnWeekly) {
@@ -391,34 +385,37 @@ async function initAccount() {
         }
       }
 
-      // Feedback visual si ya compró el quiz de inglés
+      // Mostrar botones de quizzes comprados
+      const container = document.getElementById("quizIndividualButtons");
+      let hasAny = false;
+      
       if (currentUser.englishQuizPurchased) {
-        const btnShop = document.getElementById("btnTiendaQuiz");
-        if (btnShop) {
-          btnShop.innerText = "📚 Quiz de Inglés";
-          btnShop.setAttribute("onclick", "window.location.href='quizenglis.html'");
-          btnShop.style.opacity = "1";
-        }
-      } else {
-        const btnShop = document.getElementById("btnTiendaQuiz");
-        if (btnShop) btnShop.remove();
+        document.getElementById("btnEnglishQuiz").style.display = "block";
+        hasAny = true;
       }
-
-      // Mostrar botón de Quiz de Historia si lo ha comprado
+      
       if (currentUser.historyQuizPurchased) {
-        const btnHistoria = document.getElementById("btnQuizHistoria");
-        if (btnHistoria) btnHistoria.style.display = "inline-block";
+        document.getElementById("btnHistoryQuiz").style.display = "block";
+        hasAny = true;
+      }
+      
+      if (currentUser.geographyQuizPurchased) {
+        document.getElementById("btnGeographyQuiz").style.display = "block";
+        hasAny = true;
+      }
+      
+      if (hasAny) {
+        container.style.display = "block";
       }
     } else {
-      window.location.href = "index.html";
+      window.location.href = "/index.html";
     }
   } catch(e) {
-    window.location.href = "index.html";
+    window.location.href = "/index.html";
   }
 }
 initAccount();
 
-/* 🧠 50 preguntas reales */
 const questions = [
   {q:"¿Capital de España?",a:["Madrid","Barcelona","Sevilla","Valencia"],c:0,h:"Capital del país"},
   {q:"Planeta rojo?",a:["Venus","Marte","Júpiter","Saturno"],c:1,h:"Óxido"},
@@ -475,7 +472,6 @@ let time=60;
 let interval;
 let isAnswering = false;
 
-/* UI */
 const menu=document.getElementById("menu");
 const box=document.getElementById("box");
 const q=document.getElementById("question");
@@ -483,11 +479,8 @@ const a=document.getElementById("answers");
 const t=document.getElementById("timer");
 const h=document.getElementById("hint");
 
-/* start */
 function startGame() {
   if (!isUserLoaded) return alert("Cargando datos de tu cuenta, espera un momento...");
-
-  // Mezclar preguntas para que cada partida sea distinta
   currentQuestions = [...questions].sort(() => Math.random() - 0.5);
   currentIndex = 0;
   score = 0;
@@ -500,7 +493,6 @@ function startGame() {
   timer();
 }
 
-/* timer */
 function timer(){
   clearInterval(interval);
   interval=setInterval(()=>{
@@ -510,7 +502,6 @@ function timer(){
   },1000);
 }
 
-/* show */
 function renderQuestion() {
   const qData = currentQuestions[currentIndex];
 
@@ -523,7 +514,7 @@ function renderQuestion() {
     btn.innerText = opt;
 
     btn.onclick = () => {
-      if (isAnswering) return; // Evitar múltiples clics
+      if (isAnswering) return;
       isAnswering = true;
 
       if (idx === qData.c) {
@@ -537,7 +528,6 @@ function renderQuestion() {
 
       updatePointsUI();
 
-      // Pausa breve para ver el resultado antes de pasar
       setTimeout(() => {
         isAnswering = false;
         next();
@@ -548,14 +538,12 @@ function renderQuestion() {
   });
 }
 
-/* next */
 function next(){
   currentIndex++;
   if(currentIndex >= currentQuestions.length || time <= 0) end();
   else renderQuestion();
 }
 
-/* end */
 function end(){
   clearInterval(interval);
   q.innerHTML="🏁 FIN";
@@ -568,7 +556,6 @@ function end(){
   t.innerHTML="";
 }
 
-/* 🏆 RANKING LOGIC */
 async function showRanking() {
   const list = document.getElementById("ranking-list");
   list.innerHTML = "<p>Cargando ranking...</p>";
@@ -602,13 +589,11 @@ function closeRanking() {
   document.getElementById("ranking-box").style.display = "none";
 }
 
-/* volver */
 function goHome(){
   box.style.display = "none";
   menu.style.display = "block";
 }
 
-/* 📅 semanal */
 function weekly() {
   if (currentUser && currentUser.weeklyDone) {
     showPopup("🚫 PROTOCOLO DENEGADO: Este terminal ya ha procesado el desafío semanal.");
@@ -629,7 +614,6 @@ function checkWeekly() {
   const ans1 = document.getElementById("weekly-input1").value.trim();
   const ans2 = document.getElementById("weekly-input2").value.trim();
   
-  // Validar que ambos inputs estén completos
   if (!ans1 || !ans2) {
     alert("❌ Debes completar ambas ecuaciones antes de validar.");
     return;
@@ -646,7 +630,6 @@ function checkWeekly() {
     
     updatePointsUI(true);
 
-    // Bloquear visualmente el botón semanal inmediatamente
     const btnWeekly = document.querySelector('button[onclick="weekly()"]');
     if (btnWeekly) {
       btnWeekly.innerText = "📅 Quiz semanal (Completado)";
@@ -661,40 +644,101 @@ function checkWeekly() {
   }
 }
 
-/* 🏪 tienda */
 function shop(){
   const popupText = document.getElementById("popupText");
   
-  if (currentUser && currentUser.englishQuizPurchased) {
-    // Ya comprado: mostrar botón de acceso
-    popupText.innerHTML = `
-      <h3 style="color: #00ffcc; margin-bottom: 15px;">🏪 TIENDA</h3>
-      <div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 15px;">
-        <p style="margin: 5px 0;">📚 <b>Quiz de Inglés</b></p>
-        <p style="margin: 5px 0; color: #00ff99; font-size: 13px;">✅ Ya tienes acceso a este quiz</p>
-      </div>
-      <div style="display: flex; gap: 10px;">
-        <button onclick="closePopup(); setTimeout(() => window.location.href='quizenglis.html', 300);" style="letter-spacing: 1px;">jugar</button>
-        <button onclick="closePopup()" style="background: #222; color: #666; letter-spacing: 1px;">CANCELAR</button>
-      </div>
-    `;
+  const hasEnglish = currentUser && currentUser.englishQuizPurchased;
+  const hasHistory = currentUser && currentUser.historyQuizPurchased;
+  const hasGeography = currentUser && currentUser.geographyQuizPurchased;
+  
+  let content = `
+    <h3 style="color: #00ffcc; margin-bottom: 15px;">🏪 TIENDA</h3>
+    <div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 15px;">
+  `;
+  
+  if (hasEnglish) {
+    content += `<p style="margin: 5px 0; color: #00ff99; font-size: 13px;">✅ Quiz de Inglés: Ya lo tienes</p>`;
   } else {
-    // No comprado: mostrar opción de compra
-    popupText.innerHTML = `
-      <h3 style="color: #00ffcc; margin-bottom: 15px;">🏪 TIENDA</h3>
-      <div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 15px;">
-        <p style="margin: 5px 0;">📚 <b>Quiz de Inglés</b></p>
-        <p style="margin: 5px 0; color: #aaa; font-size: 13px;">Accede a un quiz especial de inglés</p>
-        <p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 500 ⭐</p>
-        <p style="margin: 5px 0; color: #00ffcc; font-size: 12px;">Tu saldo: ${points} ⭐</p>
-      </div>
-      <div style="display: flex; gap: 10px;">
-        <button onclick="buyEnglishQuiz()" style="letter-spacing: 1px;">COMPRAR</button>
-        <button onclick="closePopup()" style="background: #222; color: #666; letter-spacing: 1px;">CANCELAR</button>
-      </div>
+    content += `
+      <p style="margin: 5px 0;">🇬🇧 <b>Quiz de Inglés</b></p>
+      <p style="margin: 5px 0; color: #aaa; font-size: 13px;">Practica tu nivel de inglés</p>
+      <p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 500 ⭐</p>
     `;
   }
+  
+  if (hasHistory) {
+    content += `<p style="margin: 5px 0; color: #00ff99; font-size: 13px;">✅ Quiz de Historia: Ya lo tienes</p>`;
+  } else {
+    content += `
+      <p style="margin: 5px 0;">📜 <b>Quiz de Historia</b></p>
+      <p style="margin: 5px 0; color: #aaa; font-size: 13px;">25 preguntas sobre España</p>
+      <p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 200 ⭐</p>
+    `;
+  }
+  
+  if (hasGeography) {
+    content += `<p style="margin: 5px 0; color: #00ff99; font-size: 13px;">✅ Quiz de Geografía: Ya lo tienes</p>`;
+  } else {
+    content += `
+      <p style="margin: 5px 0;">🌍 <b>Quiz de Geografía</b></p>
+      <p style="margin: 5px 0; color: #aaa; font-size: 13px;">Preguntas por el mundo - ¡Sé el mejor explorador!</p>
+      <p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 700 ⭐</p>
+    `;
+  }
+  
+  content += `<p style="margin: 5px 0; color: #00ffcc; font-size: 12px;">Tu saldo: ${points} ⭐</p></div>`;
+  
+  content += `<div style="display: flex; gap: 10px; flex-wrap: wrap;">`;
+  
+  if (hasEnglish) {
+    content += `<button onclick="closePopup(); window.location.href='/quizzes/quizenglis.html'" style="letter-spacing: 1px;">🇬🇧 Jugar Inglés</button>`;
+  } else {
+    content += `<button onclick="buyEnglishQuiz()" style="letter-spacing: 1px;">COMPRAR Inglés (500⭐)</button>`;
+  }
+  
+  if (hasHistory) {
+    content += `<button onclick="closePopup(); window.location.href='/quizzes/quizhistoria.html'" style="letter-spacing: 1px;">📜 Jugar Historia</button>`;
+  } else {
+    content += `<button onclick="buyHistoryQuiz()" style="letter-spacing: 1px;">COMPRAR Historia (200⭐)</button>`;
+  }
+  
+  if (hasGeography) {
+    content += `<button onclick="closePopup(); window.location.href='/quizzes/quizmundo.html'" style="letter-spacing: 1px;">🌍 Jugar Geografía</button>`;
+  } else {
+    content += `<button onclick="buyGeographyQuiz()" style="letter-spacing: 1px;">COMPRAR Geografía (700⭐)</button>`;
+  }
+  
+  content += `<button onclick="closePopup()" style="background: #222; color: #666; letter-spacing: 1px;">Cerrar</button></div>`;
+  
+  popupText.innerHTML = content;
   document.getElementById("popup").style.display = "flex";
+}
+
+function buyGeographyQuiz() {
+  if (points < 700) {
+    showPopup("❌ No tienes suficientes créditos.\nNecesitas 700 ⭐.\nSaldo actual: " + points + " ⭐");
+    setTimeout(closePopup, 2000);
+    return;
+  }
+  
+  points -= 700;
+  currentUser.geographyQuizPurchased = true;
+  updatePointsUI(true);
+  closePopup();
+  
+  showPopup("✅ Compra realizada: -700 ⭐\nRedirigiendo al Quiz de Geografía...");
+  
+  // Mostrar el botón del quiz comprado
+  const container = document.getElementById("quizIndividualButtons");
+  const btnGeography = document.getElementById("btnGeographyQuiz");
+  if (btnGeography) {
+    btnGeography.style.display = "block";
+    container.style.display = "block";
+  }
+  
+  setTimeout(() => {
+    window.location.href = "/quizzes/quizmundo.html";
+  }, 1500);
 }
 
 function buyEnglishQuiz() {
@@ -711,22 +755,53 @@ function buyEnglishQuiz() {
   
   showPopup("✅ Compra realizada: -500 ⭐\nRedirigiendo al Quiz de Inglés...");
   
-  // Actualizar botón del menú
-  const btnShop = document.querySelector('button[onclick="shop()"]');
-  if (btnShop) {
-    btnShop.innerText = "tienda";
-    btnShop.style.opacity = "0.5";
+  // Mostrar el botón del quiz comprado
+  const container = document.getElementById("quizIndividualButtons");
+  const btnEnglish = document.getElementById("btnEnglishQuiz");
+  if (btnEnglish) {
+    btnEnglish.style.display = "block";
+    container.style.display = "block";
   }
   
   setTimeout(() => {
-    window.location.href = "quizenglis.html";
+    window.location.href = "/quizzes/quizenglis.html";
   }, 1500);
 }
 
-/* popup */
-function showPopup(text){
-  document.getElementById("popupText").innerText=text;
-  document.getElementById("popup").style.display="flex";
+function buyHistoryQuiz() {
+  if (points < 200) {
+    showPopup("❌ No tienes suficientes créditos.\nNecesitas 200 ⭐.\nSaldo actual: " + points + " ⭐");
+    setTimeout(closePopup, 2000);
+    return;
+  }
+  
+  points -= 200;
+  currentUser.historyQuizPurchased = true;
+  updatePointsUI(true);
+  closePopup();
+  
+  showPopup("✅ Compra realizada: -200 ⭐\nRedirigiendo al Quiz de Historia...");
+  
+  // Mostrar el botón del quiz comprado
+  const container = document.getElementById("quizIndividualButtons");
+  const btnHistory = document.getElementById("btnHistoryQuiz");
+  if (btnHistory) {
+    btnHistory.style.display = "block";
+    container.style.display = "block";
+  }
+  
+  setTimeout(() => {
+    window.location.href = "/quizzes/quizhistoria.html";
+  }, 1500);
+}
+
+function showPopup(text, isHTML = false){
+  if (isHTML) {
+    document.getElementById("popupText").innerHTML = text;
+  } else {
+    document.getElementById("popupText").innerHTML = text + '<br><br><button onclick="closePopup()" style="margin-top: 10px; background: #222; color: #666;">Cerrar</button>';
+  }
+  document.getElementById("popup").style.display = "flex";
 }
 
 function closePopup(){

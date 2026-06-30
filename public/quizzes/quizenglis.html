@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>World Quiz Challenge</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #08080f; --surface: #10101a; --border: #22223a;
+      --accent: #8b5cf6; --accent2: #ec4899; --gold: #f59e0b;
+      --text: #f1f0ff; --muted: #6b6b90; --green: #34d399; --red: #f87171;
+      --radius: 18px;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+    #user-badge {
+      position: fixed; top: 10px; right: 10px; display: none; align-items: center; gap: 10px;
+      background: rgba(16,16,26,0.85); backdrop-filter: blur(12px); padding: 6px 16px;
+      border-radius: 25px; border: 1px solid var(--border); z-index: 40;
+    }
+    #user-badge .user-info { display: flex; flex-direction: column; line-height: 1.2; }
+    #user-badge .user-name { font-size: 12px; font-weight: 700; color: var(--text); }
+    #user-badge .user-points { font-size: 10px; color: var(--gold); font-weight: 600; }
+    .back-bar {
+      position: fixed; top: 10px; left: 10px; background: rgba(16,16,26,0.9);
+      backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 10px;
+      padding: 8px 18px; display: flex; align-items: center; z-index: 50;
+    }
+    .btn-back {
+      display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px;
+      border-radius: 10px; background: rgba(139,92,246,0.1);
+      border: 1px solid rgba(139,92,246,0.3); color: #c4b5fd; font-size: 13px; font-weight: 600;
+      text-decoration: none; transition: all 0.18s; letter-spacing: 0.2px;
+    }
+    .btn-back:hover { background: rgba(139,92,246,0.2); border-color: rgba(139,92,246,0.6); color: #fff; transform: translateX(-2px); }
+    .hero { width: 100%; text-align: center; padding: 56px 24px 44px; }
+    .hero-label { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #a78bfa; background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.25); border-radius: 100px; padding: 6px 18px; margin-bottom: 22px; }
+    .hero h1 { font-family: 'Syne', sans-serif; font-size: clamp(2.2rem, 7vw, 3.8rem); font-weight: 800; line-height: 1.08; background: linear-gradient(135deg, #fff 20%, #a78bfa 60%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 14px; }
+    .hero p { color: var(--muted); font-size: 0.95rem; max-width: 380px; margin: 0 auto; line-height: 1.7; }
+    .progress-wrap { width: 100%; max-width: 660px; padding: 0 24px; margin-bottom: 4px; }
+    .progress-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .progress-meta span { font-size: 12.5px; color: var(--muted); }
+    .progress-meta strong { font-family: 'Syne', sans-serif; font-size: 14px; color: var(--text); }
+    .progress-track { height: 6px; background: var(--border); border-radius: 100px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 100px; transition: width 0.5s cubic-bezier(.4,0,.2,1); width: 0%; box-shadow: 0 0 10px rgba(139,92,246,0.5); }
+    .stage { width: 100%; max-width: 660px; padding: 28px 24px 64px; }
+    .question-card { background: linear-gradient(145deg, #1c1c2e, #141424); border: 1px solid var(--border); border-radius: var(--radius); padding: 36px; box-shadow: 0 24px 60px rgba(0,0,0,0.5); animation: cardIn 0.38s cubic-bezier(.4,0,.2,1); }
+    @keyframes cardIn { from { opacity: 0; transform: translateX(36px) scale(0.98); } to { opacity: 1; transform: translateX(0) scale(1); } }
+    .q-text { font-size: 1.15rem; font-weight: 500; line-height: 1.65; color: var(--text); margin-bottom: 26px; }
+    .options { display: flex; flex-direction: column; gap: 11px; }
+    .option { display: flex; align-items: center; gap: 14px; padding: 15px 18px; border-radius: 13px; border: 1.5px solid var(--border); background: rgba(255,255,255,0.02); cursor: pointer; transition: all 0.15s ease; }
+    .option:hover:not(.locked) { border-color: rgba(139,92,246,0.5); }
+    .opt-letter { width: 32px; height: 32px; border-radius: 9px; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--muted); flex-shrink: 0; }
+    .option.correct { border-color: var(--green); background: rgba(52,211,153,0.07); }
+    .option.correct .opt-letter { background: var(--green); border-color: var(--green); color: #fff; }
+    .option.wrong { border-color: var(--red); background: rgba(248,113,113,0.06); }
+    .option.wrong .opt-letter { background: var(--red); border-color: var(--red); color: #fff; }
+    .nav-row { display: flex; justify-content: flex-end; margin-top: 26px; }
+    .btn-next { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; padding: 14px 34px; border-radius: 12px; font-size: 0.95rem; font-weight: 700; font-family: 'Syne', sans-serif; cursor: pointer; transition: transform 0.15s; box-shadow: 0 6px 24px rgba(139,92,246,0.35); display: none; }
+    .btn-next:hover { transform: translateY(-2px); }
+    .results { display: none; width: 100%; max-width: 580px; padding: 20px 24px 80px; text-align: center; }
+    .results.show { display: block; }
+    .results-card { background: linear-gradient(145deg, #1c1c2e, #141424); border: 1px solid var(--border); border-radius: 22px; padding: 52px 40px; box-shadow: 0 32px 80px rgba(0,0,0,0.6); }
+    .score-ring-wrap { position: relative; width: 160px; height: 160px; margin: 0 auto 32px; }
+    .score-ring-svg { transform: rotate(-90deg); }
+    .ring-bg { fill: none; stroke: var(--border); stroke-width: 8; }
+    .ring-fill { fill: none; stroke: url(#ringGrad); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 439.8; stroke-dashoffset: 439.8; transition: stroke-dashoffset 1s cubic-bezier(.4,0,.2,1); }
+    .score-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .score-pct { font-family: 'Syne', sans-serif; font-size: 2.2rem; font-weight: 800; }
+    .score-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .r-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 36px; }
+    .r-box { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 14px; padding: 18px 12px; }
+    .r-box .rv { font-family: 'Syne', sans-serif; font-size: 1.75rem; font-weight: 800; }
+    .r-box .rl { font-size: 10px; color: var(--muted); margin-top: 5px; }
+    .r-box.g .rv { color: var(--green); }
+    .r-box.r .rv { color: var(--red); }
+    .r-box.y .rv { color: var(--gold); }
+    .btn-retry { background: transparent; color: #a78bfa; border: 1.5px solid rgba(139,92,246,0.4); padding: 14px 44px; border-radius: 13px; font-size: 0.95rem; font-weight: 700; font-family: 'Syne', sans-serif; cursor: pointer; }
+    .btn-retry:hover { background: rgba(139,92,246,0.1); border-color: var(--accent); color: #fff; }
+    @media (max-width: 500px) { .r-grid { grid-template-columns: 1fr 1fr; } .question-card { padding: 24px 18px; } .results-card { padding: 36px 20px; } }
+  </style>
+</head>
+<body>
+  <!-- USER BADGE -->
+  <div id="user-badge">
+    <div class="user-info">
+      <span class="user-name" id="user-apodo">---</span>
+      <span class="user-points" id="user-points">⭐ 0</span>
+    </div>
+  </div>
+  <!-- BACK BAR -->
+  <div class="back-bar">
+    <a class="btn-back" href="/index.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Back
+    </a>
+  </div>
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-label">General Knowledge</div>
+    <h1>World Quiz<br>Challenge</h1>
+    <p>25 questions about science, history, geography and culture.</p>
+  </div>
+  <!-- PROGRESS -->
+  <div class="progress-wrap">
+    <div class="progress-meta">
+      <span id="progressText">Question 1 of 25</span>
+      <strong id="progressPct">0%</strong>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+  <!-- STAGE -->
+  <div class="stage" id="stage"></div>
+  <!-- RESULTS -->
+  <div class="results" id="results">
+    <div class="results-card">
+      <div class="score-ring-wrap">
+        <svg class="score-ring-svg" width="160" height="160" viewBox="0 0 160 160">
+          <defs><linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#ec4899"/></linearGradient></defs>
+          <circle class="ring-bg" cx="80" cy="80" r="70"/>
+          <circle class="ring-fill" id="ringFill" cx="80" cy="80" r="70"/>
+        </svg>
+        <div class="score-inner"><div class="score-pct" id="scorePct">0%</div><div class="score-label">Score</div></div>
+      </div>
+      <h2 id="resultsTitle">Quiz Complete!</h2>
+      <div class="r-grid">
+        <div class="r-box g"><div class="rv" id="statCorrect">0</div><div class="rl">Correct</div></div>
+        <div class="r-box r"><div class="rv" id="statWrong">0</div><div class="rl">Wrong</div></div>
+        <div class="r-box y"><div class="rv" id="statScore">0%</div><div class="rl">Score</div></div>
+      </div>
+      <button class="btn-retry" onclick="retryQuiz()">↺ Try Again</button>
+    </div>
+  </div>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+socket.on("admin-broadcast", (data) => { alert(data.user + ": " + data.message); });
+let currentUser = null;
+async function updatePointsOnServer(newPoints) {
+  if (!currentUser) return;
+  try {
+    const res = await fetch(`/update/${currentUser.ide}`, {method: "PUT", headers: {"Content-Type": "application/json"}, body: JSON.stringify({points: newPoints})});
+    if (res.ok) { const data = await res.json(); currentUser.points = data.points; document.getElementById("user-points").textContent = "⭐ " + data.points; }
+  } catch(e) { console.error("Error updating points:", e); }
+}
+async function initAccount() {
+  const ide = localStorage.getItem("andeleros_last_active");
+  if (!ide) { window.location.href = "/index.html"; return; }
+  try {
+    const res = await fetch("/login", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ide})});
+    if (res.ok) {
+      currentUser = await res.json();
+      document.getElementById("user-apodo").textContent = currentUser.apodo;
+      document.getElementById("user-points").textContent = "⭐ " + (currentUser.points || 0);
+      document.getElementById("user-badge").style.display = "flex";
+    } else { window.location.href = "/index.html"; }
+  } catch(e) { window.location.href = "/index.html"; }
+}
+const Qs = [
+  { q: "What is the capital of France?", opts: ["London", "Paris", "Berlin", "Madrid"], ans: 1 },
+  { q: "What is the largest planet?", opts: ["Earth", "Jupiter", "Saturn", "Mars"], ans: 1 },
+  { q: "How many continents are there?", opts: ["5", "6", "7", "8"], ans: 2 },
+  { q: "What language is this app written in?", opts: ["Python", "HTML", "JavaScript", "C++"], ans: 2 },
+  { q: "What is H2O?", opts: ["Oxygen", "Water", "Hydrogen", "Salt"], ans: 1 },
+  { q: "Who wrote Romeo and Juliet?", opts: ["Shakespeare", "Dickens", "Hemingway", "Austen"], ans: 0 },
+  { q: "What is 10 + 10?", opts: ["15", "20", "25", "30"], ans: 1 },
+  { q: "Red + Blue = ?", opts: ["Purple", "Green", "Orange", "Yellow"], ans: 0 },
+  { q: "What is the boiling point of water?", opts: ["80C", "100C", "120C", "90C"], ans: 1 },
+  { q: "What is 5 x 6?", opts: ["25", "30", "35", "40"], ans: 1 },
+  { q: "Which is a mammal?", opts: ["Fish", "Bird", "Dog", "Snake"], ans: 2 },
+  { q: "What year did WW2 end?", opts: ["1943", "1944", "1945", "1946"], ans: 2 },
+  { q: "What is gravity?", opts: ["Light", "Force", "Sound", "Heat"], ans: 1 },
+  { q: "Longest river?", opts: ["Nile", "Amazon", "Mississippi", "Yangtze"], ans: 0 },
+  { q: "Coldest season?", opts: ["Spring", "Summer", "Autumn", "Winter"], ans: 3 },
+  { q: "What is 100 - 50?", opts: ["40", "50", "60", "70"], ans: 1 },
+  { q: "How many sides on a hexagon?", opts: ["5", "6", "7", "8"], ans: 1 },
+  { q: "What color are apples?", opts: ["Green", "Red", "Blue", "Yellow"], ans: 1 },
+  { q: "Fastest land animal?", opts: ["Lion", "Cheetah", "Horse", "Elephant"], ans: 1 },
+  { q: "What is 2 squared?", opts: ["2", "3", "4", "5"], ans: 2 },
+  { q: "Most abundant gas in air?", opts: ["Oxygen", "Nitrogen", "Hydrogen", "Carbon"], ans: 1 },
+  { q: "What is 12 / 3?", opts: ["3", "4", "5", "6"], ans: 1 },
+  { q: "What do bees make?", opts: ["Milk", "Honey", "Bread", "Cheese"], ans: 1 },
+  { q: "What is 7 x 8?", opts: ["48", "54", "56", "64"], ans: 2 },
+  { q: "What is sunrise?", opts: ["Morning", "Noon", "Evening", "Night"], ans: 0 }
+];
+let current = 0, score = 0, answered = false;
+const PTS_PER_Q = 200;
+function loadQuestion(n) {
+  const q = Qs[n];
+  document.getElementById('stage').innerHTML = `<div class="question-card"><div class="q-text">${q.q}</div><div class="options">${q.opts.map((o, i) => `<button class="option" id="opt-${i}" onclick="choose(${i})">${o}<span class="opt-letter">${String.fromCharCode(65 + i)}</span></button>`).join('')}</div><div class="nav-row"><button class="btn-next" id="nextBtn" onclick="nextQ()" style="display:none">Next</button></div></div>`;
+  document.getElementById('progressText').textContent = `Question ${n + 1} of 25`;
+  document.getElementById('progressPct').textContent = Math.round((n + 1) / 25 * 100) + '%';
+  document.getElementById('progressFill').style.width = (n + 1) / 25 * 100 + '%';
+  document.getElementById('results').classList.remove('show');
+  answered = false;
+}
+function choose(i) {
+  if (answered) return;
+  answered = true;
+  const q = Qs[current];
+  const opt = document.getElementById(`opt-${i}`);
+  if (i === q.ans) { opt.classList.add('correct'); score++; if (currentUser) { currentUser.points = (currentUser.points || 0) + PTS_PER_Q; updatePointsOnServer(currentUser.points); } }
+  else { opt.classList.add('wrong'); document.getElementById(`opt-${q.ans}`).classList.add('correct'); }
+  document.getElementById('nextBtn').style.display = 'inline-block';
+}
+function nextQ() {
+  current++;
+  if (current >= Qs.length) {
+    document.getElementById('stage').innerHTML = '';
+    document.getElementById('results').classList.add('show');
+    document.getElementById('statCorrect').textContent = score;
+    document.getElementById('statWrong').textContent = Qs.length - score;
+    document.getElementById('statScore').textContent = Math.round(score / Qs.length * 100) + '%';
+    document.getElementById('scorePct').textContent = Math.round(score / Qs.length * 100) + '%';
+    document.getElementById('ringFill').style.strokeDashoffset = 439.8 - (score / Qs.length * 439.8);
+  } else { loadQuestion(current); }
+}
+function retryQuiz() { current = 0; score = 0; loadQuestion(0); }
+initAccount(); loadQuestion(0);
+</script>
+</body>
+</html>

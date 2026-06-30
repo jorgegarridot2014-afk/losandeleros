@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Historia Española</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #1C1814;
+    color: #F2EAD8;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 3rem 1.25rem 4rem;
+  }
+
+  /* Subtle grain texture via SVG */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 640px;
+  }
+
+  /* Back button */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #8C7A5E;
+    text-decoration: none;
+    margin-bottom: 1.75rem;
+    letter-spacing: 0.02em;
+    transition: color 0.15s;
+  }
+  .back-btn:hover { color: #C9A84C; }
+  .back-btn svg { transition: transform 0.15s; }
+  .back-btn:hover svg { transform: translateX(-3px); }
+
+  /* USER BADGE */
+  #user-badge {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    background: rgba(28,24,20,0.9);
+    backdrop-filter: blur(12px);
+    padding: 6px 16px;
+    border-radius: 25px;
+    border: 1px solid rgba(201,168,76,0.3);
+    z-index: 40;
+  }
+  #user-badge img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(201,168,76,0.6);
+    object-fit: cover;
+  }
+  #user-badge .user-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+  #user-badge .user-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: #F2EAD8;
+  }
+  #user-badge .user-points {
+    font-size: 10px;
+    color: #C9A84C;
+    font-weight: 600;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  .header-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #C9A84C;
+    margin-bottom: 0.75rem;
+  }
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 5vw, 40px);
+    font-weight: 700;
+    line-height: 1.15;
+    color: #F2EAD8;
+    letter-spacing: -0.01em;
+  }
+  .header-rule {
+    width: 48px;
+    height: 1px;
+    background: #C9A84C;
+    margin: 1.25rem auto 0;
+    opacity: 0.6;
+  }
+
+  /* Progress */
+  .progress-area {
+    margin-bottom: 2rem;
+  }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .progress-label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    color: #8C7A5E;
+    text-transform: uppercase;
+  }
+  .progress-frac {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    color: #C9A84C;
+  }
+  .progress-track {
+    height: 3px;
+    background: rgba(242,234,216,0.08);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 3px;
+    background: linear-gradient(90deg, #8B6914 0%, #C9A84C 100%);
+    border-radius: 99px;
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* Card */
+  .card {
+    background: rgba(242,234,216,0.04);
+    border: 1px solid rgba(201,168,76,0.18);
+    border-radius: 16px;
+    padding: 2rem 2rem 1.75rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(201,168,76,0.5), transparent);
+  }
+
+  .q-number {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #C9A84C;
+    margin-bottom: 1rem;
+    opacity: 0.85;
+  }
+
+  .q-text {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(18px, 3vw, 22px);
+    font-weight: 500;
+    line-height: 1.45;
+    color: #F2EAD8;
+    margin-bottom: 1.75rem;
+  }
+
+  /* Options */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .opt-btn {
+    position: relative;
+    background: rgba(242,234,216,0.04);
+    border: 1px solid rgba(242,234,216,0.1);
+    border-radius: 10px;
+    padding: 13px 16px 13px 44px;
+    text-align: left;
+    font-family: 'Inter', sans-serif;
+    font-size: 14.5px;
+    font-weight: 400;
+    color: #C8B89A;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    line-height: 1.4;
+  }
+  .opt-btn::before {
+    content: attr(data-letter);
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 500;
+    color: #C9A84C;
+    line-height: 20px;
+    text-align: center;
+    opacity: 0.7;
+    transition: opacity 0.15s, border-color 0.15s;
+  }
+  .opt-btn:hover:not(:disabled) {
+    background: rgba(201,168,76,0.08);
+    border-color: rgba(201,168,76,0.35);
+    color: #F2EAD8;
+  }
+  .opt-btn:hover:not(:disabled)::before {
+    opacity: 1;
+    border-color: rgba(201,168,76,0.7);
+  }
+  .opt-btn:disabled { cursor: default; }
+
+  .opt-btn.correct {
+    background: rgba(74,133,46,0.15);
+    border-color: rgba(74,133,46,0.5);
+    color: #A8D882;
+  }
+  .opt-btn.correct::before {
+    content: '✓';
+    border-color: rgba(74,133,46,0.6);
+    color: #A8D882;
+    opacity: 1;
+  }
+  .opt-btn.wrong {
+    background: rgba(163,45,45,0.15);
+    border-color: rgba(163,45,45,0.4);
+    color: #E8908A;
+  }
+  .opt-btn.wrong::before {
+    content: '✕';
+    border-color: rgba(163,45,45,0.5);
+    color: #E8908A;
+    opacity: 1;
+  }
+  .opt-btn.dimmed {
+    opacity: 0.35;
+  }
+
+  /* Feedback */
+  .feedback {
+    margin-top: 1.25rem;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    display: none;
+    border-left: 3px solid transparent;
+  }
+  .feedback.correct {
+    background: rgba(74,133,46,0.1);
+    border-left-color: #4A852E;
+    color: #B8E090;
+  }
+  .feedback.wrong {
+    background: rgba(163,45,45,0.1);
+    border-left-color: #A32D2D;
+    color: #F0A8A5;
+  }
+  .feedback strong {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 3px;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .feedback.correct strong { color: #A8D882; }
+  .feedback.wrong strong { color: #E8908A; }
+
+  /* Next button */
+  .next-btn {
+    display: none;
+    margin-top: 1.25rem;
+    width: 100%;
+    padding: 13px 20px;
+    background: transparent;
+    border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #C9A84C;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    transition: background 0.15s, border-color 0.2s;
+  }
+  .next-btn:hover {
+    background: rgba(201,168,76,0.1);
+    border-color: rgba(201,168,76,0.7);
+  }
+
+  /* Score screen */
+  .score-screen {
+    display: none;
+    text-align: center;
+    padding: 1rem 0 0.5rem;
+  }
+  .score-crown {
+    font-size: 36px;
+    margin-bottom: 1rem;
+    line-height: 1;
+  }
+  .score-big {
+    font-family: 'Playfair Display', serif;
+    font-size: 72px;
+    font-weight: 700;
+    color: #C9A84C;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .score-denom {
+    font-size: 20px;
+    color: #8C7A5E;
+    margin-bottom: 1.5rem;
+  }
+  .score-msg {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: #F2EAD8;
+    margin-bottom: 2rem;
+    line-height: 1.4;
+    max-width: 380px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .score-stats {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 2rem;
+  }
+  .stat-pill {
+    background: rgba(242,234,216,0.05);
+    border: 1px solid rgba(242,234,216,0.1);
+    border-radius: 10px;
+    padding: 14px 24px;
+  }
+  .stat-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-val.good { color: #A8D882; }
+  .stat-val.bad  { color: #E8908A; }
+  .stat-lbl {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #8C7A5E;
+  }
+  .pct-bar-wrap {
+    height: 4px;
+    background: rgba(242,234,216,0.08);
+    border-radius: 99px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+  .pct-bar {
+    height: 4px;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #8B6914, #C9A84C);
+    transition: width 1s cubic-bezier(.4,0,.2,1);
+  }
+
+  .restart-btn {
+    padding: 13px 36px;
+    background: transparent;
+    border: 1px solid rgba(201,168,76,0.5);
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #C9A84C;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: background 0.15s, border-color 0.2s;
+  }
+  .restart-btn:hover {
+    background: rgba(201,168,76,0.1);
+    border-color: rgba(201,168,76,0.8);
+  }
+
+  @media (max-width: 480px) {
+    .card { padding: 1.5rem 1.25rem; }
+    body { padding: 2rem 1rem 3rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="user-badge">
+  <img id="user-foto" src="pfp/p1.svg" alt="avatar">
+  <div class="user-info">
+    <span class="user-name" id="user-apodo">---</span>
+    <span class="user-points" id="user-points">⭐ 0</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <a class="back-btn" href="/index.html">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Volver
+  </a>
+  <div class="header">
+    <p class="header-eyebrow">Historia de España</p>
+    <h1>Pon a prueba<br>tus conocimientos</h1>
+    <div class="header-rule"></div>
+  </div>
+
+  <div class="progress-area" id="progress-area">
+    <div class="progress-meta">
+      <span class="progress-label">Progreso</span>
+      <span class="progress-frac" id="prog-frac">1 / 25</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="pbar" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="card" id="quiz-card">
+    <div id="q-number" class="q-number"></div>
+    <div id="q-text" class="q-text"></div>
+    <div id="options" class="options"></div>
+    <div id="feedback" class="feedback"></div>
+    <button class="next-btn" id="next-btn" onclick="nextQ()"></button>
+  </div>
+
+  <div class="card score-screen" id="score-screen">
+    <div class="score-crown" id="score-crown"></div>
+    <div class="score-big" id="score-big"></div>
+    <div class="score-denom">de 25 preguntas</div>
+    <div class="pct-bar-wrap"><div class="pct-bar" id="pct-bar" style="width:0%"></div></div>
+    <div class="score-stats">
+      <div class="stat-pill">
+        <div class="stat-val good" id="stat-correct"></div>
+        <div class="stat-lbl">Correctas</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-val bad" id="stat-wrong"></div>
+        <div class="stat-lbl">Incorrectas</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-val" style="color:#C9A84C" id="stat-pct"></div>
+        <div class="stat-lbl">Puntuación</div>
+      </div>
+    </div>
+    <div class="score-msg" id="score-msg"></div>
+    <button class="restart-btn" onclick="restart()">Intentarlo de nuevo</button>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+let currentUser = null;
+let quizPoints = 0;
+
+const socket = io();
+socket.on("admin-broadcast", (data) => {
+  alert(data.user + ": " + data.message);
+});
+
+async function initAccount() {
+  const ide = localStorage.getItem("andeleros_last_active");
+  if (!ide) {
+    window.location.href = "/index.html";
+    return;
+  }
+  try {
+    const res = await fetch("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ide })
+    });
+    if (res.ok) {
+      currentUser = await res.json();
+      document.getElementById("user-apodo").textContent = currentUser.apodo;
+      document.getElementById("user-foto").src = currentUser.foto;
+      document.getElementById("user-points").textContent = "⭐ " + (currentUser.points || 0);
+      document.getElementById("user-badge").style.display = "flex";
+    } else {
+      window.location.href = "/index.html";
+    }
+  } catch(e) {
+    window.location.href = "/index.html";
+  }
+}
+initAccount();
+
+const Qs = [
+  { q: "¿En qué año se completó la Reconquista con la toma de Granada?", opts: ["1478","1492","1502","1516"], ans: 1, exp: "En 1492 los Reyes Católicos tomaron Granada, poniendo fin a ocho siglos de Reconquista." },
+  { q: "¿Quiénes son conocidos como los Reyes Católicos?", opts: ["Felipe II e Isabel de Valois","Fernando II e Isabel I","Carlos I y Juana la Loca","Alfonso X y Berenguela"], ans: 1, exp: "Fernando II de Aragón e Isabel I de Castilla recibieron el título de Reyes Católicos del papa Alejandro VI." },
+  { q: "¿Qué civilización construyó el acueducto de Segovia?", opts: ["Los visigodos","Los árabes","Los romanos","Los celtas"], ans: 2, exp: "El acueducto de Segovia fue construido por los romanos, probablemente en el siglo I d.C." },
+  { q: "¿En qué año llegó Cristóbal Colón a América bajo patrocinio de la Corona española?", opts: ["1488","1490","1492","1498"], ans: 2, exp: "El 12 de octubre de 1492 Colón llegó a América, iniciando la expansión colonial española." },
+  { q: "¿Qué rey de España fue también emperador del Sacro Imperio Romano Germánico?", opts: ["Felipe II","Carlos I","Fernando VII","Alfonso XII"], ans: 1, exp: "Carlos I de España fue también Carlos V del Sacro Imperio Romano Germánico." },
+  { q: "¿Cómo se denominaba el territorio de la Península Ibérica bajo dominio árabe?", opts: ["La Reconquista","Al-Ándalus","El Califato","La Convivencia"], ans: 1, exp: "Al-Ándalus fue el nombre árabe para los territorios peninsulares bajo su dominio desde el 711 hasta 1492." },
+  { q: "¿En qué año comenzó la Guerra Civil Española?", opts: ["1931","1934","1936","1939"], ans: 2, exp: "La Guerra Civil comenzó el 18 de julio de 1936 con el levantamiento militar contra la Segunda República." },
+  { q: "¿Quién gobernó España como dictador desde 1939 hasta su muerte en 1975?", opts: ["Primo de Rivera","Francisco Franco","Emilio Mola","Queipo de Llano"], ans: 1, exp: "Francisco Franco estableció una dictadura que duró casi cuatro décadas, hasta su fallecimiento el 20 de noviembre de 1975." },
+  { q: "¿En qué año España aprobó su Constitución democrática actual por referéndum?", opts: ["1975","1977","1978","1982"], ans: 2, exp: "La Constitución Española fue aprobada el 6 de diciembre de 1978 con un amplio respaldo popular." },
+  { q: "¿Quién fue el primer presidente del Gobierno en la democracia española?", opts: ["Felipe González","Adolfo Suárez","Leopoldo Calvo-Sotelo","Manuel Fraga"], ans: 1, exp: "Adolfo Suárez fue elegido presidente en 1977, liderando la transición hacia la democracia." },
+  { q: "¿Qué batalla en 711 marcó el inicio de la invasión musulmana de Hispania?", opts: ["Batalla de Covadonga","Batalla de Guadalete","Batalla de las Navas de Tolosa","Batalla de Roncesvalles"], ans: 1, exp: "En Guadalete (711), Tariq ibn Ziyad derrotó al rey visigodo Rodrigo, abriendo la puerta a la conquista musulmana." },
+  { q: "¿En qué año tuvo lugar el Desastre del 98, cuando España perdió Cuba, Puerto Rico y Filipinas?", opts: ["1895","1896","1898","1900"], ans: 2, exp: "En 1898, tras la guerra con EE.UU., el Tratado de París selló la pérdida de las últimas colonias españolas." },
+  { q: "¿Qué rey visigodo unificó la Península bajo el catolicismo en el siglo VI?", opts: ["Alarico","Recaredo I","Leovigildo","Atanagildo"], ans: 1, exp: "Recaredo I se convirtió al catolicismo en el Concilio III de Toledo (589), unificando religiosamente el reino visigodo." },
+  { q: "¿Cómo se llama el período de máximo esplendor cultural y artístico de España en los siglos XVI-XVII?", opts: ["El Renacimiento tardío","El Siglo de Oro","La Ilustración","El Romanticismo"], ans: 1, exp: "El Siglo de Oro reunió a figuras como Cervantes, Lope de Vega, Quevedo, Velázquez y Zurbarán." },
+  { q: "¿Quién escribió 'El ingenioso hidalgo Don Quijote de la Mancha'?", opts: ["Lope de Vega","Francisco de Quevedo","Miguel de Cervantes","Tirso de Molina"], ans: 2, exp: "Miguel de Cervantes publicó la primera parte del Quijote en 1605 y la segunda en 1615." },
+  { q: "¿En qué año abdicó el rey Juan Carlos I en favor de su hijo Felipe VI?", opts: ["2012","2013","2014","2015"], ans: 2, exp: "Juan Carlos I abdicó el 18 de junio de 2014 y Felipe VI fue proclamado rey al día siguiente." },
+  { q: "¿Qué ciudad fue capital del Califato Omeya en la Península Ibérica?", opts: ["Sevilla","Granada","Toledo","Córdoba"], ans: 3, exp: "Córdoba fue capital del Califato y uno de los mayores centros culturales de Europa medieval, con más de 500.000 habitantes." },
+  { q: "¿En qué año España ingresó en la Comunidad Económica Europea (actual UE)?", opts: ["1982","1984","1986","1990"], ans: 2, exp: "España entró en la CEE el 1 de enero de 1986, junto con Portugal." },
+  { q: "¿Cómo se denomina el proceso político por el que España pasó de la dictadura a la democracia?", opts: ["La Restauración","La Transición Española","El Desarrollismo","La Segunda República"], ans: 1, exp: "La Transición Española (1975-1982) es considerada un modelo de cambio pacífico de régimen político." },
+  { q: "¿Qué arquitecto diseñó la Sagrada Familia de Barcelona?", opts: ["Lluís Domènech i Montaner","Josep Puig i Cadafalch","Antoni Gaudí","Rafael Moneo"], ans: 2, exp: "Antoni Gaudí tomó el proyecto de la Sagrada Familia en 1883 y lo dedicó como su obra maestra y espiritual." },
+  { q: "¿Cuándo fue proclamada la Segunda República Española?", opts: ["1923","1929","1931","1933"], ans: 2, exp: "La Segunda República fue proclamada el 14 de abril de 1931, tras la marcha al exilio del rey Alfonso XIII." },
+  { q: "¿Qué pueblo prerromano habitó el centro y norte de la Península Ibérica?", opts: ["Los íberos","Los celtíberos","Los fenicios","Los griegos"], ans: 1, exp: "Los celtíberos surgieron de la fusión de celtas e íberos y habitaron el interior y norte peninsular." },
+  { q: "¿En qué año entró el euro en circulación física en España?", opts: ["1999","2000","2001","2002"], ans: 3, exp: "El euro entró en circulación el 1 de enero de 2002, aunque España lo adoptó contablemente en 1999." },
+  { q: "¿Qué batalla de 1212 supuso un giro decisivo contra los almohades?", opts: ["Batalla de Covadonga","Batalla de Guadalete","Batalla de las Navas de Tolosa","Batalla del Salado"], ans: 2, exp: "Las Navas de Tolosa (1212) fue una victoria cristiana decisiva que aceleró el declive del poder almohade en la Península." },
+  { q: "¿Quién irrumpió en el Congreso de los Diputados durante el intento de golpe del 23-F (1981)?", opts: ["Alfonso Armada","Antonio Tejero","Jaime Milans del Bosch","Adolfo Suárez"], ans: 1, exp: "El teniente coronel Antonio Tejero tomó el Congreso al mando de guardias civiles. El golpe fracasó gracias al rey Juan Carlos I." }
+];
+
+const LETTERS = ['A','B','C','D'];
+let current = 0, score = 0, answered = false;
+const PTS_PER_Q = 200;
+
+async function updateServerPoints(newPoints) {
+  if (!currentUser || !currentUser.ide) return;
+  try {
+    const res = await fetch(`/update/${encodeURIComponent(currentUser.ide)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ points: newPoints })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      currentUser.points = data.points;
+      document.getElementById("user-points").textContent = "⭐ " + data.points;
+    }
+  } catch(e) {
+    console.error("Error actualizando puntos:", e);
+  }
+}
+
+function render() {
+  const q = Qs[current];
+  document.getElementById('q-number').textContent = `Pregunta ${current + 1} de ${Qs.length}`;
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('prog-frac').textContent = `${current + 1} / ${Qs.length}`;
+  document.getElementById('pbar').style.width = ((current / Qs.length) * 100) + '%';
+
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  q.opts.forEach((o, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.setAttribute('data-letter', LETTERS[i]);
+    btn.textContent = o;
+    btn.onclick = () => choose(i);
+    opts.appendChild(btn);
+  });
+
+  document.getElementById('feedback').style.display = 'none';
+  const nb = document.getElementById('next-btn');
+  nb.style.display = 'none';
+  answered = false;
+}
+
+function choose(i) {
+  if (answered) return;
+  answered = true;
+  const q = Qs[current];
+  const btns = document.querySelectorAll('.opt-btn');
+  btns.forEach(b => b.disabled = true);
+
+  const fb = document.getElementById('feedback');
+  if (i === q.ans) {
+    score++;
+    quizPoints += PTS_PER_Q;
+    btns[i].classList.add('correct');
+    btns.forEach((b, j) => { if (j !== i) b.classList.add('dimmed'); });
+    fb.className = 'feedback correct';
+    fb.innerHTML = '<strong>Correcto</strong>' + q.exp;
+    if (currentUser) {
+      currentUser.points = (Number(currentUser.points) || 0) + PTS_PER_Q;
+      updateServerPoints(currentUser.points);
+    }
+  } else {
+    btns[i].classList.add('wrong');
+    btns[q.ans].classList.add('correct');
+    btns.forEach((b, j) => { if (j !== i && j !== q.ans) b.classList.add('dimmed'); });
+    fb.className = 'feedback wrong';
+    fb.innerHTML = '<strong>Incorrecto</strong>' + q.exp;
+  }
+  fb.style.display = 'block';
+
+  const nb = document.getElementById('next-btn');
+  nb.textContent = current < Qs.length - 1 ? 'Siguiente pregunta →' : 'Ver resultados →';
+  nb.style.display = 'block';
+}
+
+function nextQ() {
+  current++;
+  if (current >= Qs.length) showScore();
+  else render();
+}
+
+async function showScore() {
+  document.getElementById('quiz-card').style.display = 'none';
+  document.getElementById('progress-area').style.display = 'none';
+
+  const pct = Math.round((score / Qs.length) * 100);
+  let crown, msg;
+  if (pct >= 90)      { crown = '👑'; msg = 'Conocimiento verdaderamente sobresaliente. Eres un experto en historia española.'; }
+  else if (pct >= 70) { crown = '⭐'; msg = 'Notable dominio de la historia de España. Solo unos detalles se escaparon.'; }
+  else if (pct >= 50) { crown = '📜'; msg = 'Conoces bien la historia española, aunque hay capítulos que merecen más atención.'; }
+  else                { crown = '📖'; msg = 'La historia de España es extensa y apasionante. ¡Hay mucho por descubrir todavía!'; }
+
+  document.getElementById('score-crown').textContent = crown;
+  document.getElementById('score-big').textContent = score;
+  document.getElementById('stat-correct').textContent = score;
+  document.getElementById('stat-wrong').textContent = Qs.length - score;
+  document.getElementById('stat-pct').textContent = pct + '%';
+  document.getElementById('score-msg').textContent = msg;
+
+  const sc = document.getElementById('score-screen');
+  sc.style.display = 'block';
+  setTimeout(() => {
+    document.getElementById('pct-bar').style.width = pct + '%';
+  }, 100);
+
+  if (currentUser) {
+    await updateServerPoints(currentUser.points);
+  }
+}
+
+function restart() {
+  current = 0; score = 0; quizPoints = 0;
+  document.getElementById('score-screen').style.display = 'none';
+  document.getElementById('quiz-card').style.display = 'block';
+  document.getElementById('progress-area').style.display = 'block';
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

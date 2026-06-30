@@ -7,6 +7,11 @@ const LAST_ACTIVE_KEY = "andeleros_last_active";
 
 const PALABRAS_PROHIBIDAS = ["tonto", "feo", "malo", "joder", "idiota"];
 
+const socket = io();
+socket.on("admin-broadcast", (data) => {
+  alert(data.user + ": " + data.message);
+});
+
 function esMalsonante(texto) {
   const low = texto.toLowerCase();
   return PALABRAS_PROHIBIDAS.some(p => low.includes(p));
@@ -101,17 +106,17 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 /* ================= UI ================= */
 function hideAll(){
-  [
-    "menu","crear","login","setup","privacidad",
-    "panel","perfil","menuJugar","overlayNoti"
-  ].forEach(id=>{
-    document.getElementById(id)?.classList.add("hidden");
-  });
-}
+   [
+     "menu","crear","login","setup","privacidad",
+     "panel","perfil","menuJugar","overlayNoti"
+   ].forEach(id=>{
+     document.getElementById(id)?.classList.add("hidden");
+   });
+ }
 
 function show(id){
-  document.getElementById(id)?.classList.remove("hidden");
-}
+   document.getElementById(id)?.classList.remove("hidden");
+ }
 
 /* ================= BARRA ================= */
 function updateBar(){
@@ -508,7 +513,7 @@ function cerrarJugar(){
 
 /* ================= ENLACES ================= */
 function irMinijuegos(){
-  window.location.href = "https://magomagioso-bit.github.io/losandeleros-minijuegos/";
+  window.location.href = "mantenimiento.html";
 }
 
 function irEscape(){
@@ -516,15 +521,15 @@ function irEscape(){
 }
 
 function irQuiz(){
-  window.location.href = "/trivialplayers.html";
+  window.location.href = "/quizzes/quiz.html";
 }
 
 function irTrivialPlayers(){
-  window.location.href = "/trivialplayers.html";
+  window.location.href = "/quizzes/trivialplayers.html";
 }
 
 function irQuizIndividual(){
-  window.location.href = "/quiz.html";
+  window.location.href = "/quizzes/quiz.html";
 }
 
 function irMisterio(){
@@ -544,12 +549,12 @@ function irAdmin(){
 function abrirNoti(){
   hideAll();
   show("overlayNoti");
-  document.getElementById("notiText").innerText = "🔔 hola ,porfavor cretae una nueva cuenta si no lo has hecho todavia para evitar errores con la base de datos muchas gracias, no van los ultuim os 3 minijueegos";
+  document.getElementById("notiText").innerText = "🔔 hola ,porfavor cretae una nueva cuenta si no lo has hecho todavia para evitar errores con la base de datos muchas gracias, no van los ultimos 3 minijuegos, estan en mantenimiento";
 }
 
 function cerrarNoti(){
-  go();
-}
+   go();
+ }
 
 /* ================= MISIONES ================= */
 // La lógica principal ahora reside en mario bross/2.html
@@ -626,54 +631,84 @@ function shop(){
 
   let secciones = "";
 
+  // Quiz de Inglés
   if (user.englishQuizPurchased) {
     secciones += `
       <div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 10px;">
         <p style="margin: 5px 0;">📚 <b>Quiz de Inglés</b></p>
-        <p style="margin: 5px 0; color: #00ff99; font-size: 13px;">✅ Ya tienes acceso a este quiz</p>
+        <p style="margin: 5px 0; color: #00ff99; font-size: 13px;">✅ Ya lo tienes</p>
       </div>
       <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-        <button onclick="closePopup(); setTimeout(() => window.location.href='quizenglis.html', 300);" style="letter-spacing: 1px;">jugar</button>
+        <button onclick="closePopup(); window.location.href='/quizzes/quizenglis.html'" style="letter-spacing: 1px;">🇬🇧 Jugar Inglés</button>
       </div>
     `;
   } else {
     secciones += `
       <div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 10px;">
         <p style="margin: 5px 0;">📚 <b>Quiz de Inglés</b></p>
-        <p style="margin: 5px 0; color: #aaa; font-size: 13px;">Accede a un quiz especial de inglés</p>
+        <p style="margin: 5px 0; color: #aaa; font-size: 13px;">Practica tu level de inglés</p>
         <p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 500 ⭐</p>
         <p style="margin: 5px 0; color: #00ffcc; font-size: 12px;">Tu saldo: ${saldo} ⭐</p>
       </div>
       <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-        <button onclick="buyEnglishQuiz()" style="letter-spacing: 1px;">COMPRAR</button>
+        <button onclick="buyEnglishQuiz()" style="letter-spacing: 1px;">COMPRAR Inglés (500⭐)</button>
       </div>
     `;
   }
 
+  // Quiz de Historia
   if (user.historyQuizPurchased) {
     secciones += `
       <div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 10px;">
         <p style="margin: 5px 0;">📜 <b>Quiz de Historia</b></p>
-        <p style="margin: 5px 0; color: #00ff99; font-size: 13px;">✅ Ya tienes acceso a este quiz</p>
+        <p style="margin: 5px 0; color: #00ff99; font-size: 13px;">✅ Ya lo tienes</p>
       </div>
       <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-        <button onclick="closePopup(); setTimeout(() => window.location.href='quizhistoria.html', 300);" style="letter-spacing: 1px;">jugar</button>
+        <button onclick="closePopup(); window.location.href='/quizzes/quizhistoria.html'" style="letter-spacing: 1px;">📜 Jugar Historia</button>
       </div>
     `;
   } else {
     secciones += `
       <div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 10px;">
         <p style="margin: 5px 0;">📜 <b>Quiz de Historia</b></p>
-        <p style="margin: 5px 0; color: #aaa; font-size: 13px;">Accede a un quiz especial de historia</p>
-        <p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 500 ⭐</p>
+        <p style="margin: 5px 0; color: #aaa; font-size: 13px;">25 preguntas sobre España</p>
+        <p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 200 ⭐</p>
         <p style="margin: 5px 0; color: #00ffcc; font-size: 12px;">Tu saldo: ${saldo} ⭐</p>
       </div>
       <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-        <button onclick="buyHistoryQuiz()" style="letter-spacing: 1px;">COMPRAR</button>
+        <button onclick="buyHistoryQuiz()" style="letter-spacing: 1px;">COMPRAR Historia (200⭐)</button>
       </div>
     `;
   }
 
+  // Quiz de Geografía
+  if (user.geographyQuizPurchased) {
+    secciones += `
+      <div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 10px;">
+        <p style="margin: 5px 0;">🌍 <b>Quiz de Geografía</b></p>
+        <p style="margin: 5px 0; color: #00ff99; font-size: 13px;">✅ Ya lo tienes</p>
+      </div>
+      <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+        <button onclick="closePopup(); window.location.href='/quizzes/quizmundo.html'" style="letter-spacing: 1px;">🌍 Jugar Geografía</button>
+      </div>
+    `;
+  } else {
+    secciones += `
+      <div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 10px;">
+        <p style="margin: 5px 0;">🌍 <b>Quiz de Geografía</b></p>
+        <p style="margin: 5px 0; color: #aaa; font-size: 13px;">70 preguntas por el mundo</p>
+        <p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 700 ⭐</p>
+        <p style="margin: 5px 0; color: #00ffcc; font-size: 12px;">Tu saldo: ${saldo} ⭐</p>
+      </div>
+      <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+        <button onclick="buyGeographyQuiz()" style="letter-spacing: 1px;">COMPRAR Geografía (700⭐)</button>
+      </div>
+    `;
+  }
+
+secciones += `<button onclick="closePopup()" style="background: #222; color: #666; margin-top: 15px;">Cerrar</button>
+    `;
+  
   popupText.innerHTML = `
     <h3 style="color: #00ffcc; margin-bottom: 15px;">🏪 TIENDA</h3>
     ${secciones}
@@ -714,21 +749,21 @@ async function buyEnglishQuiz(){
   }
   
   setTimeout(() => {
-    window.location.href = "quizenglis.html";
+    window.location.href = "/quizzes/quizenglis.html";
   }, 1500);
 }
 
 async function buyHistoryQuiz(){
-  if ((user.points || 0) < 500) {
-    showPopup("❌ No tienes suficientes créditos.\nNecesitas 500 ⭐.\nSaldo actual: " + (user.points || 0) + " ⭐");
+  if ((user.points || 0) < 200) {
+    showPopup("❌ No tienes suficientes créditos.\nNecesitas 200 ⭐.\nSaldo actual: " + (user.points || 0) + " ⭐");
     setTimeout(closePopup, 2000);
     return;
   }
   
-  user.points -= 500;
+  user.points -= 200;
   user.historyQuizPurchased = true;
   
-  showPopup("✅ Compra realizada: -500 ⭐\nRedirigiendo al Quiz de Historia...");
+  showPopup("✅ Compra realizada: -200 ⭐\nRedirigiendo al Quiz de Historia...");
   
   saveCurrentUserLocalData();
   
@@ -751,30 +786,21 @@ async function buyHistoryQuiz(){
   }
   
   setTimeout(() => {
-    window.location.href = "quizhistoria.html";
+    window.location.href = "/quizzes/quizhistoria.html";
   }, 1500);
 }
 
-function showPopup(text){
-  document.getElementById("popupText").innerText = text;
-  document.getElementById("popup").style.display = "flex";
-}
-
-function closePopup(){
-  document.getElementById("popup").style.display = "none";
-}
-
-async function buyEnglishQuiz(){
-  if ((user.points || 0) < 500) {
-    showPopup("❌ No tienes suficientes créditos.\nNecesitas 500 ⭐.\nSaldo actual: " + (user.points || 0) + " ⭐");
+async function buyGeographyQuiz(){
+  if ((user.points || 0) < 700) {
+    showPopup("❌ No tienes suficientes créditos.\nNecesitas 700 ⭐.\nSaldo actual: " + (user.points || 0) + " ⭐");
     setTimeout(closePopup, 2000);
     return;
   }
   
-  user.points -= 500;
-  user.englishQuizPurchased = true;
+  user.points -= 700;
+  user.geographyQuizPurchased = true;
   
-  showPopup("✅ Compra realizada: -500 ⭐\nRedirigiendo al Quiz de Inglés...");
+  showPopup("✅ Compra realizada: -700 ⭐\nRedirigiendo al Quiz de Geografía...");
   
   saveCurrentUserLocalData();
   
@@ -784,7 +810,7 @@ async function buyEnglishQuiz(){
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
         points: user.points,
-        englishQuizPurchased: true
+        geographyQuizPurchased: true
       })
     });
     
@@ -797,54 +823,8 @@ async function buyEnglishQuiz(){
   }
   
   setTimeout(() => {
-    window.location.href = "quizenglis.html";
+    window.location.href = "/quizzes/quizmundo.html";
   }, 1500);
-}
-
-async function buyHistoryQuiz(){
-  if ((user.points || 0) < 500) {
-    showPopup("❌ No tienes suficientes créditos.\nNecesitas 500 ⭐.\nSaldo actual: " + (user.points || 0) + " ⭐");
-    setTimeout(closePopup, 2000);
-    return;
-  }
-  
-  user.points -= 500;
-  user.historyQuizPurchased = true;
-  
-  showPopup("✅ Compra realizada: -500 ⭐\nRedirigiendo al Quiz de Historia...");
-  
-  saveCurrentUserLocalData();
-  
-  try {
-    const res = await fetch(`${API_BASE}/update/${encodeURIComponent(user.ide)}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        points: user.points,
-        historyQuizPurchased: true
-      })
-    });
-    
-    if (res.ok) {
-      const data = await res.json();
-      user.points = data.points;
-    }
-  } catch(err) {
-    console.error("Error actualizando compra:", err);
-  }
-  
-  setTimeout(() => {
-    window.location.href = "quizhistoria.html";
-  }, 1500);
-}
-
-function showPopup(text){
-  document.getElementById("popupText").innerText = text;
-  document.getElementById("popup").style.display = "flex";
-}
-
-function closePopup(){
-  document.getElementById("popup").style.display = "none";
 }
 
 /* ================= MUSICA ================= */
@@ -861,4 +841,13 @@ function toggleMusica(){
     audio.pause();
     musicaActiva = false;
   }
+}
+
+function showPopup(text){
+  document.getElementById("popupText").innerHTML = text + '<br><br><button onclick="closePopup()" style="margin-top: 10px; background: #222; color: #666;">Cerrar</button>';
+  document.getElementById("popup").style.display = "flex";
+}
+
+function closePopup(){
+  document.getElementById("popup").style.display = "none";
 }

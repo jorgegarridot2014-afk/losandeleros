@@ -189,7 +189,13 @@ html,body{
 <!-- BOTÓN VOLVER -->
 <button id="backBtn" class="volver">⬅ VOLVER AL MENÚ</button>
 
+<script src="/socket.io/socket.io.js"></script>
 <script>
+const socket = io();
+socket.on("admin-broadcast", (data) => {
+  alert(data.user + ": " + data.message);
+});
+
 const playBtn = document.getElementById("playBtn");
 const startScreen = document.getElementById("startScreen");
 const gameScreen = document.getElementById("gameScreen");

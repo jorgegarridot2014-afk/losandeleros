@@ -3,73 +3,1043 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mantenimiento</title>
-
+<title>Mini juegos</title>
 <style>
-  *{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial, sans-serif;
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 0%, #2a2a4a 0%, #14141f 60%, #0a0a10 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #f0f0f0;
+    padding: 24px;
   }
+  .screen { display: none; width: 100%; flex-direction: column; align-items: center; }
+  .screen.active { display: flex; }
 
-  body{
-    height:100vh;
-    overflow:hidden;
-    background:#000;
-    color:white;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    text-align:center;
+  h1 {
+    font-size: 26px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    background: linear-gradient(90deg, #7f77dd, #5dcaa5, #f0997b);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    letter-spacing: 0.5px;
   }
+  .subtitle {
+    font-size: 13px;
+    color: #999;
+    margin-bottom: 28px;
+    text-align: center;
+  }
+  h2 { font-size: 19px; font-weight: 600; margin: 0 0 12px; color: #fff; }
 
-  .box{
-    padding:30px;
-    border:1px solid #111;
-    background:#0a0a0a;
-    border-radius:12px;
-    box-shadow:0 0 20px #00aaff22;
-    max-width:600px;
+  .menu {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 340px;
   }
+  .card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    background: linear-gradient(145deg, #232336, #1a1a28);
+    border: 1px solid #3a3a52;
+    border-radius: 14px;
+    padding: 18px 20px;
+    color: #eee;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  }
+  .card:hover { border-color: #7f77dd; box-shadow: 0 6px 18px rgba(127,119,221,0.25); }
+  .card:active { transform: scale(0.97); }
+  .card .icon {
+    width: 42px; height: 42px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .card .name { font-size: 16px; font-weight: 600; margin-bottom: 3px; }
+  .card .desc { font-size: 12.5px; color: #999; }
 
-  h1{
-    color:#00aaff;
-    font-size:32px;
-    text-shadow:0 0 12px #00aaff;
+  .hud {
+    display: flex;
+    gap: 16px;
+    font-size: 14px;
+    color: #aaa;
+    margin-bottom: 12px;
+    background: rgba(255,255,255,0.05);
+    padding: 6px 16px;
+    border-radius: 20px;
   }
+  .hud strong { color: #fff; font-weight: 600; }
 
-  p{
-    margin-top:15px;
-    color:#bbb;
-    line-height:1.5;
+  .game-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 700px;
+    background: #16161f;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #34344a;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   }
+  .game-wrap canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    touch-action: none;
+  }
+  .game-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: rgba(10,10,16,0.78);
+    text-align: center;
+    padding: 20px;
+  }
+  .game-overlay .title { font-size: 18px; font-weight: 600; color: #fff; }
+  .game-overlay .sub { font-size: 13px; color: #bbb; max-width: 320px; line-height: 1.5; }
 
-  .dot{
-    margin-top:20px;
-    color:#00aaff;
-    font-weight:bold;
-    animation:blink 1.2s infinite;
+  button {
+    background: linear-gradient(135deg, #7f77dd, #5dcaa5);
+    color: #14141f;
+    border: none;
+    padding: 11px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(127,119,221,0.35);
   }
+  button:active { transform: scale(0.96); }
 
-  @keyframes blink{
-    0%,100%{opacity:1;}
-    50%{opacity:0.2;}
+  .hint { margin-top: 14px; font-size: 12px; color: #777; text-align: center; }
+  .back-link {
+    margin-top: 18px;
+    color: #999;
+    font-size: 13px;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+    cursor: pointer;
   }
+  .back-link:active { transform: none; }
+
+  /* selector de coche */
+  .car-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    width: 100%;
+    max-width: 340px;
+    margin-bottom: 24px;
+  }
+  .car-option {
+    background: linear-gradient(145deg, #232336, #1a1a28);
+    border: 2px solid #3a3a52;
+    border-radius: 14px;
+    padding: 14px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, transform 0.12s ease;
+  }
+  .car-option:hover { transform: translateY(-2px); }
+  .car-option.selected { border-color: #5dcaa5; box-shadow: 0 0 0 1px #5dcaa5; }
+  .car-option .swatch {
+    width: 38px; height: 56px;
+    border-radius: 8px;
+    position: relative;
+  }
+  .car-option .swatch::before, .car-option .swatch::after {
+    content: '';
+    position: absolute;
+    left: 5px; right: 5px;
+    height: 10px;
+    background: rgba(255,255,255,0.85);
+    border-radius: 3px;
+  }
+  .car-option .swatch::before { top: 8px; }
+  .car-option .swatch::after { bottom: 8px; }
+  .car-option .label { font-size: 11.5px; color: #bbb; }
 </style>
 </head>
-
 <body>
 
-  <div class="box">
-    <h1>🚧 Mantenimiento en curso</h1>
-    <p>
-      Estamos mejorando la plataforma para ofrecer una mejor experiencia.<br>
-      Vuelve más tarde.
-    </p>
-
-    <div class="dot">● ● ●</div>
+<div id="menu-screen" class="screen active">
+  <h1>Mini juegos</h1>
+  <div class="subtitle">Elige a qué quieres jugar</div>
+  <div class="menu">
+    <button class="card" onclick="showScreen('carselect')">
+      <div class="icon" style="background:rgba(93,202,165,0.15); color:#5dcaa5;">&#128663;</div>
+      <div>
+        <div class="name">Carrera rápida</div>
+        <div class="desc">Esquiva los coches y suma distancia</div>
+      </div>
+    </button>
+    <button class="card" onclick="showScreen('geo')">
+      <div class="icon" style="background:rgba(127,119,221,0.15); color:#7f77dd;">&#9670;</div>
+      <div>
+        <div class="name">Geometry jump</div>
+        <div class="desc">Salta pinchos y bloques sin parar</div>
+      </div>
+    </button>
+    <button class="card" onclick="showScreen('snake')">
+      <div class="icon" style="background:rgba(240,153,123,0.15); color:#f0997b;">&#128034;</div>
+      <div>
+        <div class="name">Snake</div>
+        <div class="desc">Come fruta y haz crecer tu serpiente</div>
+      </div>
+    </button>
   </div>
+</div>
+
+<div id="carselect-screen" class="screen">
+  <h2>Elige tu coche</h2>
+  <div class="car-grid" id="car-grid"></div>
+  <button id="confirm-car">Jugar</button>
+  <button class="back-link" onclick="showScreen('menu')">Volver al menú</button>
+</div>
+
+<div id="race-screen" class="screen">
+  <h2>Carrera rápida</h2>
+  <div class="hud">
+    <span>Puntos: <strong id="race-score">0</strong></span>
+    <span>Récord: <strong id="race-best">0</strong></span>
+  </div>
+  <div class="game-wrap" style="max-width:360px;">
+    <canvas id="race-canvas" width="400" height="560"></canvas>
+    <div id="race-overlay" class="game-overlay">
+      <div class="title">Carrera rápida</div>
+      <div class="sub">Usa las flechas o A/D (WASD) para moverte, o arrastra en móvil. Esquiva los coches y suma puntos.</div>
+      <button id="race-start">Empezar</button>
+    </div>
+  </div>
+  <div class="hint">Flechas o A/D en escritorio, deslizar en móvil</div>
+  <button class="back-link" onclick="showScreen('menu')">Volver al menú</button>
+</div>
+
+<div id="geo-screen" class="screen">
+  <h2>Geometry jump</h2>
+  <div class="hud">
+    <span>Puntos: <strong id="geo-score">0</strong></span>
+    <span>Récord: <strong id="geo-best">0</strong></span>
+  </div>
+  <div class="game-wrap">
+    <canvas id="geo-canvas" width="700" height="350"></canvas>
+    <div id="geo-overlay" class="game-overlay">
+      <div class="title">Geometry jump</div>
+      <div class="sub">Pulsa espacio, toca la pantalla o haz clic para saltar. Esquiva los pinchos y las plataformas.</div>
+      <button id="geo-start">Empezar</button>
+    </div>
+  </div>
+  <div class="hint">Espacio / clic / tocar para saltar</div>
+  <button class="back-link" onclick="showScreen('menu')">Volver al menú</button>
+</div>
+
+<div id="snake-screen" class="screen">
+  <h2>Snake</h2>
+  <div class="hud">
+    <span>Puntos: <strong id="snake-score">0</strong></span>
+    <span>Récord: <strong id="snake-best">0</strong></span>
+  </div>
+  <div class="game-wrap" style="max-width:420px;">
+    <canvas id="snake-canvas" width="400" height="400"></canvas>
+    <div id="snake-overlay" class="game-overlay">
+      <div class="title">Snake</div>
+      <div class="sub">Usa las flechas o WASD para moverte. Come la fruta y no choques contigo mismo ni con el borde.</div>
+      <button id="snake-start">Empezar</button>
+    </div>
+  </div>
+  <div class="hint">Flechas o WASD, deslizar en móvil</div>
+  <button class="back-link" onclick="showScreen('menu')">Volver al menú</button>
+</div>
+
+<script>
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  if(name === 'menu') document.getElementById('menu-screen').classList.add('active');
+  if(name === 'carselect') document.getElementById('carselect-screen').classList.add('active');
+  if(name === 'race') document.getElementById('race-screen').classList.add('active');
+  if(name === 'geo') document.getElementById('geo-screen').classList.add('active');
+  if(name === 'snake') document.getElementById('snake-screen').classList.add('active');
+
+  if(name !== 'race' && window.stopRaceGame) window.stopRaceGame();
+  if(name !== 'geo' && window.stopGeoGame) window.stopGeoGame();
+  if(name !== 'snake' && window.stopSnakeGame) window.stopSnakeGame();
+}
+
+/* ===================== SELECTOR DE COCHE ===================== */
+const carColors = [
+  { name: 'Verde', value: '#1D9E75' },
+  { name: 'Azul', value: '#378ADD' },
+  { name: 'Coral', value: '#D85A30' },
+  { name: 'Morado', value: '#7F77DD' },
+  { name: 'Rosa', value: '#D4537E' },
+  { name: 'Ámbar', value: '#EF9F27' }
+];
+let selectedCarColor = carColors[0].value;
+
+(function(){
+  const grid = document.getElementById('car-grid');
+  carColors.forEach((c, i) => {
+    const el = document.createElement('div');
+    el.className = 'car-option' + (i === 0 ? ' selected' : '');
+    el.innerHTML = '<div class="swatch" style="background:' + c.value + '"></div><div class="label">' + c.name + '</div>';
+    el.addEventListener('click', () => {
+      selectedCarColor = c.value;
+      document.querySelectorAll('.car-option').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+    });
+    grid.appendChild(el);
+  });
+  document.getElementById('confirm-car').addEventListener('click', () => {
+    showScreen('race');
+    if(window.applyCarColor) window.applyCarColor(selectedCarColor);
+  });
+})();
+
+/* ===================== JUEGO DE CARRERAS ===================== */
+(function(){
+  const canvas = document.getElementById('race-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const lanes = [60, 140, 220, 300];
+  const laneWidth = 80;
+
+  let player, rivals, speed, score, best, running, animId, lastTime, spawnTimer, roadOffset;
+  let playerColor = '#1D9E75';
+
+  window.applyCarColor = function(color){
+    playerColor = color;
+    if(player) drawScene(true);
+  };
+
+  const scoreEl = document.getElementById('race-score');
+  const bestEl = document.getElementById('race-best');
+  const overlay = document.getElementById('race-overlay');
+  const startBtn = document.getElementById('race-start');
+
+  best = parseInt(localStorage.getItem('racingBest') || '0', 10);
+  bestEl.textContent = best;
+
+  function resetGame(){
+    player = { lane: 1, x: lanes[1], y: H - 100, w: 40, h: 64, targetX: lanes[1] };
+    rivals = [];
+    speed = 3;
+    score = 0;
+    spawnTimer = 0;
+    roadOffset = 0;
+    scoreEl.textContent = '0';
+  }
+
+  function spawnRival(){
+    const lane = Math.floor(Math.random() * lanes.length);
+    rivals.push({ lane, x: lanes[lane], y: -80, w: 40, h: 64, color: ['#378ADD','#D85A30','#0F6E56','#993556'][Math.floor(Math.random()*4)] });
+  }
+
+  function drawRoad(offset){
+    ctx.fillStyle = '#4a4a46';
+    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle = '#3a3a38';
+    ctx.fillRect(20,0,W-40,H);
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = 4;
+    ctx.setLineDash([20,20]);
+    for(let i=1;i<lanes.length;i++){
+      const x = lanes[i] - laneWidth/2;
+      ctx.beginPath();
+      ctx.lineDashOffset = -offset;
+      ctx.moveTo(x,0);
+      ctx.lineTo(x,H);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+  }
+
+  function drawCar(x,y,w,h,color,isPlayer){
+    ctx.save();
+    ctx.translate(x, y);
+
+    ctx.fillStyle = '#111';
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(-w/2 + 2, -h/2 + 6, 7, h - 12, 3) : ctx.rect(-w/2 + 2, -h/2 + 6, 7, h - 12);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(w/2 - 9, -h/2 + 6, 7, h - 12, 3) : ctx.rect(w/2 - 9, -h/2 + 6, 7, h - 12);
+    ctx.fill();
+
+    const grad = ctx.createLinearGradient(0, -h/2, 0, h/2);
+    grad.addColorStop(0, lighten(color, 18));
+    grad.addColorStop(1, color);
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(-w/2 + 4, -h/2, w - 8, h, 10);
+    else ctx.rect(-w/2 + 4, -h/2, w - 8, h);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(180,225,255,0.9)';
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(-w/2 + 9, -h/2 + 9, w - 18, 15, 4);
+    else ctx.rect(-w/2 + 9, -h/2 + 9, w - 18, 15);
+    ctx.fill();
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(-w/2 + 9, h/2 - 24, w - 18, 15, 4);
+    else ctx.rect(-w/2 + 9, h/2 - 24, w - 18, 15);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillRect(-w/2 + 6, -h/2 + 28, 3, h - 56);
+
+    if(isPlayer){
+      ctx.fillStyle = '#ffe600';
+      ctx.beginPath();
+      ctx.moveTo(0, -h/2 - 14);
+      ctx.lineTo(-6, -h/2 - 4);
+      ctx.lineTo(6, -h/2 - 4);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      ctx.fillStyle = '#ffd24d';
+      ctx.fillRect(-w/2 + 4, -h/2 - 2, 5, 4);
+      ctx.fillRect(w/2 - 9, -h/2 - 2, 5, 4);
+    }
+
+    ctx.restore();
+  }
+
+  function lighten(hex, amt){
+    const c = hex.replace('#','');
+    const num = parseInt(c, 16);
+    let r = (num >> 16) + amt;
+    let g = ((num >> 8) & 0xff) + amt;
+    let b = (num & 0xff) + amt;
+    r = Math.min(255, r); g = Math.min(255, g); b = Math.min(255, b);
+    return 'rgb(' + r + ',' + g + ',' + b + ')';
+  }
+
+  function drawScene(staticOnly){
+    drawRoad(roadOffset);
+    if(staticOnly){
+      drawCar(player.x, player.y, player.w, player.h, playerColor, true);
+    }
+  }
+
+  function loop(time){
+    if(!running) return;
+    if(!lastTime) lastTime = time;
+    const dt = Math.min((time - lastTime) / 16.6, 3);
+    lastTime = time;
+
+    roadOffset += speed * dt;
+    drawRoad(roadOffset);
+
+    player.x += (player.targetX - player.x) * 0.25;
+
+    spawnTimer -= dt;
+    if(spawnTimer <= 0){
+      spawnRival();
+      spawnTimer = Math.max(34 - speed * 1.5, 8);
+    }
+
+    for(let i = rivals.length - 1; i >= 0; i--){
+      const r = rivals[i];
+      r.y += speed * dt;
+      drawCar(r.x, r.y, r.w, r.h, r.color);
+
+      const dx = Math.abs(r.x - player.x);
+      const dy = Math.abs(r.y - player.y);
+      if(dx < (r.w + player.w)/2 - 8 && dy < (r.h + player.h)/2 - 8){
+        endGame();
+        return;
+      }
+
+      if(r.y > H + 60){
+        rivals.splice(i,1);
+        score += 1;
+        scoreEl.textContent = score;
+        speed = Math.min(speed + 0.1, 16);
+      }
+    }
+
+    drawCar(player.x, player.y, player.w, player.h, playerColor, true);
+
+    animId = requestAnimationFrame(loop);
+  }
+
+  function endGame(){
+    running = false;
+    if(score > best){
+      best = score;
+      bestEl.textContent = best;
+      localStorage.setItem('racingBest', String(best));
+    }
+    overlay.style.display = 'flex';
+    overlay.innerHTML = '';
+
+    const title = document.createElement('div');
+    title.className = 'title';
+    title.textContent = 'Has chocado';
+
+    const sub = document.createElement('div');
+    sub.className = 'sub';
+    sub.textContent = 'Puntos: ' + score;
+
+    const btn = document.createElement('button');
+    btn.textContent = 'Volver a intentar';
+    btn.onclick = startGame;
+
+    overlay.appendChild(title);
+    overlay.appendChild(sub);
+    overlay.appendChild(btn);
+  }
+
+  function startGame(){
+    resetGame();
+    overlay.style.display = 'none';
+    running = true;
+    lastTime = 0;
+    animId = requestAnimationFrame(loop);
+  }
+
+  window.stopRaceGame = function(){
+    running = false;
+    if(animId) cancelAnimationFrame(animId);
+  };
+
+  startBtn.addEventListener('click', startGame);
+
+  document.addEventListener('keydown', (e) => {
+    if(!running) return;
+    const key = e.key.toLowerCase();
+    if((key === 'arrowleft' || key === 'a') && player.lane > 0){
+      player.lane -= 1;
+      player.targetX = lanes[player.lane];
+    } else if((key === 'arrowright' || key === 'd') && player.lane < lanes.length - 1){
+      player.lane += 1;
+      player.targetX = lanes[player.lane];
+    }
+  });
+
+  let dragStartX = null;
+  canvas.addEventListener('pointerdown', (e) => { dragStartX = e.clientX; });
+  canvas.addEventListener('pointerup', (e) => {
+    if(dragStartX === null || !running) return;
+    const diff = e.clientX - dragStartX;
+    if(diff > 30 && player.lane < lanes.length - 1){
+      player.lane += 1; player.targetX = lanes[player.lane];
+    } else if(diff < -30 && player.lane > 0){
+      player.lane -= 1; player.targetX = lanes[player.lane];
+    }
+    dragStartX = null;
+  });
+
+  resetGame();
+  drawScene(true);
+})();
+
+/* ===================== JUEGO GEOMETRY JUMP ===================== */
+(function(){
+  const canvas = document.getElementById('geo-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const groundY = H - 50;
+
+  const GRAVITY = 0.9;
+  const JUMP_VELOCITY = -14;
+
+  let player, obstacles, speed, score, best, running, animId, lastTime, spawnDist, distSinceSpawn, groundOffset;
+  let stars = [];
+  for(let i = 0; i < 40; i++){
+    stars.push({ x: Math.random() * W, y: Math.random() * (groundY - 10), r: Math.random() * 1.6 + 0.4, s: Math.random() * 0.5 + 0.2 });
+  }
+
+  const scoreEl = document.getElementById('geo-score');
+  const bestEl = document.getElementById('geo-best');
+  const overlay = document.getElementById('geo-overlay');
+  const startBtn = document.getElementById('geo-start');
+
+  best = parseInt(localStorage.getItem('jumpBest') || '0', 10);
+  bestEl.textContent = best;
+
+  function resetGame(){
+    player = { x: 90, y: groundY - 32, size: 32, vy: 0, onGround: true, rotation: 0 };
+    obstacles = [];
+    speed = 6;
+    score = 0;
+    distSinceSpawn = 0;
+    spawnDist = 260;
+    groundOffset = 0;
+    scoreEl.textContent = '0';
+  }
+
+  function spawnObstacle(){
+    const roll = Math.random();
+    if(roll < 0.18){
+      obstacles.push({ type: 'spike', spikes: 1, x: W + 20, w: 30, h: 30, passed: false });
+    } else if(roll < 0.32){
+      obstacles.push({ type: 'spike', spikes: 2, x: W + 20, w: 56, h: 30, passed: false });
+    } else if(roll < 0.42){
+      obstacles.push({ type: 'spike', spikes: 3, x: W + 20, w: 82, h: 30, passed: false });
+    } else if(roll < 0.50){
+      obstacles.push({ type: 'spike', spikes: 4, x: W + 20, w: 108, h: 34, passed: false });
+    } else if(roll < 0.62){
+      const h = 24 + Math.floor(Math.random() * 26);
+      obstacles.push({ type: 'block', x: W + 20, w: 34, h: h, passed: false });
+    } else if(roll < 0.72){
+      obstacles.push({ type: 'block', x: W + 20, w: 60, h: 64, passed: false });
+    } else if(roll < 0.80){
+      obstacles.push({ type: 'block', x: W + 20, w: 90, h: 30, passed: false });
+    } else if(roll < 0.88){
+      obstacles.push({ type: 'spikeblock', x: W + 20, w: 34, h: 60, spikeH: 26, passed: false });
+    } else if(roll < 0.95){
+      obstacles.push({ type: 'stairs', x: W + 20, w: 90, h: 56, passed: false });
+    } else {
+      obstacles.push({ type: 'pillar', x: W + 20, w: 24, h: 90, passed: false });
+    }
+  }
+
+  function drawBackground(offset){
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, '#1a0b3a');
+    grad.addColorStop(0.55, '#0d1f4a');
+    grad.addColorStop(1, '#06302e');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    stars.forEach(st => {
+      st.x -= st.s * 1.5;
+      if(st.x < 0) st.x = W;
+      ctx.beginPath();
+      ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    const gridSize = 40;
+    const off = offset % gridSize;
+    for(let x = -off; x < W; x += gridSize){
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, groundY);
+      ctx.stroke();
+    }
+  }
+
+  function drawGround(){
+    const grad = ctx.createLinearGradient(0, groundY, 0, H);
+    grad.addColorStop(0, '#2a1a4a');
+    grad.addColorStop(1, '#150d24');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, groundY, W, H - groundY);
+    ctx.strokeStyle = '#7f77dd';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, groundY);
+    ctx.lineTo(W, groundY);
+    ctx.stroke();
+  }
+
+  function drawPlayer(){
+    ctx.save();
+    ctx.translate(player.x + player.size/2, player.y + player.size/2);
+    ctx.rotate(player.rotation);
+    ctx.fillStyle = '#5dcaa5';
+    ctx.shadowColor = '#5dcaa5';
+    ctx.shadowBlur = 12;
+    ctx.fillRect(-player.size/2, -player.size/2, player.size, player.size);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.fillRect(-player.size/2 + 6, -player.size/2 + 6, 8, 8);
+    ctx.fillRect(player.size/2 - 14, -player.size/2 + 6, 8, 8);
+    ctx.restore();
+  }
+
+  function drawObstacle(o){
+    if(o.type === 'spike'){
+      const count = o.spikes || 1;
+      const each = o.w / count;
+      ctx.fillStyle = '#f0997b';
+      for(let i = 0; i < count; i++){
+        const sx = o.x + i * each;
+        ctx.beginPath();
+        ctx.moveTo(sx, groundY);
+        ctx.lineTo(sx + each/2, groundY - o.h);
+        ctx.lineTo(sx + each, groundY);
+        ctx.closePath();
+        ctx.fill();
+      }
+    } else if(o.type === 'block'){
+      const grad = ctx.createLinearGradient(o.x, groundY - o.h, o.x, groundY);
+      grad.addColorStop(0, '#a9d2f5');
+      grad.addColorStop(1, '#5e9bd6');
+      ctx.fillStyle = grad;
+      ctx.fillRect(o.x, groundY - o.h, o.w, o.h);
+      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(o.x + 1, groundY - o.h + 1, o.w - 2, o.h - 2);
+    } else if(o.type === 'spikeblock'){
+      const grad = ctx.createLinearGradient(o.x, groundY - o.h, o.x, groundY);
+      grad.addColorStop(0, '#c79be0');
+      grad.addColorStop(1, '#8d5bb0');
+      ctx.fillStyle = grad;
+      ctx.fillRect(o.x, groundY - o.h, o.w, o.h);
+      ctx.fillStyle = '#f0997b';
+      ctx.beginPath();
+      ctx.moveTo(o.x, groundY - o.h);
+      ctx.lineTo(o.x + o.w/2, groundY - o.h - o.spikeH);
+      ctx.lineTo(o.x + o.w, groundY - o.h);
+      ctx.closePath();
+      ctx.fill();
+    } else if(o.type === 'stairs'){
+      const steps = 3;
+      const stepW = o.w / steps;
+      for(let i = 0; i < steps; i++){
+        const sh = (o.h / steps) * (i + 1);
+        ctx.fillStyle = i % 2 === 0 ? '#5dcaa5' : '#3a9e7d';
+        ctx.fillRect(o.x + i * stepW, groundY - sh, stepW, sh);
+      }
+    } else if(o.type === 'pillar'){
+      const grad = ctx.createLinearGradient(o.x, groundY - o.h, o.x, groundY);
+      grad.addColorStop(0, '#f7c777');
+      grad.addColorStop(1, '#c98a2a');
+      ctx.fillStyle = grad;
+      ctx.fillRect(o.x, groundY - o.h, o.w, o.h);
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      ctx.fillRect(o.x, groundY - o.h, o.w, 8);
+    }
+  }
+
+  function jump(){
+    if(!running) return;
+    if(player.onGround){
+      player.vy = JUMP_VELOCITY;
+      player.onGround = false;
+    }
+  }
+
+  function loop(time){
+    if(!running) return;
+    if(!lastTime) lastTime = time;
+    const dt = Math.min((time - lastTime) / 16.6, 3);
+    lastTime = time;
+
+    groundOffset += speed * dt;
+    drawBackground(groundOffset);
+    drawGround();
+
+    player.vy += GRAVITY * dt;
+    player.y += player.vy * dt;
+    if(player.y >= groundY - player.size){
+      player.y = groundY - player.size;
+      player.vy = 0;
+      player.onGround = true;
+      player.rotation = 0;
+    } else {
+      player.rotation += 0.12 * dt;
+    }
+
+    distSinceSpawn += speed * dt;
+    if(distSinceSpawn >= spawnDist){
+      spawnObstacle();
+      distSinceSpawn = 0;
+      spawnDist = Math.max(220 - speed * 6, 130) + Math.random() * 80;
+    }
+
+    for(let i = obstacles.length - 1; i >= 0; i--){
+      const o = obstacles[i];
+      o.x -= speed * dt;
+
+      drawObstacle(o);
+
+      const px1 = player.x + 5, px2 = player.x + player.size - 5;
+      const py1 = player.y + 5, py2 = player.y + player.size - 5;
+      const ox1 = o.x, ox2 = o.x + o.w;
+      const oy1 = groundY - o.h, oy2 = groundY;
+
+      const overlapX = px1 < ox2 && px2 > ox1;
+      const overlapY = py1 < oy2 && py2 > oy1;
+      if(overlapX && overlapY){
+        endGame();
+        return;
+      }
+
+      if(!o.passed && o.x + o.w < player.x){
+        o.passed = true;
+        score += 1;
+        scoreEl.textContent = score;
+        speed = Math.min(speed + 0.08, 13);
+      }
+
+      if(o.x + o.w < -20){
+        obstacles.splice(i,1);
+      }
+    }
+
+    drawPlayer();
+
+    animId = requestAnimationFrame(loop);
+  }
+
+  function endGame(){
+    running = false;
+    if(score > best){
+      best = score;
+      bestEl.textContent = best;
+      localStorage.setItem('jumpBest', String(best));
+    }
+    overlay.style.display = 'flex';
+    overlay.innerHTML = '';
+
+    const title = document.createElement('div');
+    title.className = 'title';
+    title.textContent = 'Has chocado';
+
+    const sub = document.createElement('div');
+    sub.className = 'sub';
+    sub.textContent = 'Puntos: ' + score;
+
+    const btn = document.createElement('button');
+    btn.textContent = 'Volver a intentar';
+    btn.onclick = startGame;
+
+    overlay.appendChild(title);
+    overlay.appendChild(sub);
+    overlay.appendChild(btn);
+  }
+
+  function startGame(){
+    resetGame();
+    overlay.style.display = 'none';
+    running = true;
+    lastTime = 0;
+    animId = requestAnimationFrame(loop);
+  }
+
+  window.stopGeoGame = function(){
+    running = false;
+    if(animId) cancelAnimationFrame(animId);
+  };
+
+  startBtn.addEventListener('click', startGame);
+
+  document.addEventListener('keydown', (e) => {
+    if(e.code === 'Space'){
+      e.preventDefault();
+      jump();
+    }
+  });
+
+  canvas.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    jump();
+  });
+
+  resetGame();
+  drawBackground(0);
+  drawGround();
+  drawPlayer();
+})();
+
+/* ===================== JUEGO SNAKE ===================== */
+(function(){
+  const canvas = document.getElementById('snake-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cell = 20;
+  const cols = W / cell, rows = H / cell;
+
+  let snake, dir, nextDir, food, score, best, running, tickInterval, stepMs;
+
+  const scoreEl = document.getElementById('snake-score');
+  const bestEl = document.getElementById('snake-best');
+  const overlay = document.getElementById('snake-overlay');
+  const startBtn = document.getElementById('snake-start');
+
+  best = parseInt(localStorage.getItem('snakeBest') || '0', 10);
+  bestEl.textContent = best;
+
+  function resetGame(){
+    snake = [
+      { x: 8, y: 10 },
+      { x: 7, y: 10 },
+      { x: 6, y: 10 }
+    ];
+    dir = { x: 1, y: 0 };
+    nextDir = { x: 1, y: 0 };
+    score = 0;
+    stepMs = 140;
+    scoreEl.textContent = '0';
+    placeFood();
+  }
+
+  function placeFood(){
+    let pos;
+    do {
+      pos = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
+    } while(snake.some(s => s.x === pos.x && s.y === pos.y));
+    food = pos;
+  }
+
+  function drawBoard(){
+    ctx.fillStyle = '#16161f';
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    for(let x = 0; x <= cols; x++){
+      ctx.beginPath();
+      ctx.moveTo(x * cell, 0);
+      ctx.lineTo(x * cell, H);
+      ctx.stroke();
+    }
+    for(let y = 0; y <= rows; y++){
+      ctx.beginPath();
+      ctx.moveTo(0, y * cell);
+      ctx.lineTo(W, y * cell);
+      ctx.stroke();
+    }
+  }
+
+  function drawFood(){
+    ctx.fillStyle = '#f0997b';
+    const cx = food.x * cell + cell/2, cy = food.y * cell + cell/2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, cell/2 - 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawSnake(){
+    snake.forEach((s, i) => {
+      ctx.fillStyle = i === 0 ? '#5dcaa5' : '#1D9E75';
+      ctx.fillRect(s.x * cell + 1, s.y * cell + 1, cell - 2, cell - 2);
+    });
+  }
+
+  function step(){
+    dir = nextDir;
+    const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+    if(head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows || snake.some(s => s.x === head.x && s.y === head.y)){
+      endGame();
+      return;
+    }
+
+    snake.unshift(head);
+
+    if(head.x === food.x && head.y === food.y){
+      score += 1;
+      scoreEl.textContent = score;
+      stepMs = Math.max(stepMs - 2, 70);
+      placeFood();
+      clearInterval(tickInterval);
+      tickInterval = setInterval(step, stepMs);
+    } else {
+      snake.pop();
+    }
+
+    drawBoard();
+    drawFood();
+    drawSnake();
+  }
+
+  function endGame(){
+    running = false;
+    clearInterval(tickInterval);
+    if(score > best){
+      best = score;
+      bestEl.textContent = best;
+      localStorage.setItem('snakeBest', String(best));
+    }
+    overlay.style.display = 'flex';
+    overlay.innerHTML = '';
+
+    const title = document.createElement('div');
+    title.className = 'title';
+    title.textContent = 'Has chocado';
+
+    const sub = document.createElement('div');
+    sub.className = 'sub';
+    sub.textContent = 'Puntos: ' + score;
+
+    const btn = document.createElement('button');
+    btn.textContent = 'Volver a intentar';
+    btn.onclick = startGame;
+
+    overlay.appendChild(title);
+    overlay.appendChild(sub);
+    overlay.appendChild(btn);
+  }
+
+  function startGame(){
+    resetGame();
+    overlay.style.display = 'none';
+    running = true;
+    drawBoard();
+    drawFood();
+    drawSnake();
+    clearInterval(tickInterval);
+    tickInterval = setInterval(step, stepMs);
+  }
+
+  window.stopSnakeGame = function(){
+    running = false;
+    clearInterval(tickInterval);
+  };
+
+  startBtn.addEventListener('click', startGame);
+
+  document.addEventListener('keydown', (e) => {
+    if(!running) return;
+    const key = e.key.toLowerCase();
+    if((key === 'arrowup' || key === 'w') && dir.y === 0){ nextDir = { x: 0, y: -1 }; }
+    else if((key === 'arrowdown' || key === 's') && dir.y === 0){ nextDir = { x: 0, y: 1 }; }
+    else if((key === 'arrowleft' || key === 'a') && dir.x === 0){ nextDir = { x: -1, y: 0 }; }
+    else if((key === 'arrowright' || key === 'd') && dir.x === 0){ nextDir = { x: 1, y: 0 }; }
+  });
+
+  let touchStartX = null, touchStartY = null;
+  canvas.addEventListener('pointerdown', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    touchStartX = e.clientX; touchStartY = e.clientY;
+  });
+  canvas.addEventListener('pointerup', (e) => {
+    if(touchStartX === null || !running) return;
+    const dx = e.clientX - touchStartX, dy = e.clientY - touchStartY;
+    if(Math.abs(dx) > Math.abs(dy)){
+      if(dx > 20 && dir.x === 0) nextDir = { x: 1, y: 0 };
+      else if(dx < -20 && dir.x === 0) nextDir = { x: -1, y: 0 };
+    } else {
+      if(dy > 20 && dir.y === 0) nextDir = { x: 0, y: 1 };
+      else if(dy < -20 && dir.y === 0) nextDir = { x: 0, y: -1 };
+    }
+    touchStartX = null; touchStartY = null;
+  });
+
+  resetGame();
+  drawBoard();
+  drawFood();
+  drawSnake();
+})();
+</script>
 
 </body>
 </html>

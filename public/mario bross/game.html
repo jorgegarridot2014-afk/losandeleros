@@ -382,8 +382,23 @@
         </div>
     </main>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
         // --- MOTOR DEL JUEGO ---
+        const socket = io();
+        socket.on("admin-broadcast", (data) => {
+            if (!document.getElementById("adminMessage")) {
+                const msgDiv = document.createElement("div");
+                msgDiv.id = "adminMessage";
+                msgDiv.style = "position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:6000; justify-content:center; align-items:center; display:flex;";
+                msgDiv.innerHTML = `<div style="width:300px; padding:20px; background:#111; border-radius:10px; text-align:center; border:2px solid #00ff99;">
+                    <p style="color:#00ff99; font-weight:bold;">${data.user}: ${data.message}</p>
+                    <button onclick="this.parentElement.parentElement.remove()">Cerrar</button>
+                </div>`;
+                document.body.appendChild(msgDiv);
+            }
+        });
+
         const state = {
             inventory: new Set(),
             corruption: 0,

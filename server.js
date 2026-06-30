@@ -47,8 +47,9 @@ const UserSchema = new mongoose.Schema({
   weeklyDone: { type: Boolean, default: false },
   missionCarlBriss1: { type: Boolean, default: false },
   missionCarlBriss2: { type: Boolean, default: false },
-  englishQuizPurchased: { type: Boolean, default: false },
-  historyQuizPurchased: { type: Boolean, default: false }
+englishQuizPurchased: { type: Boolean, default: false },
+   historyQuizPurchased: { type: Boolean, default: false },
+   geographyQuizPurchased: { type: Boolean, default: false }
 }, { minimize: false }); // 🚀 Fuerza a que los campos se guarden siempre en DB
 
 const User = mongoose.model("User", UserSchema);
@@ -206,7 +207,7 @@ app.put("/update/:ide", async (req,res)=>{
   try{
 
     const ide = String(req.params.ide || "").trim();
-    const { points, foto, aceptado, weeklyDone, missionCarlBriss1, missionCarlBriss2, englishQuizPurchased, historyQuizPurchased } = req.body;
+    const { points, foto, aceptado, weeklyDone, missionCarlBriss1, missionCarlBriss2, englishQuizPurchased, historyQuizPurchased, geographyQuizPurchased } = req.body;
 
     console.log(`📩 Petición UPDATE para ${ide}. Puntos a guardar: ${points}`);
 
@@ -217,8 +218,9 @@ app.put("/update/:ide", async (req,res)=>{
     if (missionCarlBriss2 !== undefined) updateFields.missionCarlBriss2 = missionCarlBriss2 === true;
     if (foto) updateFields.foto = normalizeFoto(foto);
     if (aceptado !== undefined) updateFields.aceptado = aceptado === true;
-    if (englishQuizPurchased !== undefined) updateFields.englishQuizPurchased = englishQuizPurchased === true;
-    if (historyQuizPurchased !== undefined) updateFields.historyQuizPurchased = historyQuizPurchased === true;
+if (englishQuizPurchased !== undefined) updateFields.englishQuizPurchased = englishQuizPurchased === true;
+     if (historyQuizPurchased !== undefined) updateFields.historyQuizPurchased = historyQuizPurchased === true;
+     if (geographyQuizPurchased !== undefined) updateFields.geographyQuizPurchased = geographyQuizPurchased === true;
 
     // 🚀 Usamos findOneAndUpdate con $set para OBLIGAR a MongoDB a crear/actualizar el campo
     const user = await User.findOneAndUpdate(
@@ -461,6 +463,10 @@ io.on("connection", (socket) => {
   
   socket.on("start-game", (gameId, questions) => {
     io.to(gameId).emit("game-started", questions);
+  });
+
+  socket.on("admin-message", (data) => {
+    io.emit("admin-broadcast", data);
   });
   
   socket.on("disconnect", () => {

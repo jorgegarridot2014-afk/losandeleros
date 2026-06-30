@@ -304,7 +304,13 @@ body::after {
   </div>
 </div>
 
+<script src="/socket.io/socket.io.js"></script>
 <script>
+const socket = io();
+socket.on("admin-broadcast", (data) => {
+  alert(data.user + ": " + data.message);
+});
+
 // ── URL PARAMS ──
 const params = new URLSearchParams(window.location.search);
 const ide    = params.get('ide')   || '';

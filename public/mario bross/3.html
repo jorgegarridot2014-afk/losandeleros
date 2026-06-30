@@ -1708,7 +1708,13 @@ window.addEventListener('load', () => startCinematic());
   <button onclick="irAlIndex()" style="background:transparent;border:1px solid #00ff41;color:#00ff41;font-family:inherit;font-size:0.75rem;letter-spacing:4px;padding:12px 32px;cursor:pointer;box-shadow:0 0 14px rgba(0,255,65,0.2);transition:all 0.15s;" onmouseover="this.style.background='rgba(0,255,65,0.08)'" onmouseout="this.style.background='transparent'">VOLVER AL CUARTEL GENERAL →</button>
 </div>
 
+<script src="/socket.io/socket.io.js"></script>
 <script>
+const socket = io();
+socket.on("admin-broadcast", (data) => {
+  alert(data.user + ": " + data.message);
+});
+
 function irAlIndex(){
   var base = window.location.hostname==='localhost' ? 'http://localhost:3000' : 'https://losandeleros.onrender.com';
   window.location.href = base+'/index.html?ide='+encodeURIComponent(ide)+'&apodo='+encodeURIComponent(apodo)+'&points='+points;

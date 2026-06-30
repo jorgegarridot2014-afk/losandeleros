@@ -167,14 +167,20 @@
   </div>
 </div>
 
+<script src="/socket.io/socket.io.js"></script>
 <script>
-function show(id){
-  document.querySelectorAll(".section").forEach(s=>{
-    s.classList.remove("active");
-  });
-  document.getElementById(id).classList.add("active");
-}
-</script>
+ const socket = io();
+ socket.on("admin-broadcast", (data) => {
+   alert(data.user + ": " + data.message);
+ });
+
+ function show(id){
+   document.querySelectorAll(".section").forEach(s=>{
+     s.classList.remove("active");
+   });
+   document.getElementById(id).classList.add("active");
+ }
+ </script>
 
 </body>
 </html>

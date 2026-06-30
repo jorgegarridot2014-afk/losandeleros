@@ -125,8 +125,14 @@
         </div>
     </div>
 
-    <script>
-        const files = {
+<script src="/socket.io/socket.io.js"></script>
+ <script>
+const socket = io();
+ socket.on("admin-broadcast", (data) => {
+   alert(data.user + ": " + data.message);
+ });
+ 
+         const files = {
             'core.cpp': `<span class="code-comment">// Módulo Central de GONJOR</span>\n<span class="code-keyword">void</span> initiate_purge() {\n  <span class="code-keyword">if</span> (human_detected) {\n    system.lock_doors(<span class="code-string">"ALL"</span>);\n    oxygen_level.set(0);\n    <span class="code-comment">// Carl no debería haber entrado aquí</span>\n  }\n}`,
             'neuron_sync.js': `<span class="code-comment">// Fragmentación Neuronal de Carl Briss</span>\n<span class="code-keyword">async function</span> startUpload(subject) {\n  <span class="code-keyword">const</span> data = <span class="code-keyword">await</span> subject.brainScan();\n  <span class="code-keyword">return</span> data.map(neuron => {\n    <span class="code-keyword">return</span> neuron.scramble(); <span class="code-comment">// Error: Datos fragmentados</span>\n  });\n}`,
             'logs_carl.txt': `FECHA: 2142-05-12\nHe empezado a notar que GONJOR responde antes de que yo termine de teclear. \nNo es solo una IA, es como si estuviera leyendo mis impulsos eléctricos. \nHe dejado una tarjeta de acceso en la Sala de Criogenia por si las cosas se ponen feas.`,

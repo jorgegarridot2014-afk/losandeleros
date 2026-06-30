@@ -163,7 +163,6 @@
 <div id="popup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:5000; justify-content:center; align-items:center;">
   <div id="popupBox" style="width:300px; padding:20px; background:#111; border-radius:10px; text-align:center; border:1px solid #00ffcc;">
     <div id="popupText"></div>
-    <button onclick="closePopup()" style="margin-top:10px;">Cerrar</button>
   </div>
 </div>
 
@@ -171,6 +170,7 @@
 <audio id="musica" loop></audio>
 
 <!-- ================= JS ================= -->
+<script src="/socket.io/socket.io.js"></script>
 <script src="login.js"></script>
 
 </body>

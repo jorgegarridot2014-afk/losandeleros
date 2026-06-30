@@ -219,16 +219,33 @@ async function eliminarCuenta(){
 }
 function shop(){
   const popupText = document.getElementById("popupText");
-  const saldo = user.points || 0;
-  let secciones = "";
-  if (user.englishQuizPurchased) { secciones += `<div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 10px;"><p style="margin: 5px 0;">📚 <b>Quiz de Inglés</b></p><p style="margin: 5px 0; color: #00ff99; font-size: 13px;">✅ Ya lo tienes</p></div><div style="display: flex; gap: 10px; margin-bottom: 10px;"><button onclick="closePopup(); window.location.href='/quizzes/quizenglis.html'" style="letter-spacing: 1px;">🇬🇧 Jugar Inglés</button></div>`; }
-  else { secciones += `<div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 10px;"><p style="margin: 5px 0;">📚 <b>Quiz de Inglés</b></p><p style="margin: 5px 0; color: #aaa; font-size: 13px;">Practica tu nivel de inglés</p><p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 500 ⭐</p><p style="margin: 5px 0; color: #00ffcc; font-size: 12px;">Tu saldo: ${saldo} ⭐</p></div><div style="display: flex; gap: 10px; margin-bottom: 10px;"><button onclick="buyEnglishQuiz()" style="letter-spacing: 1px;">COMPRAR Inglés (500⭐)</button></div>`; }
-  if (user.historyQuizPurchased) { secciones += `<div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 10px;"><p style="margin: 5px 0;">📜 <b>Quiz de Historia</b></p><p style="margin: 5px 0; color: #00ff99; font-size: 13px;">✅ Ya lo tienes</p></div><div style="display: flex; gap: 10px; margin-bottom: 10px;"><button onclick="closePopup(); window.location.href='/quizzes/quizhistoria.html'" style="letter-spacing: 1px;">📜 Jugar Historia</button></div>`; }
-  else { secciones += `<div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 10px;"><p style="margin: 5px 0;">📜 <b>Quiz de Historia</b></p><p style="margin: 5px 0; color: #aaa; font-size: 13px;">25 preguntas sobre España</p><p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 200 ⭐</p><p style="margin: 5px 0; color: #00ffcc; font-size: 12px;">Tu saldo: ${saldo} ⭐</p></div><div style="display: flex; gap: 10px; margin-bottom: 10px;"><button onclick="buyHistoryQuiz()" style="letter-spacing: 1px;">COMPRAR Historia (200⭐)</button></div>`; }
-  if (user.geographyQuizPurchased) { secciones += `<div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 10px;"><p style="margin: 5px 0;">🌍 <b>Quiz de Geografía</b></p><p style="margin: 5px 0; color: #00ff99; font-size: 13px;">✅ Ya lo tienes</p></div><div style="display: flex; gap: 10px; margin-bottom: 10px;"><button onclick="closePopup(); window.location.href='/quizzes/quizmundo.html'" style="letter-spacing: 1px;">🌍 Jugar Geografía</button></div>`; }
-  else { secciones += `<div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 10px;"><p style="margin: 5px 0;">🌍 <b>Quiz de Geografía</b></p><p style="margin: 5px 0; color: #aaa; font-size: 13px;">Preguntas por el mundo - ¡Sé el mejor explorador!</p><p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 700 ⭐</p><p style="margin: 5px 0; color: #00ffcc; font-size: 12px;">Tu saldo: ${saldo} ⭐</p></div><div style="display: flex; gap: 10px; margin-bottom: 10px;"><button onclick="buyGeographyQuiz()" style="letter-spacing: 1px;">COMPRAR Geografía (700⭐)</button></div>`; }
-  secciones += `<button onclick="closePopup()" style="background: #222; color: #666; margin-top: 15px;">Cerrar</button>`;
-  popupText.innerHTML = `<h3 style="color: #00ffcc; margin-bottom: 15px;">🏪 TIENDA</h3>${secciones}`;
+  const hasEnglish = user && user.englishQuizPurchased;
+  const hasHistory = user && user.historyQuizPurchased;
+  const hasGeography = user && user.geographyQuizPurchased;
+  let content = `<h3 style="color: #00ffcc; margin-bottom: 15px;">🏪 TIENDA</h3>
+    <div style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-bottom: 15px;">`;
+  if (hasEnglish) { content += `<p style="margin: 5px 0; color: #00ff99; font-size: 13px;">✅ Quiz de Inglés: Ya lo tienes</p>`; }
+  else { content += `<p style="margin: 5px 0;">🇬🇧 <b>Quiz de Inglés</b></p>
+    <p style="margin: 5px 0; color: #aaa; font-size: 13px;">Practica tu nivel de inglés</p>
+    <p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 500 ⭐</p>`; }
+  if (hasHistory) { content += `<p style="margin: 5px 0; color: #00ff99; font-size: 13px;">✅ Quiz de Historia: Ya lo tienes</p>`; }
+  else { content += `<p style="margin: 5px 0;">📜 <b>Quiz de Historia</b></p>
+    <p style="margin: 5px 0; color: #aaa; font-size: 13px;">25 preguntas sobre España</p>
+    <p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 200 ⭐</p>`; }
+  if (hasGeography) { content += `<p style="margin: 5px 0; color: #00ff99; font-size: 13px;">✅ Quiz de Geografía: Ya lo tienes</p>`; }
+  else { content += `<p style="margin: 5px 0;">🌍 <b>Quiz de Geografía</b></p>
+    <p style="margin: 5px 0; color: #aaa; font-size: 13px;">Preguntas por el mundo - ¡Sé el mejor explorador!</p>
+    <p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 700 ⭐</p>`; }
+  content += `<p style="margin: 5px 0; color: #00ffcc; font-size: 12px;">Tu saldo: ${user.points || 0} ⭐</p></div>`;
+  content += `<div style="display: flex; gap: 10px; flex-wrap: wrap;">`;
+  if (hasEnglish) { content += `<button onclick="closePopup(); window.location.href='/quizzes/quizenglis.html'" style="letter-spacing: 1px;">🇬🇧 Jugar Inglés</button>`; }
+  else { content += `<button onclick="buyEnglishQuiz()" style="letter-spacing: 1px;">COMPRAR Inglés (500⭐)</button>`; }
+  if (hasHistory) { content += `<button onclick="closePopup(); window.location.href='/quizzes/quizhistoria.html'" style="letter-spacing: 1px;">📜 Jugar Historia</button>`; }
+  else { content += `<button onclick="buyHistoryQuiz()" style="letter-spacing: 1px;">COMPRAR Historia (200⭐)</button>`; }
+  if (hasGeography) { content += `<button onclick="closePopup(); window.location.href='/quizzes/quizmundo.html'" style="letter-spacing: 1px;">🌍 Jugar Geografía</button>`; }
+  else { content += `<button onclick="buyGeographyQuiz()" style="letter-spacing: 1px;">COMPRAR Geografía (700⭐)</button>`; }
+  content += `<button onclick="closePopup()" style="background: #222; color: #666; letter-spacing: 1px;">Cerrar</button></div>`;
+  popupText.innerHTML = content;
   document.getElementById("popup").style.display = "flex";
 }
 async function buyEnglishQuiz(){

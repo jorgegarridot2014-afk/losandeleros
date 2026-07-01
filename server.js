@@ -47,9 +47,10 @@ const UserSchema = new mongoose.Schema({
   weeklyDone: { type: Boolean, default: false },
   missionCarlBriss1: { type: Boolean, default: false },
   missionCarlBriss2: { type: Boolean, default: false },
-englishQuizPurchased: { type: Boolean, default: false },
-   historyQuizPurchased: { type: Boolean, default: false },
-   geographyQuizPurchased: { type: Boolean, default: false }
+  englishQuizPurchased: { type: Boolean, default: false },
+  historyQuizPurchased: { type: Boolean, default: false },
+  geographyQuizPurchased: { type: Boolean, default: false },
+  genialQuizPurchased: { type: Boolean, default: false }
 }, { minimize: false }); // 🚀 Fuerza a que los campos se guarden siempre en DB
 
 const User = mongoose.model("User", UserSchema);
@@ -63,6 +64,8 @@ const GameSchema = new mongoose.Schema({
   status: { type: String, default: "waiting" },
   players: [{ type: String }],
   playerIds: [{ type: String }],
+  results: [{ playerId: String, playerName: String, score: Number }],
+  finished: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -207,7 +210,7 @@ app.put("/update/:ide", async (req,res)=>{
   try{
 
     const ide = String(req.params.ide || "").trim();
-    const { points, foto, aceptado, weeklyDone, missionCarlBriss1, missionCarlBriss2, englishQuizPurchased, historyQuizPurchased, geographyQuizPurchased } = req.body;
+    const { points, foto, aceptado, weeklyDone, missionCarlBriss1, missionCarlBriss2, englishQuizPurchased, historyQuizPurchased, geographyQuizPurchased, genialQuizPurchased } = req.body;
 
     console.log(`📩 Petición UPDATE para ${ide}. Puntos a guardar: ${points}`);
 
@@ -218,9 +221,10 @@ app.put("/update/:ide", async (req,res)=>{
     if (missionCarlBriss2 !== undefined) updateFields.missionCarlBriss2 = missionCarlBriss2 === true;
     if (foto) updateFields.foto = normalizeFoto(foto);
     if (aceptado !== undefined) updateFields.aceptado = aceptado === true;
-if (englishQuizPurchased !== undefined) updateFields.englishQuizPurchased = englishQuizPurchased === true;
+ if (englishQuizPurchased !== undefined) updateFields.englishQuizPurchased = englishQuizPurchased === true;
      if (historyQuizPurchased !== undefined) updateFields.historyQuizPurchased = historyQuizPurchased === true;
      if (geographyQuizPurchased !== undefined) updateFields.geographyQuizPurchased = geographyQuizPurchased === true;
+     if (genialQuizPurchased !== undefined) updateFields.genialQuizPurchased = genialQuizPurchased === true;
 
     // 🚀 Usamos findOneAndUpdate con $set para OBLIGAR a MongoDB a crear/actualizar el campo
     const user = await User.findOneAndUpdate(
@@ -325,7 +329,7 @@ app.post("/create-game", async (req,res)=>{
     });
     
     await game.save();
-    res.json({ gameId, creator, topic: "general" });
+    res.json({ gameId, creator, topic: topic || "general" });
   }catch(err){
     console.log("❌ Error create-game:", err);
     res.status(500).json({ error:"Error creating game" });
@@ -392,10 +396,8 @@ app.post("/leave-game", async (req,res)=>{
         await Game.deleteOne({ gameId });
         io.to(gameId).emit("game-ended");
       } else if(game.creatorId === playerId) {
-        game.creator = game.players[0];
-        game.creatorId = game.playerIds[0];
-        await game.save();
-        io.to(gameId).emit("player-left", game);
+        await Game.deleteOne({ gameId });
+        io.to(gameId).emit("game-deleted", { reason: "El anfitrión abandonó la partida" });
       } else {
         await game.save();
         io.to(gameId).emit("player-left", game);
@@ -421,21 +423,69 @@ app.post("/start-game", async (req,res)=>{
     game.status = "active";
     await game.save();
     
-    res.json({ questions: getQuestions() });
+    res.json({ questions: getQuestions(game.topic), topic: game.topic });
   }catch(err){
     console.log("❌ Error start-game:", err);
     res.status(500).json({ error:"Error starting game" });
   }
 });
 
-function getQuestions() {
+function getQuestions(topic) {
+  if (topic === "informatica") {
+    return [
+      {q:"¿Qué es un algoritmo?",a:["Conjunto de instrucciones","Hardware","Red social","Base de datos"],c:0,h:"Lógica"},
+      {q:"HTML significa?",a:["HyperText Markup Language","High Tech Modern Language","HyperTransfer Markup","Home Tool Markup"],c:0,h:"Web"},
+      {q:"CSS es usado para?",a:["Estilos y diseño","Programar servidores","Base de datos","Hardware"],c:0,h:"Diseño"},
+      {q:"JavaScript es?",a:["Lenguaje de programación","Sistema operativo","Hardware","Componente físico"],c:0,h:"Web"},
+      {q:"¿Qué es un bug?",a:["Error en el código","Característica oculta","Puerto USB","Lenguaje antiguo"],c:0,h:"Software"},
+      {q:"RAM significa?",a:["Random Access Memory","Read Access Module","Rapid Action Memory","Real Application Mode"],c:0,h:"Memoria"},
+      {q:"¿Qué es un servidor?",a:["Computadora que provee servicios","Mouse","Monitor","Teclado"],c:0,h:"Redes"},
+      {q:"Python es?",a:["Lenguaje de programación","Sistema operativo","Hardware","Red social"],c:0,h:"Código"},
+      {q:"HTTP es?",a:["Protocolo de transferencia","Lenguaje de programación","Base de datos","Sistema operativo"],c:0,h:"Web"},
+      {q:"¿Qué hace un compilador?",a:["Traduce código a lenguaje máquina","Ejecuta el sistema","Guarda archivos","Conecta dispositivos"],c:0,h:"Código"},
+      {q:"DNS significa?",a:["Domain Name System","Digital Network Service","Data Name Server","Domain Node System"],c:0,h:"Redes"},
+      {q:"¿Qué es Git?",a:["Sistema de control de versiones","Lenguaje de programación","Base de datos","Editor de texto"],c:0,h:"DevOps"},
+      {q:"API significa?",a:["Application Programming Interface","Advanced Program Integration","Automated Process Interface","Application Protocol Internet"],c:0,h:"Software"},
+      {q:"¿Qué es un framework?",a:["Estructura para desarrollar software","Base de datos física","Red de computadoras","Sistema operativo"],c:0,h:"Desarrollo"},
+      {q:"Python se usa mucho en?",a:["Data Science y web","Solo hardware","Solo muebles","Solo videojuegos"],c:0,h:"IA"},
+      {q:"¿Qué es un array?",a:["Estructura de datos","Sistema operativo","Lenguaje web","Base de datos"],c:0,h:"Datos"},
+      {q:"LAN significa?",a:["Local Area Network","Large Area Network","Light Application Node","Local Adapter Network"],c:0,h:"Redes"},
+      {q:"¿Qué es el Frontend?",a:["Parte visual que ve el usuario","Base de datos","Servidor back-end","Hardware"],c:0,h:"Web"},
+      {q:"¿Qué es el Backend?",a:["Lógica del servidor","Diseño visual","Monitor","Teclado"],c:0,h:"Servidor"},
+      {q:"HTML5 es?",a:["Versión de HTML","Nuevo lenguaje de programación","Sistema operativo","Hardware"],c:0,h:"Web"}
+    ].sort(() => Math.random() - 0.5).slice(0, 10);
+  }
+  if (topic === "geography") {
+    return [
+      {q:"¿Cuál es el río más largo del mundo?",a:["Nilo","Amazonas","Yangtsé","Misisipi"],c:1,h:"América del Sur"},
+      {q:"¿En qué continente está Egipto?",a:["Asia","África","Europa","América"],c:1,h:"Pirámides"},
+      {q:"¿Cuál es el país más grande del mundo?",a:["China","Estados Unidos","Rusia","Canadá"],c:2,h:"Superficie"},
+      {q:"¿Qué océano está entre América y Europa/África?",a:["Pacífico","Índico","Atlántico","Ártico"],c:2,h:"Puente"},
+      {q:"¿Cuál es la capital de Australia?",a:["Sídney","Melbourne","Canberra","Perth"],c:2,h:"No es la más poblada"},
+      {q:"¿Cuál es el desierto más grande del mundo?",a:["Sahara","Gobi","Atacama","Antártico"],c:3,h:"Hielo y arena"},
+      {q:"¿En qué país está el Machu Picchu?",a:["México","Colombia","Chile","Perú"],c:3,h:"Incas"},
+      {q:"¿Cuál es la montaña más alta del mundo?",a:["K2","Kilimanjaro","Everest","Mont Blanc"],c:2,h:"8.848 m"},
+      {q:"¿Cuántos continentes hay?",a:["5","6","7","8"],c:2,h:"Modelo estándar"},
+      {q:"¿Qué país tiene más habitantes?",a:["India","China","Estados Unidos","Indonesia"],c:0,h:"2023"},
+      {q:"¿Cuál es el lago más grande del mundo?",a:["Lago Victoria","Lago Superior","Mar Caspio","Lago Baikal"],c:2,h:"Salado y dulce"},
+      {q:"¿En qué continente está Brasil?",a:["Asia","África","América del Sur","Europa"],c:2,h:"Amazonas"},
+      {q:"¿Cuál es la capital de Japón?",a:["Osaka","Kioto","Tokio","Yokohama"],c:2,h:"Islas"},
+      {q:"¿Qué mar está entre España y África?",a:["Mediterráneo","Rojo","Negro","Báltico"],c:0,h:"Estrecho"},
+      {q:"¿Cuál es el país más pequeño del mundo?",a:["Mónaco","Vaticano","San Marino","Liechtenstein"],c:1,h:"Ciudad Estado"},
+      {q:"¿En qué país está la Torre Eiffel?",a:["Reino Unido","Italia","España","Francia"],c:3,h:"París"},
+      {q:"¿Cuál es el río más largo de España?",a:["Ebro","Tajo","Duero","Guadalquivir"],c:0,h:"Iberia"},
+      {q:"¿Qué continente está al sur de Asia?",a:["África","Oceanía","Europa","América"],c:1,h:"Índico"},
+      {q:"¿Cuál es la capital de Canadá?",a:["Toronto","Vancouver","Montreal","Ottawa"],c:3,h:"No es la más grande"},
+      {q:"¿En qué país está el Canal de Panamá?",a:["Colombia","Costa Rica","Panamá","Nicaragua"],c:2,h:"Puente interoceánico"}
+    ].sort(() => Math.random() - 0.5).slice(0, 10);
+  }
   return [
     {q:"¿Capital de España?",a:["Madrid","Barcelona","Sevilla","Valencia"],c:0,h:"Capital del país"},
     {q:"Planeta rojo?",a:["Venus","Marte","Júpiter","Saturno"],c:1,h:"Óxido"},
     {q:"2+2?",a:["3","4","5","6"],c:1,h:"básico"},
     {q:"Capital Francia?",a:["Roma","París","Madrid","Lisboa"],c:1,h:"Torre Eiffel"},
     {q:"Lenguaje web?",a:["Python","HTML","C++","Java"],c:1,h:"estructura web"},
-    {q:"Elemento más ligero?",a:["Helio","Hidrógeno","Oxígeno","Carbono"],c:1,h:"H"},
+    {q:"Elemento más ligero?",a:["Helio","Hidrógeno","Oxígeno","Carbono"],c:0,h:"H"},
     {q:"Velocidad luz?",a:["300k km/s","150k","100k","500k"],c:0,h:"constante"},
     {q:"Capital Italia?",a:["Roma","Milán","Venecia","Nápoles"],c:0,h:"imperio"},
     {q:"5x5?",a:["20","25","30","15"],c:1,h:"multiplicación"},
@@ -450,25 +500,139 @@ function getQuestions() {
     {q:"Continentes?",a:["5","6","7","8"],c:2,h:"modelo"},
     {q:"Python creado por?",a:["Guido","Elon","Jobs","Linus"],c:0,h:"programación"},
     {q:"Metal líquido?",a:["Mercurio","Oro","Plata","Hierro"],c:0,h:"tóxico"}
-  ];
+  ].sort(() => Math.random() - 0.5).slice(0, 10);
 }
+
+/* ================= BROADCAST GAME ENDED ================= */
+async function broadcastGameEnded(gameId) {
+  const game = await Game.findOne({ gameId }).lean();
+  if (!game || game.finished) return;
+
+  const winner = game.results && game.results.length > 0
+    ? game.results.reduce((a, b) => (a.score > b.score ? a : b))
+    : null;
+
+  if (winner) {
+    const user = await User.findOneAndUpdate(
+      { ide: winner.playerId },
+      { $inc: { points: 5000 } },
+      { new: true }
+    );
+    console.log(`🏆 Ganador del multiplayer [${game.topic}]: ${winner.playerName} (+5000 ⭐) -> ${user.points} pts totales`);
+  }
+
+  await Game.findOneAndUpdate({ gameId }, { finished: true });
+
+  io.to(gameId).emit("game-ended", {
+    results: game.results || [],
+    winner: winner
+  });
+}
+
+/* ================= END GAME ================= */
+app.post("/end-game", async (req,res)=>{
+  try{
+    const { gameId, playerId, score } = req.body;
+
+    const game = await Game.findOne({ gameId });
+    if(!game) return res.status(404).json({ error: "Game not found" });
+
+    const playerIndex = game.playerIds.indexOf(playerId);
+    const playerName = playerIndex >= 0 ? game.players[playerIndex] : playerId;
+
+    const existingResult = game.results.findIndex(r => r.playerId === playerId);
+    if(existingResult >= 0){
+      game.results[existingResult].score = Math.max(game.results[existingResult].score, score);
+    } else {
+      game.results.push({ playerId, playerName, score: score || 0 });
+    }
+
+    await game.save();
+
+    const allFinished = game.results.length >= game.players.length;
+    if(allFinished){
+      const winner = game.results.length > 0
+        ? game.results.reduce((a, b) => (a.score > b.score ? a : b))
+        : null;
+
+      if(winner){
+        const user = await User.findOneAndUpdate(
+          { ide: winner.playerId },
+          { $inc: { points: 5000 } },
+          { new: true }
+        );
+        console.log(`🏆 Ganador: ${winner.playerName} (+5000 ⭐) -> ${user.points} pts totales`);
+      }
+
+      game.finished = true;
+      await Game.findOneAndUpdate({ gameId }, { finished: true });
+
+      io.to(gameId).emit("game-ended", { results: game.results, winner });
+      res.json({ ok: true, gameEnded: true, results: game.results, winner });
+    } else {
+      const waitingFor = game.players.length - game.results.length;
+      io.to(gameId).emit("player-finished", {
+        playerName,
+        results: game.results,
+        waitingFor
+      });
+      res.json({ ok: true, gameEnded: false, waitingFor });
+    }
+  }catch(err){
+    console.log("❌ Error end-game:", err);
+    res.status(500).json({ error:"Error ending game" });
+  }
+});
 
 /* ================= SOCKET.IO ================= */
 io.on("connection", (socket) => {
   console.log("🔌 Usuario conectado:", socket.id);
-  
+
   socket.on("join-game", (gameId) => {
     socket.join(gameId);
   });
-  
+
   socket.on("start-game", (gameId, questions) => {
     io.to(gameId).emit("game-started", questions);
+  });
+
+  socket.on("end-game", async ({ gameId, playerId, score }) => {
+    try {
+      const game = await Game.findOne({ gameId });
+      if (!game) return;
+
+      const playerIndex = game.playerIds.indexOf(playerId);
+      const playerName = playerIndex >= 0 ? game.players[playerIndex] : playerId;
+
+      game.results = game.results || [];
+      const existingResult = game.results.findIndex(r => r.playerId === playerId);
+      if(existingResult >= 0){
+        game.results[existingResult].score = Math.max(game.results[existingResult].score, score || 0);
+      } else {
+        game.results.push({ playerId, playerName, score: score || 0 });
+      }
+
+      game.finished = game.results.length >= game.players.length;
+      await game.save();
+
+      if(game.finished){
+        broadcastGameEnded(gameId);
+      } else {
+        io.to(gameId).emit("player-finished", {
+          playerName,
+          results: game.results,
+          waitingFor: game.players.length - game.results.length
+        });
+      }
+    } catch(err) {
+      console.error("❌ Error socket end-game:", err);
+    }
   });
 
   socket.on("admin-message", (data) => {
     io.emit("admin-broadcast", data);
   });
-  
+
   socket.on("disconnect", () => {
     console.log("🔌 Usuario desconectado:", socket.id);
   });

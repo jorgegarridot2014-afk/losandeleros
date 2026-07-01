@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Mates y Lengua</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      overflow: hidden;
+    }
+
+    #bg {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000);
+      background-size: 400% 400%;
+      animation: rainbowMove 8s ease infinite;
+      z-index: -2;
+    }
+
+    @keyframes rainbowMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    #menu, #box {
+      width: 420px;
+      padding: 18px;
+      background: rgba(0, 0, 0, 0.75);
+      border-radius: 14px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 20px rgba(0, 255, 150, 0.25);
+      z-index: 2;
+    }
+
+    button {
+      width: 100%;
+      margin: 5px 0;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: linear-gradient(90deg, #00ff99, #00ccff);
+      font-weight: bold;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    #timer {
+      font-size: 20px;
+      color: yellow;
+    }
+
+    #hint {
+      font-size: 12px;
+      color: #00d9ff;
+    }
+
+    #user-badge {
+      position: fixed;
+      top: 8px;
+      left: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 5px 15px;
+      border-radius: 25px;
+      border: 1px solid #00ffcc;
+      z-index: 10;
+    }
+
+    #user-badge img {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid #00ffcc;
+    }
+
+    #points {
+      position: fixed;
+      top: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #00ffcc;
+      z-index: 10;
+    }
+
+    .answers button {
+      background: linear-gradient(90deg, #444, #666);
+      color: white;
+      transition: background 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .btn-correct {
+      background: linear-gradient(90deg, #00ff99, #00ccff) !important;
+      box-shadow: 0 0 15px #00ff99 !important;
+      border: 1px solid #00ff99 !important;
+    }
+
+    .btn-wrong {
+      background: linear-gradient(90deg, #ff0055, #ff5500) !important;
+      box-shadow: 0 0 15px #ff0055 !important;
+      border: 1px solid #ff0055 !important;
+    }
+
+    .btn-disabled {
+      pointer-events: none;
+      opacity: 0.8;
+    }
+
+    #ranking-box {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    #ranking-content {
+      background: #111;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 420px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      border: 1px solid #00ffcc;
+    }
+
+    #popup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 5000;
+      padding: 16px;
+    }
+
+    #popupBox {
+      width: 100%;
+      max-width: 340px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 15px;
+      background: #111;
+      border-radius: 10px;
+      text-align: center;
+      border: 1px solid #00ffcc;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <div id="bg"></div>
+
+  <div id="user-badge">
+    <img id="user-foto" src="pfp/p1.svg" alt="avatar">
+    <span id="user-apodo">---</span>
+  </div>
+
+  <div id="points">⭐ Puntos: ...</div>
+
+  <div id="menu">
+    <h2>🧠 Quiz Mates y Lengua</h2>
+    <button onclick="startGame()">▶ Empezar Quiz</button>
+    <button onclick="showRanking()">🏆 Ranking</button>
+    <button onclick="window.location.href='/quizzes/quiz.html'">⬅️ Volver</button>
+  </div>
+
+  <div id="box" style="display:none;">
+    <div id="timer">⏱️ 60</div>
+    <div id="question"></div>
+    <div id="hint"></div>
+    <div id="answers"></div>
+  </div>
+
+  <div id="ranking-box">
+    <div id="ranking-content">
+      <h3>🏆 Ranking General</h3>
+      <div id="ranking-list">Cargando...</div>
+      <button onclick="hideRanking()" style="margin-top:15px;">Cerrar</button>
+    </div>
+  </div>
+
+  <div id="popup">
+    <div id="popupBox">
+      <p id="popupText"></p>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+
+
+    const socket = io();
+    socket.on("admin-broadcast", (data) => {
+      alert(data.user + ": " + data.message);
+    });
+
+    const LAST_ACTIVE_KEY = "andeleros_last_active";
+    let currentUser = null;
+    let sessionPoints = 0;
+    let isUserLoaded = false;
+    const pointsUI = document.getElementById("points");
+
+    async function initAccount() {
+      const ide = localStorage.getItem(LAST_ACTIVE_KEY);
+      console.log("🔎 QuizGenial initAccount - ide:", ide);
+
+      if (!ide) {
+        const apodoEl = document.getElementById("user-apodo");
+        const pointsEl = document.getElementById("points");
+        if (apodoEl) apodoEl.innerText = "Invitado";
+        if (pointsEl) pointsEl.innerText = "⭐ Puntos: 0";
+        return;
+      }
+
+      try {
+        const res = await fetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ide })
+        });
+
+        console.log("📡 QuizGenial /login status:", res.status, "ok:", res.ok);
+
+        if (res.ok) {
+          currentUser = await res.json();
+          sessionPoints = currentUser.points || 0;
+          points = sessionPoints;
+          isUserLoaded = true;
+
+          const apodoEl = document.getElementById("user-apodo");
+          const fotoEl = document.getElementById("user-foto");
+          const pointsEl = document.getElementById("points");
+
+          if (apodoEl) apodoEl.innerText = currentUser.apodo;
+          if (fotoEl) fotoEl.src = currentUser.foto;
+          if (pointsEl) pointsEl.innerText = "⭐ Puntos: " + sessionPoints;
+
+          updatePointsUI(false);
+        } else {
+          const txt = await res.text();
+          console.error("❌ QuizGenial login fallido:", res.status, txt);
+          const apodoEl = document.getElementById("user-apodo");
+          const pointsEl = document.getElementById("points");
+          if (apodoEl) apodoEl.innerText = "Error";
+          if (pointsEl) pointsEl.innerText = "⭐ Puntos: 0";
+        }
+      } catch (e) {
+        console.error("❌ QuizGenial initAccount error:", e);
+        const apodoEl = document.getElementById("user-apodo");
+        const pointsEl = document.getElementById("points");
+        if (apodoEl) apodoEl.innerText = "Sin conexión";
+        if (pointsEl) pointsEl.innerText = "⭐ Puntos: ?";
+      }
+    }
+
+    initAccount();
+
+    async function updatePointsUI(save = true) {
+      if (isNaN(points)) points = 0;
+
+      const pointsEl = document.getElementById("points");
+      if (pointsEl) pointsEl.innerText = "⭐ Puntos: " + (isUserLoaded ? points : "...");
+
+      if (save && currentUser && isUserLoaded && currentUser.ide) {
+        try {
+          pointsUI.style.opacity = "0.5";
+          const res = await fetch(`/update/${encodeURIComponent(currentUser.ide)}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              points: points,
+              weeklyDone: currentUser.weeklyDone,
+              englishQuizPurchased: currentUser.englishQuizPurchased,
+              historyQuizPurchased: currentUser.historyQuizPurchased,
+              geographyQuizPurchased: currentUser.geographyQuizPurchased,
+              genialQuizPurchased: currentUser.genialQuizPurchased
+            })
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            points = data.points || points;
+            currentUser.points = points;
+            if (pointsEl) pointsEl.innerText = "⭐ Puntos: " + points;
+          }
+        } catch (e) {
+          console.error("❌ Error guardando puntos:", e);
+        } finally {
+          pointsUI.style.opacity = "1";
+        }
+      }
+    }
+
+    const questions = [
+      {q: "¿Cuánto es 12 × 5?", a: ["60", "55", "65", "50"], c: 0, h: "Multiplicación"},
+      {q: "¿Sinónimo de ‘rápido’?", a: ["Veloz", "Lento", "Alto", "Bajo"], c: 0, h: "Lengua"},
+      {q: "¿Cuál es la raíz cuadrada de 81?", a: ["9", "8", "7", "6"], c: 0, h: "Raíces"},
+      {q: "¿Nombre femenino de ‘actor’?", a: ["Actriz", "Actora", "Actanta", "Activa"], c: 0, h: "Género"},
+      {q: "¿Cuánto es 144 ÷ 12?", a: ["10", "11", "12", "13"], c: 2, h: "División"},
+      {q: "¿Antónimo de ‘feliz’?", a: ["Triste", "Alegre", "Contento", "Risueño"], c: 0, h: "Emociones"},
+      {q: "¿Cuál es el 25% de 200?", a: ["50", "45", "55", "60"], c: 0, h: "Porcentaje"},
+      {q: "¿Plural de ‘mano’?", a: ["Manos", "Manes", "Manas", "Mani"], c: 0, h: "Género"},
+      {q: "¿Cuánto es 3² + 4²?", a: ["25", "12", "7", "18"], c: 0, h: "Potencias"},
+      {q: "¿Signo de interrogación de apertura?", a: ["¿", "?", "¡", "!"], c: 0, h: "Puntuación"},
+      {q: "¿Cuánto es 15 - 9?", a: ["7", "8", "6", "5"], c: 2, h: "Resta"},
+      {q: "¿ ‘Correr’ es...?", a: ["Verbo", "Sustantivo", "Adjetivo", "Pronombre"], c: 0, h: "Categoría"},
+      {q: "¿Cuánto es ½ de 90?", a: ["45", "40", "50", "35"], c: 0, h: "Fracción"},
+      {q: "¿Sinónimo de ‘grande’?", a: ["Enorme", "Pequeño", "Mediano", "Tiny"], c: 0, h: "Lengua"},
+      {q: "¿Cuánto es 11 × 11?", a: ["121", "111", "131", "141"], c: 0, h: "Cuadrado"},
+      {q: "¿ ‘La casa’ es...?", a: ["Sustantivo", "Verbo", "Adjetivo", "Adverbio"], c: 0, h: "Categoría"},
+      {q: "¿Cuál es el resultado de 8 × 7?", a: ["56", "54", "58", "52"], c: 0, h: "Tabla"},
+      {q: "¿ ‘Rápidamente’ es...?", a: ["Adverbio", "Adjetivo", "Sustantivo", "Pronombre"], c: 0, h: "Categoría"},
+      {q: "¿Cuál es el MCM de 4 y 6?", a: ["12", "24", "8", "16"], c: 0, h: "MCM"},
+      {q: "¿ ‘Bonita’ es...?", a: ["Adjetivo", "Verbo", "Sustantivo", "Adverbio"], c: 0, h: "Categoría"},
+      {q: "¿Cuánto es 100 ÷ 4?", a: ["25", "20", "30", "15"], c: 0, h: "División"},
+      {q: "¿ ‘Salta’ es...?", a: ["Verbo", "Sustantivo", "Adjetivo", "Preposición"], c: 0, h: "Categoría"},
+      {q: "¿Sinónimo de ‘hermoso’?", a: ["Bello", "Feo", "Grande", "Pequeño"], c: 0, h: "Lengua"},
+      {q: "¿Cuál es el doble de 37?", a: ["74", "70", "80", "64"], c: 0, h: "Multiplicación"},
+      {q: "¿ ‘Y’ es...?", a: ["Conjunción", "Adjetivo", "Verbo", "Interjección"], c: 0, h: "Gramática"}
+    ];
+
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let correctCount = 0;
+    let points = 0; // puntos ganados ESTA partida
+    let time = 60;
+    let interval;
+    let isAnswering = false;
+
+    const menu = document.getElementById("menu");
+    const box = document.getElementById("box");
+    const q = document.getElementById("question");
+    const a = document.getElementById("answers");
+    const t = document.getElementById("timer");
+    const h = document.getElementById("hint");
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function startGame() {
+      if (!isUserLoaded) return alert("Cargando datos de tu cuenta, espera un momento...");
+      const shuffled = [...questions].sort(() => Math.random() - 0.5);
+      currentQuestions = shuffled.map(qItem => {
+        const shuffledAnswers = shuffle(qItem.a);
+        const correctAnswer = qItem.a[qItem.c];
+        const correctIndex = shuffledAnswers.indexOf(correctAnswer);
+        return { ...qItem, a: shuffledAnswers, c: correctIndex };
+      });
+      currentIndex = 0;
+      correctCount = 0;
+      points = 0;
+      time = 60;
+      isAnswering = false;
+
+      menu.style.display = "none";
+      box.style.display = "block";
+      renderQuestion();
+      timer();
+    }
+
+    function timer() {
+      clearInterval(interval);
+      interval = setInterval(() => {
+        time--;
+        t.innerText = "⏱️ " + time;
+        if (time <= 0) end();
+      }, 1000);
+    }
+
+    function renderQuestion() {
+      if (currentIndex >= currentQuestions.length) {
+        end();
+        return;
+      }
+
+      const qData = currentQuestions[currentIndex];
+      q.innerHTML = `<div style="font-size:18px; font-weight:bold; margin-bottom:12px;">${currentIndex + 1}. ${qData.q}</div>`;
+      h.innerHTML = `<div style="font-size:11px; color:#00d9ff; margin-bottom:10px;">💡 ${qData.h}</div>`;
+
+      a.innerHTML = "";
+      qData.a.forEach((answer, index) => {
+        const btn = document.createElement("button");
+        btn.innerHTML = answer;
+        btn.onclick = () => choose(index, qData.c);
+        a.appendChild(btn);
+      });
+    }
+
+    function choose(selected, correct) {
+      if (isAnswering) return;
+      isAnswering = true;
+
+      const buttons = a.querySelectorAll("button");
+
+      buttons.forEach(btn => {
+        btn.classList.add("btn-disabled");
+        btn.disabled = true;
+      });
+
+      if (selected === correct) {
+        buttons[selected].classList.add("btn-correct");
+        correctCount++;
+        sessionPoints += 79;
+        points = sessionPoints;
+        updatePointsUI(true);
+      } else {
+        buttons[selected].classList.add("btn-wrong");
+        buttons[correct].classList.add("btn-correct");
+      }
+
+      setTimeout(() => {
+        isAnswering = false;
+        next();
+      }, 600);
+    }
+
+    function next() {
+      currentIndex++;
+
+      if (currentIndex >= currentQuestions.length) {
+        end();
+      } else if (time <= 0) {
+        end();
+      } else {
+        renderQuestion();
+      }
+    }
+
+    function end() {
+      clearInterval(interval);
+
+      const answeredQuestions = currentIndex > currentQuestions.length ? currentQuestions.length : currentIndex;
+      const percentage = answeredQuestions > 0 ? Math.round((correctCount / answeredQuestions) * 100) : 0;
+      const pointsEarned = correctCount * 79;
+
+      let message = "";
+      if (percentage >= 90) message = "🏆 ¡INCREÍBLE! Eres un genio";
+      else if (percentage >= 70) message = "🌟 ¡Muy bien! Excelente trabajo";
+      else if (percentage >= 50) message = "👍 Bien, pero puedes mejorar";
+      else message = "📚 Sigue practicando, lo harás mejor";
+
+      q.innerHTML = `🎯 Resultados - Mates y Lengua`;
+      a.innerHTML = `
+        <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:10px; margin:10px 0;">
+          <h3 style="color:#00ffcc; margin-bottom:10px;">${message}</h3>
+          <p style="font-size:16px; margin:8px 0;">✅ Aciertos: <b>${correctCount}</b> de ${answeredQuestions}</p>
+          <p style="font-size:16px; margin:8px 0;">📊 Porcentaje: <b>${percentage}%</b></p>
+          <p style="font-size:16px; margin:8px 0;">⭐ Puntos ganados: <b>${pointsEarned}</b></p>
+          <p style="font-size:14px; color:#aaa; margin-top:10px;">Tiempo restante: ${time}s</p>
+        </div>
+        <button onclick="goHome()">🏠 Ir al Menú</button>
+      `;
+      h.innerHTML = "";
+      t.innerHTML = "";
+    }
+
+    function goHome() {
+      box.style.display = "none";
+      menu.style.display = "block";
+      clearInterval(interval);
+    }
+
+    async function showRanking() {
+      try {
+        const res = await fetch("/ranking");
+        const data = await res.json();
+
+        const rankingList = document.getElementById("ranking-list");
+        rankingList.innerHTML = "";
+
+        data.slice(0, 20).forEach((user, index) => {
+          const div = document.createElement("div");
+          div.style.cssText = `padding:8px; margin:4px 0; border-radius:6px; background:rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center;`;
+
+          const medal = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `${index + 1}.`;
+          div.innerHTML = `
+            <span>${medal} ${user.apodo}</span>
+            <span style="color:#00ffcc; font-weight:bold;">${user.points || 0} ⭐</span>
+          `;
+          rankingList.appendChild(div);
+        });
+
+        document.getElementById("ranking-box").style.display = "flex";
+      } catch (e) {
+        alert("Error al cargar el ranking");
+      }
+    }
+
+    function hideRanking() {
+      document.getElementById("ranking-box").style.display = "none";
+    }
+
+    function showPopup(text, isHTML = false) {
+      const popupText = document.getElementById("popupText");
+      if (!popupText) return;
+      if (isHTML) {
+        popupText.innerHTML = text;
+      } else {
+        popupText.innerHTML = text + '<br><br><button onclick="closePopup()" style="margin-top:10px; background:#222; color:#666;">Cerrar</button>';
+      }
+      document.getElementById("popup").style.display = "flex";
+    }
+
+    function closePopup() {
+      const popup = document.getElementById("popup");
+      if (popup) popup.style.display = "none";
+    }
+
+    window.onbeforeunload = () => {
+      clearInterval(interval);
+      if (socket && socket.connected) {
+        socket.disconnect();
+      }
+    };
+  
+
+</script>
+</body>
+</html>

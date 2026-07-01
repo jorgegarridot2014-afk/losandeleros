@@ -219,18 +219,19 @@ button:hover{
 
 <div id="points">⭐ Cargando...</div>
 
-<div id="menu">
+<div id="menu" style="display:block;">
   <h2>🎮 QUIZ MULTIPLAYER</h2>
   <button onclick="showCreateScreen()">🎮 Crear Partida</button>
   <button onclick="showJoinScreen()">🔍 Unirse a Partida</button>
   <button onclick="window.location.href='/quizzes/quiz.html'">🧠 Quiz Individual</button>
-  <button onclick="window.location.href='/index.html'" style="background: #333; margin-top: 15px; border: 1px solid #555;">⬅️ Volver al Menú Principal</button>
+  <button onclick="window.location.href='/quizzes/quiz.html'" style="background: #333; margin-top: 15px; border: 1px solid #555;">⬅️ Volver al Menú de Quizzes</button>
 </div>
 
 <div id="create-screen" style="display:none;">
   <h2>🎮 Crear Partida</h2>
   <p style="font-size:14px; margin:15px 0;">Selecciona temática:</p>
   <button onclick="createGame('general')">📚 Cultura General</button>
+  <button onclick="createGame('informatica')" style="background: linear-gradient(90deg,#0437f2,#0088ff);">💻 Informática</button>
   <button onclick="goHome()" style="background: #333; margin-top: 15px;">⬅️ Volver</button>
 </div>
 
@@ -246,7 +247,8 @@ button:hover{
 <div id="lobby" style="display:none;">
   <h2>🎮 Sala de Espera</h2>
   <p style="font-size:14px;">Partida: <span id="game-id" style="color:#00ffcc;"></span></p>
-  <p style="font-size:14px;">Temática: <span style="color:#00ffcc;">Cultura General</span></p>
+  <p style="font-size:14px;">Temática: <span id="lobby-topic" style="color:#00ffcc;">Cultura General</span></p>
+  <p id="waiting-msg" style="font-size:11px; color:#aaa; opacity:0; margin-top:5px;">Esperando que los demás jugadores terminen...</p>
   <h4 style="margin-top:15px;">👥 Jugadores (<span id="player-count">1</span>/4):</h4>
   <div id="players-list"></div>
   <button id="btn-start" style="display:none; background:#00ff99; color:#000; margin-top:15px;">▶ Comenzar Partida</button>
@@ -280,33 +282,72 @@ let socket = null;
 let socketInitialized = false;
 let gameQuestions = [];
 let myScore = 0;
+let hasSubmittedEnd = false;
+let currentGameTopic = "general";
+let autoTopic = null;
+
+function getUrlParam(name) {
+  const params = new URLSearchParams(window.location.search);
+  return params.get(name);
+}
 
 function initSocket() {
   if (socketInitialized) return;
   socketInitialized = true;
   socket = io();
-  
+
   socket.on("connect", () => {
     console.log("🔌 Conectado:", socket.id);
   });
-  
-  socket.on("game-started", (questions) => {
-    gameQuestions = questions || [];
+
+  socket.on("game-started", (data) => {
+    gameQuestions = data && data.questions ? data.questions : [];
+    currentGameTopic = data && data.topic ? data.topic : "general";
     startQuiz();
   });
-  
+
   socket.on("player-joined", (game) => {
     refreshLobby(game);
   });
-  
+
   socket.on("player-left", (game) => {
     refreshLobby(game);
   });
-  
-  socket.on("game-ended", () => {
-    showResult();
+
+  socket.on("player-finished", (data) => {
+    const waitingMsg = document.getElementById("waiting-msg");
+    if (waitingMsg && !hasSubmittedEnd) {
+      waitingMsg.style.opacity = data.waitingFor > 0 ? "1" : "0";
+    }
+  });
+
+  socket.on("game-ended", (data) => {
+    showFinalResults(data.results, data.winner);
   });
 }
+
+async function updatePointsUI(save = true) {
+   if (isNaN(points)) points = 0;
+   pointsUI.innerText = "⭐ Puntos: " + (isUserLoaded ? points : "...");
+
+   if (save && currentUser && isUserLoaded) {
+     try {
+       pointsUI.style.opacity = "0.5";
+       const res = await fetch("/update/" + currentUser.ide, {
+         method: "PUT",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({ points: points })
+       });
+       if (res.ok) {
+         const data = await res.json();
+         currentUser.points = data.points;
+         console.log("✅ Puntos guardados:", data.points);
+       }
+     } finally {
+       pointsUI.style.opacity = "1";
+     }
+   }
+ }
 
 const questions = [
   {q:"¿Capital de España?",a:["Madrid","Barcelona","Sevilla","Valencia"],c:0,h:"Capital del país"},
@@ -353,12 +394,92 @@ window.onload = () => {
     intro.style.pointerEvents = "none";
     setTimeout(() => intro.style.display = "none", 1000);
   }, 4000);
+
+  if (autoTopic) {
+    const tryAuto = setInterval(() => {
+      if (currentUser && isUserLoaded) {
+        clearInterval(tryAuto);
+        createGame(autoTopic);
+      }
+    }, 150);
+  }
 };
+
+function getUrlParam(name) {
+  const params = new URLSearchParams(window.location.search);
+  return params.get(name);
+}
+
+function initSocket() {
+  if (socketInitialized) return;
+  socketInitialized = true;
+  socket = io();
+  
+  socket.on("connect", () => {
+    console.log("🔌 Conectado:", socket.id);
+  });
+  
+  socket.on("game-started", (data) => {
+    gameQuestions = data && data.questions ? data.questions : [];
+    currentGameTopic = data && data.topic ? data.topic : "general";
+    startQuiz();
+  });
+  
+  socket.on("player-joined", (game) => {
+    refreshLobby(game);
+  });
+  
+  socket.on("player-left", (game) => {
+    refreshLobby(game);
+  });
+
+  socket.on("player-finished", (data) => {
+    const waitingMsg = document.getElementById("waiting-msg");
+    if (waitingMsg && !hasSubmittedEnd) {
+      waitingMsg.style.opacity = data.waitingFor > 0 ? "1" : "0";
+    }
+  });
+  
+  socket.on("game-ended", (data) => {
+    showFinalResults(data.results, data.winner);
+  });
+
+  socket.on("game-deleted", (data) => {
+    goHome();
+    showPopup("❌ " + (data.reason || "La partida ha sido eliminada."));
+  });
+}
+
+async function updatePointsUI(save = true) {
+   if (isNaN(points)) points = 0;
+   pointsUI.innerText = "⭐ Puntos: " + (isUserLoaded ? points : "...");
+
+   if (save && currentUser && isUserLoaded) {
+     try {
+       pointsUI.style.opacity = "0.5";
+       const res = await fetch("/update/" + currentUser.ide, {
+         method: "PUT",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({ points: points })
+       });
+       if (res.ok) {
+         const data = await res.json();
+         currentUser.points = data.points;
+         console.log("✅ Puntos guardados:", data.points);
+       }
+     } finally {
+       pointsUI.style.opacity = "1";
+     }
+   }
+ }
 
 async function initAccount() {
   const ide = localStorage.getItem(LAST_ACTIVE_KEY);
   if (!ide) {
-    window.location.href = "/index.html";
+    document.getElementById("user-apodo").innerText = "Invitado";
+    document.getElementById("user-foto").src = "pfp/p1.svg";
+    document.getElementById("user-badge").style.display = "flex";
+    document.getElementById("points").innerText = "⭐ Puntos: 0";
     return;
   }
 
@@ -381,329 +502,405 @@ async function initAccount() {
       updatePointsUI(false);
       
       initSocket();
+
+      const urlTopic = getUrlParam("topic");
+      if (urlTopic && (urlTopic === "informatica" || urlTopic === "geography")) {
+        autoTopic = urlTopic;
+      }
+    } else {
+      document.getElementById("user-apodo").innerText = "Error";
+      document.getElementById("user-foto").src = "pfp/p1.svg";
+      document.getElementById("user-badge").style.display = "flex";
+      document.getElementById("points").innerText = "⭐ Puntos: 0";
+      console.error("Login fallido:", res.status);
     }
   } catch(e) {
-    window.location.href = "/index.html";
+    console.error("Error en initAccount:", e);
+    document.getElementById("user-apodo").innerText = "Sin conexión";
+    document.getElementById("user-foto").src = "pfp/p1.svg";
+    document.getElementById("user-badge").style.display = "flex";
+    document.getElementById("points").innerText = "⭐ Puntos: ?";
   }
 }
 initAccount();
 
-async function updatePointsUI(save = true) {
-  if (isNaN(points)) points = 0;
-  pointsUI.innerText = "⭐ Puntos: " + (isUserLoaded ? points : "...");
+async function createGame(topic, direct) {
+   if (!isUserLoaded) return alert("Cargando datos de tu cuenta...");
 
-  if (save && currentUser && isUserLoaded) {
-    try {
-      pointsUI.style.opacity = "0.5";
-      const res = await fetch(`/update/${currentUser.ide}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ points })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        currentUser.points = data.points;
-      }
-    } finally {
-      pointsUI.style.opacity = "1";
-    }
-  }
-}
+   try {
+     const res = await fetch("/create-game", {
+       method: "POST",
+       headers: { "Content-Type": "application/json" },
+       body: JSON.stringify({
+         creator: currentUser.apodo,
+         creatorId: currentUser.ide,
+         topic: topic
+       })
+     });
 
-function showCreateScreen() {
-  menu.style.display = "none";
-  document.getElementById("create-screen").style.display = "block";
-}
+     const data = await res.json();
+     currentGame = data;
 
-function showJoinScreen() {
-  menu.style.display = "none";
-  document.getElementById("join-screen").style.display = "block";
-  loadGames();
-}
-
-async function loadGames() {
-  const list = document.getElementById("games-list");
-  list.innerHTML = "<p>Cargando partidas...</p>";
-  
-  try {
-    const res = await fetch("/games");
-    const games = await res.json();
-    
-    if (games.length === 0) {
-      list.innerHTML = "<p>No hay partidas disponibles. ¡Sé el primero en crear una!</p>";
-      return;
-    }
-    
-    list.innerHTML = "";
-    games.forEach(game => {
-      const div = document.createElement("div");
-      div.className = "game-item";
-      div.innerHTML = `
-        <strong>${game.gameId}</strong><br>
-        <span style="font-size:12px; color:#aaa;">Creada por: ${game.creator}</span><br>
-        <span style="font-size:11px; color:#00ffcc;">${game.players.length}/4 jugadores</span>
-      `;
-      div.onclick = () => joinGame(game.gameId);
-      list.appendChild(div);
-    });
-  } catch(err) {
-    list.innerHTML = "<p style='color:red;'>Error al cargar partidas</p>";
-  }
-}
-
-async function createGame(topic) {
-  if (!isUserLoaded) return alert("Cargando datos de tu cuenta...");
-  
-  try {
-    const res = await fetch("/create-game", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        creator: currentUser.apodo,
-        creatorId: currentUser.ide,
-        topic: "general"
-      })
-    });
-    
-    const data = await res.json();
-    currentGame = data;
-    enterLobby(data.gameId);
-  } catch(err) {
-    alert("Error al crear la partida");
-  }
-}
+     if (direct) {
+       document.getElementById("create-screen").style.display = "none";
+       enterLobby(data.gameId);
+     } else {
+       enterLobby(data.gameId);
+     }
+   } catch(err) {
+     alert("Error al crear la partida");
+   }
+ }
 
 async function joinGame(gameId) {
-  if (!isUserLoaded) return;
-  
-  try {
-    const res = await fetch("/join-game", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        gameId,
-        player: currentUser.apodo,
-        playerId: currentUser.ide
-      })
-    });
-    
-    const data = await res.json();
-    if (data.gameId) {
-      currentGame = { gameId };
-      enterLobby(gameId);
-    }
-  } catch(err) {
-    alert("Error al unirse a la partida");
-  }
-}
+   if (!isUserLoaded) return;
+
+   try {
+     const res = await fetch("/join-game", {
+       method: "POST",
+       headers: { "Content-Type": "application/json" },
+       body: JSON.stringify({
+         gameId,
+         player: currentUser.apodo,
+         playerId: currentUser.ide
+       })
+     });
+
+     const data = await res.json();
+     if (data.gameId) {
+       currentGame = { gameId };
+       enterLobby(gameId);
+     }
+   } catch(err) {
+     alert("Error al unirse a la partida");
+   }
+ }
 
 async function enterLobby(gameId) {
-  document.getElementById("create-screen").style.display = "none";
-  document.getElementById("join-screen").style.display = "none";
-  document.getElementById("lobby").style.display = "block";
-  
-  document.getElementById("game-id").innerText = gameId;
-  
-  await refreshLobbyData(gameId);
-  
-  if (socket && currentGame) {
-    socket.emit("join-game", gameId);
-  }
-}
+   document.getElementById("create-screen").style.display = "none";
+   document.getElementById("join-screen").style.display = "none";
+   document.getElementById("lobby").style.display = "block";
+
+   document.getElementById("game-id").innerText = gameId;
+
+   if (currentGame && currentGame.topic) {
+     const topicLabels = { "general": "📚 Cultura General", "informatica": "💻 Informática", "geography": "🌍 Geografía" };
+     document.getElementById("lobby-topic").innerText = topicLabels[currentGame.topic] || currentGame.topic;
+   }
+
+   await refreshLobbyData(gameId);
+
+   if (socket && currentGame) {
+     socket.emit("join-game", gameId);
+   }
+ }
 
 async function refreshLobbyData(gameId) {
-  try {
-    const res = await fetch("/games");
-    const games = await res.json();
-    const game = games.find(g => g.gameId === gameId);
-    
-    if (game) {
-      refreshLobby(game);
-    }
-  } catch(err) {
-    console.error("Error refreshing lobby:", err);
-  }
-}
+   try {
+     const res = await fetch("/games");
+     const games = await res.json();
+     const game = games.find(g => g.gameId === gameId);
+
+     if (game) {
+       refreshLobby(game);
+     }
+   } catch(err) {
+     console.error("Error refreshing lobby:", err);
+   }
+ }
 
 function refreshLobby(game) {
-  if (!game) {
-    goHome();
-    return;
-  }
-  
-  document.getElementById("player-count").innerText = game.players.length;
-  renderPlayers(game.players);
-  
-  const btnStart = document.getElementById("btn-start");
-  if (game.creatorId === currentUser?.ide && game.players.length >= 1) {
-    btnStart.style.display = "block";
-    btnStart.onclick = () => startMultiplayerGame();
-  } else if (game.players.length >= 2) {
-    btnStart.style.display = "none";
-  } else {
-    btnStart.style.display = "none";
-  }
-}
+   if (!game) {
+     goHome();
+     return;
+   }
+
+   document.getElementById("player-count").innerText = game.players.length;
+   renderPlayers(game.players);
+
+   const btnStart = document.getElementById("btn-start");
+   if (game.creatorId === currentUser?.ide && game.players.length >= 1) {
+     btnStart.style.display = "block";
+     btnStart.onclick = () => startMultiplayerGame();
+   } else if (game.players.length >= 2) {
+     btnStart.style.display = "none";
+   } else {
+     btnStart.style.display = "none";
+   }
+ }
 
 function renderPlayers(players) {
-  const list = document.getElementById("players-list");
-  list.innerHTML = "";
-  players.forEach(p => {
-    const div = document.createElement("div");
-    div.className = "player-item";
-    div.innerText = "🎮 " + p;
-    list.appendChild(div);
-  });
-}
+   const list = document.getElementById("players-list");
+   list.innerHTML = "";
+   players.forEach(p => {
+     const div = document.createElement("div");
+     div.className = "player-item";
+     div.innerText = "🎮 " + p;
+     list.appendChild(div);
+   });
+ }
 
 async function startMultiplayerGame() {
-  if (!socket || !currentGame || currentGame.gameId !== document.getElementById("game-id").innerText) return;
-  
-  try {
-    const res = await fetch("/start-game", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        gameId: currentGame.gameId,
-        playerId: currentUser.ide
-      })
-    });
-    
-    const data = await res.json();
-    if (data.questions) {
-      socket.emit("start-game", currentGame.gameId, data.questions);
-      gameQuestions = data.questions;
-      startQuiz();
-    } else {
-      alert(data.error || "Error al iniciar la partida");
-    }
-  } catch(err) {
-    alert("Error al iniciar la partida");
-  }
-}
+   if (!socket || !currentGame || currentGame.gameId !== document.getElementById("game-id").innerText) return;
+
+   try {
+     const res = await fetch("/start-game", {
+       method: "POST",
+       headers: { "Content-Type": "application/json" },
+       body: JSON.stringify({
+         gameId: currentGame.gameId,
+         playerId: currentUser.ide,
+         topic: currentGame.topic || "general"
+       })
+     });
+
+     const data = await res.json();
+     if (data.questions) {
+       socket.emit("start-game", currentGame.gameId, { questions: data.questions, topic: data.topic });
+       gameQuestions = data.questions;
+       startQuiz();
+     } else {
+       alert(data.error || "Error al iniciar la partida");
+     }
+   } catch(err) {
+     alert("Error al iniciar la partida");
+   }
+ }
 
 function startQuiz() {
-  document.getElementById("lobby").style.display = "none";
-  box.style.display = "block";
-  
-  currentQuestions = gameQuestions.length > 0 ? [...gameQuestions] : [...questions].sort(() => Math.random() - 0.5);
-  currentIndex = 0;
-  myScore = 0;
-  time = 60;
-  isAnswering = false;
-  
-  renderQuestion();
-  timer();
-}
+   document.getElementById("lobby").style.display = "none";
+   box.style.display = "block";
+
+   currentQuestions = gameQuestions.length > 0 ? [...gameQuestions] : [...questions].sort(() => Math.random() - 0.5);
+   currentIndex = 0;
+   myScore = 0;
+   time = 60;
+   hasSubmittedEnd = false;
+   isAnswering = false;
+
+   renderQuestion();
+   timer();
+ }
 
 function timer(){
-  clearInterval(interval);
-  interval=setInterval(()=>{
-    time--;
-    t.innerText="⏱️ "+time;
-    if(time<=0) end();
-  },1000);
+   clearInterval(interval);
+   interval=setInterval(()=>{
+     time--;
+     t.innerText="⏱️ "+time;
+     if(time<=0) end();
+   },1000);
+ }
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
 function renderQuestion() {
-  const qData = currentQuestions[currentIndex];
-  q.innerText = `${currentIndex + 1}. ${qData.q}`;
-  h.innerText = "💡 Pista: " + qData.h;
-  a.innerHTML = "";
+   const qData = currentQuestions[currentIndex];
+   const shuffled = shuffle(qData.a);
+   const correctIdx = shuffled.indexOf(qData.a[qData.c]);
+   q.innerText = `${currentIndex + 1}. ${qData.q}`;
+   h.innerText = "💡 Pista: " + qData.h;
+   a.innerHTML = "";
 
-  qData.a.forEach((opt, idx) => {
-    const btn = document.createElement("button");
-    btn.innerText = opt;
+   shuffled.forEach((opt, idx) => {
+     const btn = document.createElement("button");
+     btn.innerText = opt;
 
-    btn.onclick = () => {
-      if (isAnswering) return;
-      isAnswering = true;
+     btn.onclick = () => {
+       if (isAnswering) return;
+       isAnswering = true;
 
-      if (idx === qData.c) {
-        btn.classList.add("btn-correct");
-        score++;
-        myScore++;
-        points += 100;
-      } else {
-        btn.classList.add("btn-wrong");
-        points += 20;
-      }
+       if (idx === correctIdx) {
+         btn.classList.add("btn-correct");
+         score++;
+         myScore++;
+         points += 100;
+       } else {
+         btn.classList.add("btn-wrong");
+         points += 20;
+       }
 
-      updatePointsUI();
+       updatePointsUI();
 
-      setTimeout(() => {
-        isAnswering = false;
-        next();
-      }, 600);
-    };
+       setTimeout(() => {
+         isAnswering = false;
+         next();
+       }, 600);
+     };
 
-    a.appendChild(btn);
-  });
-}
+     a.appendChild(btn);
+   });
+ }
 
 function next(){
-  currentIndex++;
-  if(currentIndex >= currentQuestions.length || time <= 0) end();
-  else renderQuestion();
-}
+   currentIndex++;
+   if(currentIndex >= currentQuestions.length || time <= 0) end();
+   else renderQuestion();
+ }
 
 function end(){
-  clearInterval(interval);
-  
-  q.innerHTML="🏁 FIN";
-  a.innerHTML = `
-    <div id="winner-box">
-      <h3>¡Has terminado!</h3>
-      <p>Aciertos: ${myScore}</p>
-      <h4 style="color:#00ffcc;">Puntos ganados: ${points} ⭐</h4>
-    </div>
-    <button onclick="goHome()">🏠 Ir al Menú</button>
-  `;
-  h.innerHTML="";
-  t.innerHTML="";
-}
+   if (hasSubmittedEnd) return;
+   hasSubmittedEnd = true;
 
-async function leaveLobby() {
-  if (!currentGame) return goHome();
-  
-  try {
-    await fetch("/leave-game", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        gameId: currentGame.gameId,
-        playerId: currentUser.ide
-      })
-    });
-  } catch(err) {
-    console.error("Error leaving game:", err);
-  }
-  
-  goHome();
-}
+   clearInterval(interval);
+
+   q.innerHTML="🏁 FIN";
+   a.innerHTML = `
+     <div id="winner-box">
+       <h3>✅ Has terminado!</h3>
+       <p>Aciertos: <b>${myScore}</b></p>
+       <p style="color:#aaa;">Esperando resultados de los otros jugadores...</p>
+       <p style="font-size:11px; color:#666;">Si eres el ganador, obtendrás +5000 ⭐</p>
+     </div>
+   `;
+   h.innerHTML = "";
+   t.innerHTML = "";
+
+   document.getElementById("waiting-msg").style.opacity = "1";
+
+   submitEndGame(myScore);
+ }
+
+async function submitEndGame(score) {
+   if (!currentGame || !currentGame.gameId) return;
+   try {
+     await fetch("/end-game", {
+       method: "POST",
+       headers: { "Content-Type": "application/json" },
+       body: JSON.stringify({
+         gameId: currentGame.gameId,
+         playerId: currentUser.ide,
+         score: score
+       })
+     });
+   } catch(err) {
+     console.error("Error submitting end game:", err);
+   }
+ }
 
 function goHome(){
-  box.style.display = "none";
-  document.getElementById("lobby").style.display = "none";
-  document.getElementById("join-screen").style.display = "none";
-  document.getElementById("create-screen").style.display = "none";
-  menu.style.display = "block";
-  currentGame = null;
-}
+   box.style.display = "none";
+   document.getElementById("lobby").style.display = "none";
+   document.getElementById("join-screen").style.display = "none";
+   document.getElementById("create-screen").style.display = "none";
+   document.getElementById("waiting-msg").style.opacity = "0";
+   menu.style.display = "block";
+   currentGame = null;
+   hasSubmittedEnd = false;
+   currentGameTopic = "general";
+ }
+
+function showCreateScreen(){
+   menu.style.display = "none";
+   document.getElementById("create-screen").style.display = "block";
+ }
+
+function showJoinScreen(){
+   menu.style.display = "none";
+   document.getElementById("join-screen").style.display = "block";
+ }
 
 function showPopup(text){
-  document.getElementById("popupText").innerText=text;
-  document.getElementById("popup").style.display="flex";
-}
+   document.getElementById("popupText").innerText=text;
+   document.getElementById("popup").style.display="flex";
+ }
 
 function closePopup(){
    document.getElementById("popup").style.display="none";
  }
 
- socket.on("admin-broadcast", (data) => {
-   alert(data.user + ": " + data.message);
- });
+async function loadGames() {
+   const list = document.getElementById("games-list");
+   list.innerHTML = "<p>Cargando partidas...</p>";
 
+   try {
+      const res = await fetch("/games");
+      const games = await res.json();
+
+      if (!games || games.length === 0) {
+         list.innerHTML = "<p style='color:#aaa; font-size:12px;'>No hay partidas disponibles.</p>";
+         return;
+      }
+
+      list.innerHTML = "";
+      games.forEach(game => {
+         const topicLabel = game.topic === 'informatica' ? '💻 Informática' : game.topic === 'geography' ? '🌍 Geografía' : '📚 Cultura General';
+         const div = document.createElement("div");
+         div.className = "game-item";
+         div.innerHTML = `<b>${game.gameId}</b> - ${topicLabel} <br><span style="font-size:11px; color:#aaa;">${game.players.length}/4 jugadores</span>`;
+         div.onclick = () => joinGame(game.gameId);
+         list.appendChild(div);
+      });
+   } catch(err) {
+      list.innerHTML = "<p style='color:#ff0055; font-size:12px;'>Error al cargar partidas.</p>";
+   }
+ }
+
+function showFinalResults(results, winner) {
+   clearInterval(interval);
+
+   const topicLabelText = currentGameTopic === "informatica" ? "💻 Informática" : "📚 Cultura General";
+
+   let resultsHTML = results.map((r, i) => {
+     const isWinner = winner && r.playerId === winner.playerId;
+     return `
+       <div style="background: ${isWinner ? 'rgba(0,255,204,0.15)' : 'rgba(0,0,0,0.3)'};
+                   padding:8px; border-radius:6px; margin:4px 0;
+                   border: ${isWinner ? '1px solid #00ffcc' : '1px solid #333'};">
+         <span style="${isWinner ? 'color:#00ffcc; font-size:16px;' : ''}">${isWinner ? '👑 ' : ''}${r.playerName}</span>
+         <span style="float:right; font-size:14px;">${r.score} aciertos</span>
+       </div>
+     `;
+   }).join("");
+
+   const winnerText = winner
+     ? `🏆 <b>GANADOR: ${winner.playerName}</b><br>`
+           + `<span style="font-size:14px;">${winner.score} aciertos</span><br>`
+           + `<span style="color:#ffcc00; font-size:13px;">🎁 +5000 ⭐ puntos ganados!</span>`
+     : "🤝 ¡Empate!";
+
+   q.innerHTML = `🎯 Resultados - ${topicLabelText}`;
+   a.innerHTML = `
+     <div id="winner-box" style="text-align:left; font-size:14px;">
+       <p style="text-align:center; margin-bottom:10px;">${winnerText}</p>
+       <hr style="border-color:#333; margin:8px 0;">
+       <b>📋 Resultados:</b>
+       ${resultsHTML}
+     </div>
+     <button onclick="goHome()" style="margin-top:10px;">🏠 Ir al Menú</button>
+   `;
+   h.innerHTML = "";
+   t.innerHTML = "";
+ }
+
+async function leaveLobby() {
+   if (!currentGame) return goHome();
+
+   try {
+      await fetch("/leave-game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+       body: JSON.stringify({ 
+         points: points,
+         weeklyDone: currentUser.weeklyDone,
+         englishQuizPurchased: currentUser.englishQuizPurchased,
+         historyQuizPurchased: currentUser.historyQuizPurchased,
+         geographyQuizPurchased: currentUser.geographyQuizPurchased,
+         genialQuizPurchased: currentUser.genialQuizPurchased
+       })
+      });
+   } catch(err) {
+      console.error("Error leaving game:", err);
+   }
+
+   goHome();
+ }
 </script>
 
 </body>

@@ -709,10 +709,14 @@ async function updateServerPoints(newPoints) {
     const res = await fetch(`/update/${encodeURIComponent(currentUser.ide)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        points: newPoints,
-        geographyQuizPurchased: currentUser.geographyQuizPurchased 
-      })
+       body: JSON.stringify({ 
+         points: points,
+         weeklyDone: currentUser.weeklyDone,
+         englishQuizPurchased: currentUser.englishQuizPurchased,
+         historyQuizPurchased: currentUser.historyQuizPurchased,
+         geographyQuizPurchased: currentUser.geographyQuizPurchased,
+         genialQuizPurchased: currentUser.genialQuizPurchased
+       })
     });
     if (res.ok) {
       const data = await res.json();
@@ -908,6 +912,8 @@ function startMode(mode) {
 
 function loadQuestion() {
   const q = activeQuestions[current];
+  const shuffled = shuffle(q.opts);
+  const correctIdx = shuffled.indexOf(q.opts[q.ans]);
   const total = activeQuestions.length;
   document.getElementById('q-count').textContent = `Pregunta ${current+1} de ${total}`;
   document.getElementById('score-live').textContent = `✓ ${score}`;
@@ -920,16 +926,16 @@ function loadQuestion() {
 
   const opts = document.getElementById('options');
   opts.innerHTML = '';
-  q.opts.forEach((o, i) => {
+  shuffled.forEach((o, i) => {
     const btn = document.createElement('button');
     btn.className = 'opt-btn';
     btn.textContent = o;
-    btn.onclick = () => pick(i);
+    btn.onclick = () => pick(i, correctIdx);
     opts.appendChild(btn);
   });
 }
 
-function pick(i) {
+function pick(i, correctIdx) {
   if (answered) return;
   answered = true;
   const q = activeQuestions[current];
@@ -937,7 +943,7 @@ function pick(i) {
   btns.forEach(b => b.disabled = true);
   const fb = document.getElementById('feedback');
 
-  if (i === q.ans) {
+  if (i === correctIdx) {
     btns[i].classList.add('correct');
     fb.textContent = '✓ ¡Correcto!'; fb.className = 'feedback ok';
     score++;
@@ -949,7 +955,7 @@ function pick(i) {
     }
   } else {
     btns[i].classList.add('wrong');
-    btns[q.ans].classList.add('reveal');
+    btns[correctIdx].classList.add('reveal');
     fb.textContent = `✗ La respuesta era: ${q.opts[q.ans]}`; fb.className = 'feedback err';
     quizPoints += 140;
     if (currentUser) {

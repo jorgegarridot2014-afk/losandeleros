@@ -561,13 +561,29 @@ const LETTERS = ['A','B','C','D'];
 let current = 0, score = 0, answered = false;
 const PTS_PER_Q = 200;
 
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 async function updateServerPoints(newPoints) {
   if (!currentUser || !currentUser.ide) return;
   try {
     const res = await fetch(`/update/${encodeURIComponent(currentUser.ide)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ points: newPoints })
+      body: JSON.stringify({ 
+        points: newPoints,
+        weeklyDone: weeklyDone,
+        englishQuizPurchased: currentUser.englishQuizPurchased,
+        historyQuizPurchased: currentUser.historyQuizPurchased,
+        geographyQuizPurchased: currentUser.geographyQuizPurchased,
+        genialQuizPurchased: currentUser.genialQuizPurchased
+      })
     });
     if (res.ok) {
       const data = await res.json();
@@ -581,6 +597,8 @@ async function updateServerPoints(newPoints) {
 
 function render() {
   const q = Qs[current];
+  const shuffled = shuffle(q.opts);
+  const correctIdx = shuffled.indexOf(q.opts[q.ans]);
   document.getElementById('q-number').textContent = `Pregunta ${current + 1} de ${Qs.length}`;
   document.getElementById('q-text').textContent = q.q;
   document.getElementById('prog-frac').textContent = `${current + 1} / ${Qs.length}`;
@@ -588,12 +606,12 @@ function render() {
 
   const opts = document.getElementById('options');
   opts.innerHTML = '';
-  q.opts.forEach((o, i) => {
+  shuffled.forEach((o, i) => {
     const btn = document.createElement('button');
     btn.className = 'opt-btn';
     btn.setAttribute('data-letter', LETTERS[i]);
     btn.textContent = o;
-    btn.onclick = () => choose(i);
+    btn.onclick = () => choose(i, correctIdx);
     opts.appendChild(btn);
   });
 
@@ -603,7 +621,7 @@ function render() {
   answered = false;
 }
 
-function choose(i) {
+function choose(clickedIdx, correctIdx) {
   if (answered) return;
   answered = true;
   const q = Qs[current];
@@ -611,11 +629,11 @@ function choose(i) {
   btns.forEach(b => b.disabled = true);
 
   const fb = document.getElementById('feedback');
-  if (i === q.ans) {
+  if (clickedIdx === correctIdx) {
     score++;
     quizPoints += PTS_PER_Q;
-    btns[i].classList.add('correct');
-    btns.forEach((b, j) => { if (j !== i) b.classList.add('dimmed'); });
+    btns[clickedIdx].classList.add('correct');
+    btns.forEach((b, j) => { if (j !== clickedIdx) b.classList.add('dimmed'); });
     fb.className = 'feedback correct';
     fb.innerHTML = '<strong>Correcto</strong>' + q.exp;
     if (currentUser) {
@@ -623,9 +641,9 @@ function choose(i) {
       updateServerPoints(currentUser.points);
     }
   } else {
-    btns[i].classList.add('wrong');
-    btns[q.ans].classList.add('correct');
-    btns.forEach((b, j) => { if (j !== i && j !== q.ans) b.classList.add('dimmed'); });
+    btns[clickedIdx].classList.add('wrong');
+    btns[correctIdx].classList.add('correct');
+    btns.forEach((b, j) => { if (j !== clickedIdx && j !== correctIdx) b.classList.add('dimmed'); });
     fb.className = 'feedback wrong';
     fb.innerHTML = '<strong>Incorrecto</strong>' + q.exp;
   }

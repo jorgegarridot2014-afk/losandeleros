@@ -192,6 +192,7 @@ function logout(){ localStorage.removeItem(LAST_ACTIVE_KEY); user = null; go(); 
 function irMision2() { if (!user || !user.ide) return alert("Carl Briss: '¿Quién eres? Identifícate antes de intentar acceder al núcleo.'"); if (!user.missionCarlBriss1) { return alert("Carl Briss: 'Acceso denegado. Debes completar el Protocolo de Iniciación (Misión 1) antes de acceder al nivel 2.'"); } window.location.href = `mario%20bross/2.html?ide=${encodeURIComponent(user.ide)}&apodo=${encodeURIComponent(user.apodo)}&points=${user.points || 0}&m2=${user.missionCarlBriss2 || false}`; }
 function abrirJugar(){ hideAll(); show("menuJugar"); }
 function cerrarJugar(){ go(); }
+function irPensamiento(){ window.location.href = "scratch.html"; }
 function irMinijuegos(){ window.location.href = "mantenimiento.html"; }
 function irEscape(){ window.location.href = "https://darkterminal.onrender.com/"; }
 function irQuiz(){ window.location.href = "/quizzes/quiz.html"; }
@@ -199,8 +200,9 @@ function irTrivialPlayers(){ window.location.href = "/quizzes/trivialplayers.htm
 function irQuizIndividual(){ window.location.href = "/quizzes/quiz.html"; }
 function irMisterio(){ if (!user || !user.ide) return alert("Carl Briss: 'Identifícate antes de entrar al Protocolo Origen.'"); window.location.href = `/mario%20bross/game.html?ide=${encodeURIComponent(user.ide)}&apodo=${encodeURIComponent(user.apodo)}&points=${user.points || 0}&m1=${user.missionCarlBriss1 || false}&m2=${user.missionCarlBriss2 || false}`; }
 function irLab(){ window.location.href = "https://elementlab.onrender.com/"; }
+function irMundo(){ window.location.href = "/quizzes/quizmundo.html"; }
 function irAdmin(){ window.location.href = "/admin.html"; }
-function abrirNoti(){ hideAll(); show("overlayNoti"); document.getElementById("notiText").innerText = "🔔 hola ,porfavor cretae una nueva cuenta si no lo has hecho todavia para evitar errores con la base de datos muchas gracias, no van los ultimos 3 minijuegos, estan en mantenimiento"; }
+function abrirNoti(){ hideAll(); show("overlayNoti"); document.getElementById("notiText").innerText = "🔔 ya hay nuevos minijuegos disponibles"; }
 function cerrarNoti(){ go(); }
 function checkMision2() { if (!user) return; if (user.missionCarlBriss2) { alert("Carl Briss dice: 'Buen trabajo con el Protocolo Sombra, el sistema está estable.'"); } else if (user.missionCarlBriss1) { irMision2(); } else { alert("Carl Briss: 'Necesitas completar la Misión 1 primero.'"); } }
 function toggleModo(){ modo = modo === "oscuro" ? "claro" : modo === "claro" ? "neon" : "oscuro"; localStorage.setItem("modo", modo); go(); }
@@ -218,6 +220,11 @@ async function eliminarCuenta(){
   } catch(err) { console.error(err); alert("Error eliminando cuenta"); }
 }
 function shop(){
+  const popup = document.getElementById("popup");
+  if (popup.style.display === "flex") {
+    closePopup();
+    return;
+  }
   const popupText = document.getElementById("popupText");
   const hasEnglish = user && user.englishQuizPurchased;
   const hasHistory = user && user.historyQuizPurchased;
@@ -237,16 +244,16 @@ function shop(){
     <p style="margin: 5px 0; color: #aaa; font-size: 13px;">Preguntas por el mundo - ¡Sé el mejor explorador!</p>
     <p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 700 ⭐</p>`; }
   content += `<p style="margin: 5px 0; color: #00ffcc; font-size: 12px;">Tu saldo: ${user.points || 0} ⭐</p></div>`;
-  content += `<div style="display: flex; gap: 10px; flex-wrap: wrap;">`;
-  if (hasEnglish) { content += `<button onclick="closePopup(); window.location.href='/quizzes/quizenglis.html'" style="letter-spacing: 1px;">🇬🇧 Jugar Inglés</button>`; }
-  else { content += `<button onclick="buyEnglishQuiz()" style="letter-spacing: 1px;">COMPRAR Inglés (500⭐)</button>`; }
-  if (hasHistory) { content += `<button onclick="closePopup(); window.location.href='/quizzes/quizhistoria.html'" style="letter-spacing: 1px;">📜 Jugar Historia</button>`; }
-  else { content += `<button onclick="buyHistoryQuiz()" style="letter-spacing: 1px;">COMPRAR Historia (200⭐)</button>`; }
-  if (hasGeography) { content += `<button onclick="closePopup(); window.location.href='/quizzes/quizmundo.html'" style="letter-spacing: 1px;">🌍 Jugar Geografía</button>`; }
-  else { content += `<button onclick="buyGeographyQuiz()" style="letter-spacing: 1px;">COMPRAR Geografía (700⭐)</button>`; }
-  content += `<button onclick="closePopup()" style="background: #222; color: #666; letter-spacing: 1px;">Cerrar</button></div>`;
+  content += `<div style="display: flex; flex-direction: column; gap: 10px;">`;
+  if (hasEnglish) { content += `<button onclick="closePopup(); irQuiz()" style="width: 100%; letter-spacing: 1px;">🇬🇧 Jugar Inglés</button>`; }
+  else { content += `<button onclick="buyEnglishQuiz()" style="width: 100%; letter-spacing: 1px;">COMPRAR Inglés (500⭐)</button>`; }
+  if (hasHistory) { content += `<button onclick="closePopup(); irQuizIndividual()" style="width: 100%; letter-spacing: 1px;">📜 Jugar Historia</button>`; }
+  else { content += `<button onclick="buyHistoryQuiz()" style="width: 100%; letter-spacing: 1px;">COMPRAR Historia (200⭐)</button>`; }
+  if (hasGeography) { content += `<button onclick="closePopup(); irMundo()" style="width: 100%; letter-spacing: 1px;">🌍 Jugar Geografía</button>`; }
+  else { content += `<button onclick="buyGeographyQuiz()" style="width: 100%; letter-spacing: 1px;">COMPRAR Geografía (700⭐)</button>`; }
+  content += `<button onclick="closePopup()" style="width: 100%; background: #222; color: #666; letter-spacing: 1px;">Cerrar</button></div>`;
   popupText.innerHTML = content;
-  document.getElementById("popup").style.display = "flex";
+  popup.style.display = "flex";
 }
 async function buyEnglishQuiz(){
   if ((user.points || 0) < 500) { showPopup("❌ No tienes suficientes créditos.\nNecesitas 500 ⭐.\nSaldo actual: " + (user.points || 0) + " ⭐"); setTimeout(closePopup, 2000); return; }

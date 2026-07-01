@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Piezas · Aprende pensamiento computacional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#120E1F;
+    --panel:#1C1730;
+    --panel-line:#332B4E;
+    --ink:#F1EDFF;
+    --ink-soft:#B0A5D4;
+    --robot:#4A3D78;
+
+    --motion:#FF8C5A;    --motion-dark:#FFB088;
+    --loop:#9B7BFF;      --loop-dark:#C4B2FF;
+    --sensor:#2FD8CB;    --sensor-dark:#7CEDE3;
+    --var:#FF6FB8;       --var-dark:#FFA6D3;
+    --logic:#5FDA7C;     --logic-dark:#9BEDAF;
+    --event:#FFBB4D;     --event-dark:#FFD48A;
+    --appearance:#5B9DFF;--appearance-dark:#9CC3FF;
+    --paint:#C6FF4D;      --paint-dark:#E2FFA0;
+
+    --yellow:#FFD65C;
+    --success:#3ECB8C; --success-bg:rgba(62,203,140,.16);
+    --danger:#FF6B87;  --danger-bg:rgba(255,107,135,.16);
+    --warn-bg:rgba(255,214,92,.14); --warn-ink:#FFD65C;
+    --wall:#08060E;
+    --cell:#241C3C;
+    --radius:16px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 8% 10%, rgba(155,123,255,.16) 0%, transparent 42%),
+      radial-gradient(circle at 92% 88%, rgba(255,140,90,.13) 0%, transparent 46%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Space Grotesk', sans-serif;
+    min-height:100vh;
+    padding:28px 20px 60px;
+  }
+
+  .wrap{max-width:1440px; margin:0 auto;}
+
+  /* ---------- HEADER ---------- */
+  header{margin-bottom:26px;}
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--loop-dark); background:rgba(155,123,255,.16);
+    padding:6px 12px; border-radius:999px; font-weight:700;
+    margin-bottom:14px;
+  }
+  h1{
+    font-family:'Fredoka', sans-serif;
+    font-size:clamp(30px,4.4vw,46px);
+    line-height:1.05; margin:0 0 10px;
+    letter-spacing:-0.01em;
+    color:var(--ink);
+  }
+  h1 span{color:var(--motion);}
+  header p.lede{
+    max-width:660px; color:var(--ink-soft); font-size:16px; line-height:1.55; margin:0 0 22px;
+  }
+
+  .pillars{display:flex; flex-wrap:wrap; gap:10px;}
+  .pillar-chip{
+    background:var(--panel); border:1px solid var(--panel-line);
+    border-radius:14px; padding:10px 14px; display:flex; gap:10px; align-items:flex-start;
+    max-width:230px; box-shadow:0 2px 0 var(--panel-line);
+  }
+  .pillar-chip b{
+    font-family:'Fredoka', sans-serif; font-size:13.5px; display:block; margin-bottom:2px; color:var(--ink);
+  }
+  .pillar-chip span{font-size:12.5px; color:var(--ink-soft); line-height:1.4;}
+  .pillar-dot{width:9px; height:9px; border-radius:50%; margin-top:5px; flex:none;}
+
+  /* ---------- MAIN LAYOUT ---------- */
+  main{
+    display:grid;
+    grid-template-columns: 240px minmax(0,1fr) 480px;
+    gap:18px;
+    align-items:start;
+  }
+  @media (max-width: 980px){
+    main{grid-template-columns:1fr;}
+  }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--panel-line);
+    border-radius:20px;
+    padding:16px;
+    box-shadow:0 3px 0 var(--panel-line);
+  }
+  .panel-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .panel-head h2{
+    font-family:'Fredoka', sans-serif; font-size:19px; margin:2px 2px;
+    display:flex; align-items:center; gap:8px; color:var(--ink);
+  }
+  .toggle-btn{
+    border:none; background:#2A2444; color:var(--ink);
+    width:40px; height:40px; border-radius:11px; cursor:pointer;
+    font-size:18px; display:flex; align-items:center; justify-content:center;
+    transition:background .15s ease;
+  }
+  .toggle-btn:hover{background:#372F5C;}
+  .panel-body{overflow:hidden;}
+  .panel-body.collapsed{display:none;}
+
+  /* ---------- PALETTE / ACCORDION ---------- */
+  .cat{
+    border:1px solid var(--panel-line); border-radius:13px; margin-bottom:9px; overflow:hidden;
+  }
+  .cat-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:11px 12px; cursor:pointer; background:#221C3A; user-select:none;
+  }
+  .cat-head:hover{background:#291F49;}
+  .cat-title{
+    font-family:'Fredoka', sans-serif; font-weight:600; font-size:14px;
+    display:flex; align-items:center; gap:7px; color:var(--ink);
+  }
+  .cat-count{
+    font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-soft);
+    background:#332B4E; padding:2px 7px; border-radius:999px;
+  }
+  .cat-chevron{font-size:11px; color:var(--ink-soft); transition:transform .15s ease;}
+  .cat-body{padding:10px; display:flex; flex-direction:column; gap:8px;}
+  .cat-body.collapsed{display:none;}
+
+  .palette-block{
+    position:relative;
+    font-family:'Fredoka', sans-serif; font-weight:700; font-size:16.5px;
+    color:#0F0B1C; padding:14px 16px 14px 34px; border-radius:13px;
+    cursor:grab; user-select:none;
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,.18);
+  }
+  .palette-block:active{cursor:grabbing;}
+  .palette-block::before{
+    content:""; position:absolute; left:12px; top:50%; transform:translateY(-50%);
+    width:9px; height:9px; border-radius:50%; background:rgba(0,0,0,.32);
+  }
+  .palette-hint{font-size:11.5px; color:var(--ink-soft); line-height:1.5; margin:6px 2px 0;}
+
+  .cat-motion{background:var(--motion);}
+  .cat-loop{background:var(--loop);}
+  .cat-sensor{background:var(--sensor);}
+  .cat-var{background:var(--var);}
+  .cat-logic{background:var(--logic);}
+  .cat-event{background:var(--event);}
+  .cat-appearance{background:var(--appearance);}
+  .cat-paint{background:var(--paint);}
+
+  /* ---------- WORKSPACE ---------- */
+  .workspace-actions{display:flex; gap:8px;}
+  .btn{
+    font-family:'Fredoka', sans-serif; font-weight:700; font-size:19px;
+    border:none; border-radius:14px; padding:16px 26px; cursor:pointer;
+    display:inline-flex; align-items:center; gap:9px;
+    transition:transform .12s ease;
+  }
+  .btn:active{transform:scale(.96);}
+  .btn-run{background:var(--success); color:#0B2419; box-shadow:inset 0 -3px 0 rgba(0,0,0,.2);}
+  .btn-run:disabled{opacity:.5; cursor:default;}
+  .btn-clear{background:#2A2444; color:var(--ink-soft);}
+
+  #script-root{
+    min-height:260px; border-radius:14px; padding:12px;
+    background:repeating-linear-gradient(135deg, #1A1530, #1A1530 12px, #201A3A 12px, #201A3A 24px);
+    border:2px dashed var(--panel-line);
+  }
+  .block-wrap{position:relative; margin-bottom:6px;}
+  .block-wrap.drag-ghost{opacity:.35;}
+  .block{
+    position:relative;
+    font-family:'Fredoka', sans-serif; font-weight:700; font-size:17.5px; color:#0F0B1C;
+    border-radius:13px; padding:14px 44px 14px 34px; cursor:grab;
+    display:flex; align-items:center; gap:9px; min-height:22px; flex-wrap:wrap;
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,.18);
+  }
+  .block::before{
+    content:""; position:absolute; left:12px; top:50%; transform:translateY(-50%);
+    width:9px; height:9px; border-radius:50%; background:rgba(0,0,0,.32);
+  }
+  .block.running{outline:4px solid var(--yellow); outline-offset:2px;}
+  .count-input{
+    width:44px; border:none; border-radius:8px; text-align:center;
+    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:16px;
+    padding:5px 3px; background:rgba(255,255,255,.92); color:var(--loop-dark);
+  }
+  .del-btn{
+    position:absolute; right:10px; top:50%; transform:translateY(-50%);
+    width:24px; height:24px; border-radius:50%; border:none; background:rgba(0,0,0,.22);
+    color:#fff; font-size:14px; line-height:24px; text-align:center; cursor:pointer; padding:0;
+  }
+  .del-btn:hover{background:rgba(0,0,0,.36);}
+  .repeat-body{
+    margin:2px 0 0 24px; padding:8px 8px 4px; border-radius:10px;
+    background:rgba(155,123,255,.10); border:1.5px dashed var(--loop);
+    min-height:32px;
+  }
+  .empty-hint{
+    font-size:11.5px; color:var(--ink-soft); text-align:center; padding:10px 4px;
+    font-family:'JetBrains Mono', monospace;
+  }
+  .drop-line{height:3px; background:var(--yellow); border-radius:3px; margin:2px 0;}
+
+  /* ---------- STAGE ---------- */
+  .level-tabs{display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;}
+  .level-tab{
+    flex:1; min-width:70px; text-align:center; font-family:'JetBrains Mono', monospace;
+    font-weight:700; font-size:11.5px; padding:8px 4px; border-radius:9px; cursor:pointer;
+    background:#2A2444; color:var(--ink-soft); border:1px solid transparent;
+  }
+  .level-tab.active{background:var(--yellow); color:#3A2900;}
+  .stage-name{font-family:'Fredoka', sans-serif; font-size:14.5px; margin:0 0 2px; color:var(--ink);}
+  .stage-pillar{font-size:12px; color:var(--loop-dark); margin:0 0 10px; font-weight:600;}
+
+  .counter-badge{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'JetBrains Mono', monospace; font-size:11.5px; font-weight:700;
+    background:rgba(255,111,184,.16); color:var(--var-dark); padding:5px 10px; border-radius:999px;
+    margin-bottom:10px;
+  }
+
+  #grid-outer{
+    position:relative; width:100%; aspect-ratio:1/1; border-radius:14px; overflow:hidden;
+    background:var(--wall);
+  }
+  #grid{
+    display:grid; width:100%; height:100%; gap:2px; background:var(--wall);
+  }
+  .cell{background:var(--cell);}
+  .cell.wall{background:var(--wall);}
+  .cell.goal{
+    background:var(--cell);
+    display:flex; align-items:center; justify-content:center; font-size:20px;
+  }
+  #robot{
+    position:absolute; top:0; left:0; width:var(--cs); height:var(--cs);
+    transition: transform .38s cubic-bezier(.4,0,.2,1);
+    display:flex; align-items:center; justify-content:center;
+    z-index:5; pointer-events:none;
+  }
+  #robot .body{
+    width:64%; height:64%; background:var(--robot); border-radius:9px; position:relative;
+    display:flex; align-items:center; justify-content:center; gap:5px;
+    transition:background .2s ease;
+  }
+  #robot .body.spin-anim{animation:spin-anim .45s linear;}
+  @keyframes spin-anim{from{transform:rotate(0)} to{transform:rotate(360deg)}}
+  #robot .eye{width:14%; height:14%; background:var(--yellow); border-radius:50%;}
+  #robot .arrow{
+    position:absolute; width:0; height:0;
+    border-left:7px solid transparent; border-right:7px solid transparent;
+    border-bottom:11px solid var(--motion);
+    top:50%; left:100%; transform-origin:0% 50%;
+    margin-left:2px;
+  }
+  #speech-bubble{
+    position:absolute; top:8px; left:50%; transform:translateX(-50%);
+    background:#F1EDFF; color:#14101F; font-family:'Fredoka', sans-serif; font-weight:600;
+    font-size:12.5px; padding:6px 12px; border-radius:999px; border:2px solid #08060E;
+    opacity:0; transition:opacity .2s ease; z-index:10; white-space:nowrap; max-width:88%;
+    overflow:hidden; text-overflow:ellipsis;
+  }
+
+  .message{
+    margin-top:12px; padding:10px 12px; border-radius:11px; font-size:13px; font-weight:600;
+    min-height:20px; font-family:'Space Grotesk', sans-serif;
+  }
+  .message.warn{background:var(--warn-bg); color:var(--warn-ink);}
+  .message.error{background:var(--danger-bg); color:var(--danger);}
+  .message.success{background:var(--success-bg); color:var(--success);}
+
+  footer{
+    max-width:1440px; margin:28px auto 0; text-align:center; color:var(--ink-soft); font-size:12.5px;
+  }
+
+  /* ---------- SELECTOR DE MODO ---------- */
+  .mode-overlay{
+    position:fixed; inset:0; background:rgba(8,6,14,.84);
+    display:flex; align-items:center; justify-content:center; z-index:100; padding:20px;
+  }
+  .mode-overlay.hidden{display:none;}
+  .mode-card{
+    background:var(--panel); border:1px solid var(--panel-line); border-radius:22px;
+    padding:32px; max-width:640px; width:100%; text-align:center; box-shadow:0 10px 0 var(--panel-line);
+  }
+  .mode-title{font-family:'Fredoka', sans-serif; font-size:26px; margin:0 0 8px; color:var(--ink);}
+  .mode-sub{color:var(--ink-soft); font-size:14px; margin:0 0 22px; line-height:1.5;}
+  .mode-options{display:flex; gap:14px; flex-wrap:wrap; justify-content:center;}
+  .mode-option{
+    flex:1; min-width:230px; background:#221C3A; border:2px solid var(--panel-line);
+    border-radius:16px; padding:20px; cursor:pointer; text-align:left;
+    transition:border-color .15s ease, transform .12s ease;
+  }
+  .mode-option:hover{border-color:var(--loop); transform:translateY(-2px);}
+  .mode-option .emoji{font-size:30px; display:block; margin-bottom:8px;}
+  .mode-option b{font-family:'Fredoka', sans-serif; font-size:17px; display:block; margin-bottom:4px; color:var(--ink);}
+  .mode-option span{font-size:12.5px; color:var(--ink-soft); line-height:1.4;}
+  .mode-switch-btn{
+    font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700;
+    background:#2A2444; color:var(--ink-soft); border:none; border-radius:9px;
+    padding:0 12px; height:40px; cursor:pointer;
+  }
+  .mode-switch-btn:hover{background:#372F5C;}
+
+  @media (prefers-reduced-motion: reduce){
+    #robot{transition:none;}
+    .btn{transition:none;}
+  }
+</style>
+</head>
+<body>
+<div class="mode-overlay" id="mode-overlay">
+  <div class="mode-card">
+    <p class="mode-title">¿Cómo quieres empezar?</p>
+    <p class="mode-sub">Elige un modo. Puedes cambiarlo más tarde con el botón "Cambiar modo".</p>
+    <div class="mode-options">
+      <div class="mode-option" id="mode-levels">
+        <span class="emoji">🎯</span>
+        <b>Modo Retos</b>
+        <span>6 niveles con laberintos, del más fácil al más difícil, cada uno con una meta que alcanzar.</span>
+      </div>
+      <div class="mode-option" id="mode-free">
+        <span class="emoji">🧪</span>
+        <b>Modo libre</b>
+        <span>Un tablero grande y sin paredes para experimentar con todas las piezas, sin meta ni límites.</span>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">🧩 Piezas · un juego para aprender a pensar como programador</div>
+    <h1>Programa con bloques, <span>mueve al robot</span></h1>
+    <p class="lede">Arrastra piezas para construir un programa, ejecútalo y observa cómo el robot resuelve el reto. 29 piezas repartidas en 7 categorías, y cada panel se abre o cierra con su botón.</p>
+
+    <div class="pillars">
+      <div class="pillar-chip"><span class="pillar-dot" style="background:var(--motion)"></span><div><b>Descomposición</b><span>Partir un problema grande en pasos pequeños y manejables.</span></div></div>
+      <div class="pillar-chip"><span class="pillar-dot" style="background:var(--loop)"></span><div><b>Patrones</b><span>Notar qué se repite para no escribir lo mismo una y otra vez.</span></div></div>
+      <div class="pillar-chip"><span class="pillar-dot" style="background:var(--yellow)"></span><div><b>Abstracción</b><span>Quedarte con lo esencial: avanzar, girar y decidir, sin fijarte en el resto.</span></div></div>
+      <div class="pillar-chip"><span class="pillar-dot" style="background:var(--success)"></span><div><b>Algoritmos</b><span>Ordenar los pasos en una secuencia clara que siempre funciona.</span></div></div>
+    </div>
+  </header>
+
+  <main>
+    <!-- PALETTE -->
+    <div class="panel" id="palette-panel">
+      <div class="panel-head">
+        <h2>🎒 Piezas (34)</h2>
+        <button class="toggle-btn" data-target="palette-body" aria-expanded="true">▾</button>
+      </div>
+      <div class="panel-body" id="palette-body">
+        <div id="cat-list"></div>
+        <p class="palette-hint">Toca el nombre de una categoría para abrirla o cerrarla (solo una a la vez). Suelta piezas dentro de "Repetir" o "Si..." para anidarlas. Con "Pintar" puedes colorear una casilla suelta o, bajando el lápiz, dejar una línea de color mientras el robot avanza.</p>
+      </div>
+    </div>
+
+    <!-- WORKSPACE -->
+    <div class="panel" id="workspace-panel">
+      <div class="panel-head">
+        <h2>🛠️ Tu programa</h2>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="workspace-actions">
+            <button class="btn btn-clear" id="clear-btn">🗑️ Vaciar</button>
+            <button class="btn btn-run" id="run-btn">▶️ Ejecutar</button>
+          </div>
+          <button class="toggle-btn" data-target="workspace-body" aria-expanded="true">▾</button>
+        </div>
+      </div>
+      <div class="panel-body" id="workspace-body">
+        <div id="script-root"></div>
+      </div>
+    </div>
+
+    <!-- STAGE -->
+    <div class="panel" id="stage-panel">
+      <div class="panel-head">
+        <h2>🚩 Reto</h2>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button class="mode-switch-btn" id="mode-switch-btn">🔀 Cambiar modo</button>
+          <button class="toggle-btn" data-target="stage-body" aria-expanded="true">▾</button>
+        </div>
+      </div>
+      <div class="panel-body" id="stage-body">
+        <div class="level-tabs" id="level-tabs"></div>
+        <p class="stage-name" id="stage-name"></p>
+        <p class="stage-pillar" id="stage-pillar"></p>
+        <div class="counter-badge">🔢 Contador: <span id="counter-value">0</span></div>
+        <div id="grid-outer">
+          <div id="grid"></div>
+          <div id="speech-bubble"></div>
+          <div id="robot"><div class="body"><span class="eye"></span><span class="eye"></span><span class="arrow"></span></div></div>
+        </div>
+        <div class="message" id="message"></div>
+      </div>
+    </div>
+  </main>
+
+  <div class="panel" id="bottom-mode-panel" style="margin-top:18px;">
+    <div class="panel-head">
+      <h2>🔀 ¿Cambiar de modo?</h2>
+    </div>
+    <p class="mode-sub" style="text-align:left; margin:0 0 14px;">Puedes cambiar entre Modo Retos y Modo libre cuando quieras, desde aquí abajo.</p>
+    <div class="mode-options">
+      <div class="mode-option" id="mode-levels-bottom">
+        <span class="emoji">🎯</span>
+        <b>Modo Retos</b>
+        <span>6 niveles con laberintos, del más fácil al más difícil, cada uno con una meta que alcanzar.</span>
+      </div>
+      <div class="mode-option" id="mode-free-bottom">
+        <span class="emoji">🧪</span>
+        <b>Modo libre</b>
+        <span>Un tablero grande y sin paredes para experimentar con todas las piezas, sin meta ni límites.</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center; margin-top:18px;">
+    <a href="index.html" class="btn" style="background:var(--danger); color:#3A0812; text-decoration:none; display:inline-flex;">🚪 Salir</a>
+  </div>
+
+  <footer>Hecho para practicar secuencias, bucles, condicionales y resolución de problemas — sin necesidad de instalar nada.</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============ CATEGORÍAS Y BLOQUES (29) ============ */
+  const CATS = [
+    { key:"motion",     title:"🧭 Movimiento",      types:["move","moveBack","turnLeft","turnRight","turnAround","goHome"] },
+    { key:"loop",       title:"🔁 Bucles y control", types:["repeat","repeatUntilGoal","ifWall","ifNotWall","wait","stop"] },
+    { key:"sensor",     title:"📡 Sensores",         types:["checkWall","checkGoal","showPosition","showDirection"] },
+    { key:"var",        title:"🔢 Variables",        types:["resetCounter","addCounter","subCounter","showCounter"] },
+    { key:"logic",      title:"⚖️ Lógica",           types:["compareCounter","isEven","notWallBehind"] },
+    { key:"event",      title:"💬 Eventos",          types:["sayHello","sayGoal","playBeep"] },
+    { key:"appearance", title:"🎨 Apariencia",       types:["changeColor","spin","resetColor"] },
+    { key:"paint",      title:"🖌️ Pintar",           types:["penDown","penUp","paintCell","clearPaint","paintColor"] }
+  ];
+
+  const CATEGORY_OF = {};
+  CATS.forEach(cat => cat.types.forEach(t => CATEGORY_OF[t] = cat.key));
+
+  const LABELS = {
+    move:"➡️ Avanzar", moveBack:"⬅️ Retroceder", turnLeft:"↺ Girar izquierda", turnRight:"↻ Girar derecha",
+    turnAround:"🔄 Media vuelta", goHome:"🏠 Volver al inicio",
+    repeat:"🔁 Repetir", repeatUntilGoal:"🔁 Repetir hasta la meta", ifWall:"❓ Si hay pared adelante",
+    ifNotWall:"❓ Si NO hay pared adelante", wait:"⏱️ Esperar 1s", stop:"⛔ Detener programa",
+    checkWall:"📡 ¿Pared adelante?", checkGoal:"📡 ¿Llegué a la meta?", showPosition:"📍 Mostrar posición", showDirection:"🧭 Mostrar dirección",
+    resetCounter:"🔢 Reiniciar contador", addCounter:"➕ Sumar 1 al contador", subCounter:"➖ Restar 1 al contador", showCounter:"👁️ Mostrar contador",
+    compareCounter:"⚖️ ¿Contador > 3?", isEven:"⚖️ ¿Contador es par?", notWallBehind:"⚖️ ¿Pared detrás?",
+    sayHello:'💬 Decir "¡Hola!"', sayGoal:'💬 Decir "¡Vamos!"', playBeep:"🔊 Reproducir sonido",
+    changeColor:"🎨 Cambiar color", spin:"🌀 Girar sobre sí mismo", resetColor:"🎨 Color original",
+    penDown:"🖊️ Bajar lápiz (pintar línea)", penUp:"✋ Subir lápiz", paintCell:"🟨 Pintar esta casilla",
+    clearPaint:"🧽 Borrar dibujo", paintColor:"🎨 Cambiar color de pintura"
+  };
+
+  const CONTAINERS = ["repeat","repeatUntilGoal","ifWall","ifNotWall"];
+  const DIRNAMES = ["la derecha","abajo","la izquierda","arriba"];
+
+  /* ============ NIVELES ============ */
+  const levels = [
+    { name:"Nivel 1 · Camino recto", pillar:"Practica: Algoritmos (ordenar pasos)",
+      size:5, walls:[], start:{x:0,y:2,dir:0}, goal:{x:4,y:2} },
+    { name:"Nivel 2 · La esquina", pillar:"Practica: Descomposición (ir y luego girar)",
+      size:5, walls:[[1,2],[2,2],[3,2]], start:{x:0,y:0,dir:0}, goal:{x:4,y:3} },
+    { name:"Nivel 3 · El pasillo", pillar:"Practica: Patrones, bucles y condicionales",
+      size:6, walls:[[0,1],[1,1],[2,1],[3,1],[4,1],[4,2],[0,3],[1,3],[2,3],[4,3],[2,4],[4,4],[2,5],[4,5]],
+      start:{x:0,y:2,dir:0}, goal:{x:3,y:5} },
+    { name:"Nivel 4 · El desafío final", pillar:"Practica: todo lo aprendido, en un laberinto grande",
+      size:9,
+      walls:[[1,0],[1,1],[2,1],[3,1],[5,1],[6,1],[7,1],[8,1],[3,2],[0,3],[1,3],[3,3],[5,3],[6,3],[7,3],[1,4],[3,4],[5,4],[1,5],[3,5],[4,5],[5,5],[7,5],[1,6],[7,6],[1,7],[2,7],[3,7],[4,7],[5,7],[6,7],[7,7]],
+      start:{x:0,y:0,dir:1}, goal:{x:0,y:4} },
+    { name:"Nivel 5 · Vuelta larga", pillar:"Practica: planificar una ruta larga con pocas piezas",
+      size:7,
+      walls:[[5,0],[0,1],[1,1],[2,1],[3,1],[5,1],[3,2],[5,2],[1,3],[3,3],[5,3],[1,4],[5,4],[1,5],[2,5],[3,5],[4,5],[5,5]],
+      start:{x:0,y:0,dir:0}, goal:{x:6,y:0} },
+    { name:"Nivel 6 · El gran laberinto", pillar:"Practica: resistencia — el reto más largo de todos",
+      size:11,
+      walls:[[1,0],[1,1],[2,1],[3,1],[5,1],[6,1],[7,1],[8,1],[9,1],[1,2],[5,2],[9,2],[1,3],[3,3],[4,3],[5,3],[7,3],[9,3],[1,4],[5,4],[7,4],[1,5],[2,5],[3,5],[5,5],[7,5],[8,5],[9,5],[10,5],[5,6],[0,7],[1,7],[2,7],[3,7],[4,7],[5,7],[6,7],[7,7],[8,7],[9,7],[1,8],[7,8],[1,9],[3,9],[4,9],[5,9],[7,9],[9,9],[10,9],[5,10]],
+      start:{x:0,y:0,dir:1}, goal:{x:0,y:8} }
+  ];
+
+  const freeLevel = {
+    name:"Modo libre", pillar:"Experimenta libremente con todas las piezas, sin meta",
+    size:10, walls:[], start:{x:4,y:4,dir:0}, goal:null
+  };
+
+  let mode = "levels"; // "levels" | "free"
+  let levelIndex = 0;
+  let level = levels[0];
+  let robot = {x:0,y:0,dir:0};
+  let running = false;
+  let counter = 0;
+  let colorIndex = 0;
+  const ROBOT_COLORS = ["#4A3D78","#5B9DFF","#FF6FB8","#2FD8CB","#FFBB4D"];
+  const PAINT_COLORS = ["#FFD65C","#5FDA7C","#5B9DFF","#FF6FB8","#2FD8CB"];
+  let penActive = false;
+  let paintColorIndex = 0;
+  let currentPaintColor = PAINT_COLORS[0];
+  let paintedCells = new Map();
+
+  /* ============ MODELO DEL PROGRAMA ============ */
+  let blockIdCounter = 0;
+  let script = [];
+  const containerMap = new Map();
+
+  function newBlock(type){
+    if(CONTAINERS.includes(type)) return {id:"b"+(blockIdCounter++), type, count:3, children:[]};
+    return {id:"b"+(blockIdCounter++), type};
+  }
+
+  function findAndRemove(list, id){
+    for(let i=0;i<list.length;i++){
+      if(list[i].id === id) return list.splice(i,1)[0];
+      if(CONTAINERS.includes(list[i].type)){
+        const found = findAndRemove(list[i].children, id);
+        if(found) return found;
+      }
+    }
+    return null;
+  }
+  function findBlockById(list, id){
+    for(const b of list){
+      if(b.id === id) return b;
+      if(CONTAINERS.includes(b.type)){
+        const f = findBlockById(b.children, id);
+        if(f) return f;
+      }
+    }
+    return null;
+  }
+  function isDescendant(block, id){
+    if(!CONTAINERS.includes(block.type)) return false;
+    for(const c of block.children){
+      if(c.id === id || isDescendant(c, id)) return true;
+    }
+    return false;
+  }
+
+  /* ============ PALETA (ACORDEÓN) ============ */
+  const catListEl = document.getElementById("cat-list");
+
+  CATS.forEach((cat, idx) => {
+    const wrap = document.createElement("div");
+    wrap.className = "cat";
+
+    const head = document.createElement("div");
+    head.className = "cat-head";
+    head.innerHTML = `<span class="cat-title">${cat.title}</span>
+      <span style="display:flex; align-items:center; gap:8px;">
+        <span class="cat-count">${cat.types.length}</span>
+        <span class="cat-chevron">${idx === 0 ? "▾" : "▸"}</span>
+      </span>`;
+
+    const body = document.createElement("div");
+    body.className = "cat-body" + (idx === 0 ? "" : " collapsed");
+
+    cat.types.forEach(type => {
+      const pb = document.createElement("div");
+      pb.className = "palette-block cat-" + cat.key;
+      pb.draggable = true;
+      pb.dataset.type = type;
+      pb.textContent = LABELS[type];
+      pb.addEventListener("dragstart", () => { dragPayload = {source:"palette", type}; });
+      body.appendChild(pb);
+    });
+
+    head.addEventListener("click", () => {
+      const willOpen = body.classList.contains("collapsed");
+      document.querySelectorAll(".cat-body").forEach(b => {
+        if(b !== body) b.classList.add("collapsed");
+      });
+      document.querySelectorAll(".cat-chevron").forEach(ch => { ch.textContent = "▸"; });
+      if(willOpen){
+        body.classList.remove("collapsed");
+        head.querySelector(".cat-chevron").textContent = "▾";
+      } else {
+        body.classList.add("collapsed");
+        head.querySelector(".cat-chevron").textContent = "▸";
+      }
+    });
+
+    wrap.appendChild(head);
+    wrap.appendChild(body);
+    catListEl.appendChild(wrap);
+  });
+
+  /* ============ PANELES COLAPSABLES ============ */
+  document.querySelectorAll(".toggle-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const target = document.getElementById(btn.dataset.target);
+      const collapsed = target.classList.toggle("collapsed");
+      btn.textContent = collapsed ? "▸" : "▾";
+      btn.setAttribute("aria-expanded", String(!collapsed));
+    });
+  });
+
+  /* ============ RENDER DEL PROGRAMA ============ */
+  const rootEl = document.getElementById("script-root");
+
+  function render(){
+    rootEl.innerHTML = "";
+    renderContainer(script, rootEl);
+  }
+
+  function renderContainer(list, containerEl){
+    containerMap.set(containerEl, list);
+    containerEl.innerHTML = "";
+    list.forEach(block => containerEl.appendChild(renderBlock(block)));
+    if(list.length === 0){
+      const ph = document.createElement("div");
+      ph.className = "empty-hint";
+      ph.textContent = containerEl === rootEl ? "Arrastra piezas aquí para crear tu programa" : "Suelta piezas aquí";
+      containerEl.appendChild(ph);
+    }
+    attachDropZone(containerEl);
+  }
+
+  function renderBlock(block){
+    const wrap = document.createElement("div");
+    wrap.className = "block-wrap";
+    wrap.id = "blk-" + block.id;
+    wrap.dataset.id = block.id;
+
+    const el = document.createElement("div");
+    el.className = "block cat-" + CATEGORY_OF[block.type];
+    el.draggable = true;
+
+    if(block.type === "repeat"){
+      const label = document.createElement("span");
+      label.textContent = "🔁 Repetir";
+      const input = document.createElement("input");
+      input.type = "number"; input.min = "1"; input.max = "12";
+      input.value = block.count; input.className = "count-input";
+      input.addEventListener("input", () => { block.count = Math.max(1, Math.min(12, Number(input.value)||1)); });
+      input.addEventListener("mousedown", e => e.stopPropagation());
+      const times = document.createElement("span");
+      times.textContent = "veces";
+      el.appendChild(label); el.appendChild(input); el.appendChild(times);
+    } else {
+      el.textContent = LABELS[block.type];
+    }
+
+    const del = document.createElement("button");
+    del.className = "del-btn"; del.textContent = "✕"; del.title = "Eliminar pieza";
+    del.addEventListener("click", () => { findAndRemove(script, block.id); render(); });
+    el.appendChild(del);
+    wrap.appendChild(el);
+
+    el.addEventListener("dragstart", e => {
+      e.stopPropagation();
+      dragPayload = {source:"script", id: block.id};
+      wrap.classList.add("drag-ghost");
+    });
+    el.addEventListener("dragend", () => wrap.classList.remove("drag-ghost"));
+
+    if(CONTAINERS.includes(block.type)){
+      const inner = document.createElement("div");
+      inner.className = "repeat-body";
+      wrap.appendChild(inner);
+      renderContainer(block.children, inner);
+    }
+    return wrap;
+  }
+
+  /* ============ DRAG & DROP ============ */
+  let dragPayload = null;
+
+  function attachDropZone(containerEl){
+    containerEl.addEventListener("dragover", e => {
+      e.preventDefault();
+      clearDropLines();
+      const idx = computeIndex(containerEl, e.clientY);
+      showDropLine(containerEl, idx);
+    });
+    containerEl.addEventListener("dragleave", () => clearDropLines());
+    containerEl.addEventListener("drop", e => {
+      e.preventDefault();
+      e.stopPropagation();
+      clearDropLines();
+      if(!dragPayload) return;
+      const list = containerMap.get(containerEl);
+      if(!list) return;
+      const idx = computeIndex(containerEl, e.clientY);
+
+      if(dragPayload.source === "palette"){
+        const block = newBlock(dragPayload.type);
+        list.splice(idx, 0, block);
+      } else if(dragPayload.source === "script"){
+        const ownerWrap = containerEl.closest(".block-wrap");
+        if(ownerWrap && ownerWrap.dataset.id === dragPayload.id){ dragPayload = null; return; }
+        const dragged = findAndRemove(script, dragPayload.id);
+        if(!dragged){ dragPayload = null; return; }
+        if(ownerWrap){
+          const ownerBlock = findBlockById(script, ownerWrap.dataset.id);
+          if(ownerBlock && isDescendant(dragged, ownerBlock.id)){
+            script.push(dragged); dragPayload = null; render(); return;
+          }
+        }
+        const freshIdx = Math.min(idx, list.length);
+        list.splice(freshIdx, 0, dragged);
+      }
+      dragPayload = null;
+      render();
+    });
+  }
+
+  function computeIndex(containerEl, clientY){
+    const wraps = [...containerEl.children].filter(c => c.classList.contains("block-wrap"));
+    for(let i=0;i<wraps.length;i++){
+      const r = wraps[i].getBoundingClientRect();
+      if(clientY < r.top + r.height/2) return i;
+    }
+    return wraps.length;
+  }
+  function clearDropLines(){
+    document.querySelectorAll(".drop-line").forEach(d => d.remove());
+  }
+  function showDropLine(containerEl, idx){
+    const wraps = [...containerEl.children].filter(c => c.classList.contains("block-wrap"));
+    const line = document.createElement("div");
+    line.className = "drop-line";
+    if(wraps[idx]) containerEl.insertBefore(line, wraps[idx]);
+    else containerEl.appendChild(line);
+  }
+
+  document.getElementById("clear-btn").addEventListener("click", () => {
+    if(running) return;
+    script = []; render();
+  });
+
+  /* ============ NIVELES: UI ============ */
+  const tabsEl = document.getElementById("level-tabs");
+  levels.forEach((lv, i) => {
+    const t = document.createElement("div");
+    t.className = "level-tab" + (i===0 ? " active" : "");
+    t.textContent = "Nivel " + (i+1);
+    t.addEventListener("click", () => { if(!running) selectLevel(i); });
+    tabsEl.appendChild(t);
+  });
+
+  function selectLevel(i){
+    mode = "levels";
+    levelIndex = i;
+    level = levels[i];
+    tabsEl.style.display = "";
+    [...tabsEl.children].forEach((t,idx) => t.classList.toggle("active", idx===i));
+    document.getElementById("stage-name").textContent = level.name;
+    document.getElementById("stage-pillar").textContent = level.pillar;
+    setMessage("", "");
+    buildGrid();
+    resetRobot();
+  }
+
+  function selectFreeMode(){
+    mode = "free";
+    level = freeLevel;
+    tabsEl.style.display = "none";
+    document.getElementById("stage-name").textContent = level.name;
+    document.getElementById("stage-pillar").textContent = level.pillar;
+    setMessage("", "");
+    buildGrid();
+    resetRobot();
+  }
+
+  const overlayEl = document.getElementById("mode-overlay");
+  document.getElementById("mode-levels").addEventListener("click", () => {
+    overlayEl.classList.add("hidden");
+    selectLevel(0);
+  });
+  document.getElementById("mode-free").addEventListener("click", () => {
+    overlayEl.classList.add("hidden");
+    selectFreeMode();
+  });
+  document.getElementById("mode-switch-btn").addEventListener("click", () => {
+    if(running) return;
+    overlayEl.classList.remove("hidden");
+  });
+  document.getElementById("mode-levels-bottom").addEventListener("click", () => {
+    if(running) return;
+    selectLevel(0);
+    window.scrollTo({top:0, behavior:"smooth"});
+  });
+  document.getElementById("mode-free-bottom").addEventListener("click", () => {
+    if(running) return;
+    selectFreeMode();
+    window.scrollTo({top:0, behavior:"smooth"});
+  });
+
+  /* ============ GRID / ROBOT ============ */
+  const gridEl = document.getElementById("grid");
+  const gridOuter = document.getElementById("grid-outer");
+  const robotEl = document.getElementById("robot");
+  const bubbleEl = document.getElementById("speech-bubble");
+  const counterValueEl = document.getElementById("counter-value");
+
+  function buildGrid(){
+    gridEl.innerHTML = "";
+    paintedCells.clear();
+    gridEl.style.gridTemplateColumns = `repeat(${level.size}, 1fr)`;
+    gridEl.style.gridTemplateRows = `repeat(${level.size}, 1fr)`;
+    const wallSet = new Set(level.walls.map(w => w[0]+","+w[1]));
+    for(let y=0;y<level.size;y++){
+      for(let x=0;x<level.size;x++){
+        const c = document.createElement("div");
+        c.className = "cell";
+        if(wallSet.has(x+","+y)) c.classList.add("wall");
+        if(level.goal && x===level.goal.x && y===level.goal.y){ c.classList.add("goal"); c.textContent = "⭐"; }
+        gridEl.appendChild(c);
+      }
+    }
+    requestAnimationFrame(syncCellSize);
+  }
+  function syncCellSize(){
+    const cs = gridOuter.getBoundingClientRect().width / level.size;
+    gridOuter.style.setProperty("--cs", cs + "px");
+    robotEl.style.width = cs + "px";
+    robotEl.style.height = cs + "px";
+    drawRobot(true);
+  }
+  window.addEventListener("resize", syncCellSize);
+
+  function resetRobot(){
+    robot = {x:level.start.x, y:level.start.y, dir:level.start.dir};
+    counter = 0; colorIndex = 0;
+    counterValueEl.textContent = counter;
+    robotEl.querySelector(".body").style.background = ROBOT_COLORS[0];
+    drawRobot(true);
+  }
+
+  function drawRobot(noTransition){
+    const cs = parseFloat(getComputedStyle(gridOuter).getPropertyValue("--cs")) || 0;
+    if(noTransition) robotEl.style.transition = "none";
+    robotEl.style.transform = `translate(${robot.x*cs}px, ${robot.y*cs}px)`;
+    const arrow = robotEl.querySelector(".arrow");
+    arrow.style.transform = `translateY(-50%) rotate(${robot.dir*90}deg)`;
+    if(noTransition) requestAnimationFrame(() => { robotEl.style.transition = ""; });
+  }
+
+  function isWall(x,y){
+    if(x<0 || y<0 || x>=level.size || y>=level.size) return true;
+    return level.walls.some(w => w[0]===x && w[1]===y);
+  }
+  function isWallAhead(){
+    const dx=[1,0,-1,0][robot.dir], dy=[0,1,0,-1][robot.dir];
+    return isWall(robot.x+dx, robot.y+dy);
+  }
+  function isWallBehind(){
+    const dx=[1,0,-1,0][robot.dir], dy=[0,1,0,-1][robot.dir];
+    return isWall(robot.x-dx, robot.y-dy);
+  }
+  function atGoal(){ return !!level.goal && robot.x===level.goal.x && robot.y===level.goal.y; }
+
+  function paintAt(x,y,color){
+    const key = x+","+y;
+    paintedCells.set(key, color);
+    const idx = y*level.size + x;
+    const cellEl = gridEl.children[idx];
+    if(cellEl && !cellEl.classList.contains("wall")) cellEl.style.background = color;
+  }
+  function clearAllPaint(){
+    paintedCells.forEach((color, key) => {
+      const [x,y] = key.split(",").map(Number);
+      const idx = y*level.size + x;
+      const cellEl = gridEl.children[idx];
+      if(cellEl && !cellEl.classList.contains("wall")) cellEl.style.background = "";
+    });
+    paintedCells.clear();
+  }
+
+  /* ============ UTILIDADES: BURBUJA / SONIDO ============ */
+  function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+  function bubble(text){
+    return new Promise(resolve => {
+      bubbleEl.textContent = text;
+      bubbleEl.style.opacity = "1";
+      setTimeout(() => { bubbleEl.style.opacity = "0"; resolve(); }, 800);
+    });
+  }
+
+  function beep(){
+    return new Promise(resolve => {
+      try{
+        const ctx = window._pcAudioCtx || (window._pcAudioCtx = new (window.AudioContext || window.webkitAudioContext)());
+        if(ctx.state === "suspended") ctx.resume();
+        const osc = ctx.createOscillator(); const gain = ctx.createGain();
+        osc.type = "sine"; osc.frequency.value = 660;
+        gain.gain.setValueAtTime(0.16, ctx.currentTime);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(); osc.stop(ctx.currentTime + 0.18);
+      }catch(e){ /* audio no disponible */ }
+      setTimeout(resolve, 220);
+    });
+  }
+
+  function doSpin(){
+    return new Promise(resolve => {
+      const body = robotEl.querySelector(".body");
+      body.classList.remove("spin-anim");
+      void body.offsetWidth;
+      body.classList.add("spin-anim");
+      setTimeout(() => { body.classList.remove("spin-anim"); resolve(); }, 450);
+    });
+  }
+
+  function changeColor(){
+    colorIndex = (colorIndex + 1) % ROBOT_COLORS.length;
+    robotEl.querySelector(".body").style.background = ROBOT_COLORS[colorIndex];
+  }
+  function resetColorFn(){
+    colorIndex = 0;
+    robotEl.querySelector(".body").style.background = ROBOT_COLORS[0];
+  }
+
+  /* ============ EJECUCIÓN ============ */
+  const runBtn = document.getElementById("run-btn");
+  const clearBtn = document.getElementById("clear-btn");
+
+  function setMessage(text, kind){
+    const m = document.getElementById("message");
+    m.textContent = text;
+    m.className = "message" + (kind ? " " + kind : "");
+  }
+  function clearHighlights(){
+    document.querySelectorAll(".block.running").forEach(b => b.classList.remove("running"));
+  }
+  function highlight(id){
+    clearHighlights();
+    const w = document.getElementById("blk-" + id);
+    if(w) w.querySelector(".block").classList.add("running");
+  }
+
+  async function executeList(list){
+    for(const block of list){
+      highlight(block.id);
+      if(block.type === "repeat"){
+        for(let i=0;i<block.count;i++){
+          const r = await executeList(block.children);
+          if(r) return r;
+        }
+      } else if(block.type === "repeatUntilGoal"){
+        let iterations = 0; const cap = 25;
+        while(iterations < cap){
+          const r = await executeList(block.children);
+          if(r) return r;
+          if(atGoal()) return "goal";
+          iterations++;
+        }
+      } else if(block.type === "ifWall" || block.type === "ifNotWall"){
+        const wallAhead = isWallAhead();
+        const shouldRun = block.type === "ifWall" ? wallAhead : !wallAhead;
+        if(shouldRun){
+          const r = await executeList(block.children);
+          if(r) return r;
+        } else {
+          await sleep(200);
+        }
+      } else {
+        const r = await runAction(block.type);
+        if(r) return r;
+      }
+    }
+    return null;
+  }
+
+  async function runAction(type){
+    await sleep(320);
+    switch(type){
+      case "move": {
+        const dx=[1,0,-1,0][robot.dir], dy=[0,1,0,-1][robot.dir];
+        const nx = robot.x+dx, ny = robot.y+dy;
+        if(isWall(nx,ny)) return "wall";
+        robot.x=nx; robot.y=ny; drawRobot();
+        if(penActive) paintAt(robot.x, robot.y, currentPaintColor);
+        await sleep(380);
+        if(atGoal()) return "goal";
+        break;
+      }
+      case "moveBack": {
+        const dx=[1,0,-1,0][robot.dir], dy=[0,1,0,-1][robot.dir];
+        const nx = robot.x-dx, ny = robot.y-dy;
+        if(isWall(nx,ny)) return "wall";
+        robot.x=nx; robot.y=ny; drawRobot();
+        if(penActive) paintAt(robot.x, robot.y, currentPaintColor);
+        await sleep(380);
+        if(atGoal()) return "goal";
+        break;
+      }
+      case "turnLeft": robot.dir = (robot.dir+3)%4; drawRobot(); break;
+      case "turnRight": robot.dir = (robot.dir+1)%4; drawRobot(); break;
+      case "turnAround": robot.dir = (robot.dir+2)%4; drawRobot(); break;
+      case "goHome": robot.x=level.start.x; robot.y=level.start.y; robot.dir=level.start.dir; drawRobot(); break;
+      case "wait": await sleep(500); break;
+      case "stop": return "stopped";
+      case "checkWall": await bubble(isWallAhead() ? "Sí, hay pared 🧱" : "No hay pared ✅"); break;
+      case "checkGoal": await bubble(atGoal() ? "¡Sí, aquí es! ⭐" : "Todavía no 🚶"); break;
+      case "showPosition": await bubble(`Estoy en (${robot.x}, ${robot.y})`); break;
+      case "showDirection": await bubble("Miro hacia " + DIRNAMES[robot.dir]); break;
+      case "resetCounter": counter = 0; counterValueEl.textContent = counter; break;
+      case "addCounter": counter++; counterValueEl.textContent = counter; break;
+      case "subCounter": counter--; counterValueEl.textContent = counter; break;
+      case "showCounter": await bubble("Contador: " + counter); break;
+      case "compareCounter": await bubble(counter > 3 ? "Sí, es mayor que 3" : "No, no es mayor que 3"); break;
+      case "isEven": await bubble(counter % 2 === 0 ? "Sí, es par" : "No, es impar"); break;
+      case "notWallBehind": await bubble(isWallBehind() ? "Sí, hay pared detrás" : "No hay pared detrás"); break;
+      case "sayHello": await bubble("¡Hola! 👋"); break;
+      case "sayGoal": await bubble("¡Vamos! 🚀"); break;
+      case "playBeep": await beep(); break;
+      case "changeColor": changeColor(); break;
+      case "spin": await doSpin(); break;
+      case "resetColor": resetColorFn(); break;
+      case "penDown": penActive = true; paintAt(robot.x, robot.y, currentPaintColor); break;
+      case "penUp": penActive = false; break;
+      case "paintCell": paintAt(robot.x, robot.y, currentPaintColor); break;
+      case "clearPaint": clearAllPaint(); break;
+      case "paintColor": paintColorIndex = (paintColorIndex+1) % PAINT_COLORS.length; currentPaintColor = PAINT_COLORS[paintColorIndex]; break;
+    }
+    return null;
+  }
+
+  runBtn.addEventListener("click", async () => {
+    if(running) return;
+    if(script.length === 0){ setMessage("Agrega piezas a tu programa antes de ejecutar 🙂", "warn"); return; }
+    running = true;
+    runBtn.disabled = true; runBtn.textContent = "⏳ Ejecutando…";
+    clearBtn.disabled = true;
+    resetRobot();
+    setMessage("", "");
+    const result = await executeList(script);
+    clearHighlights();
+    runBtn.disabled = false; runBtn.textContent = "▶️ Ejecutar";
+    clearBtn.disabled = false;
+    running = false;
+    if(result === "goal") setMessage("🎉 ¡Llegaste a la meta! Tu algoritmo funcionó.", "success");
+    else if(result === "wall") setMessage("💥 El robot chocó con una pared. Ajusta tu programa e inténtalo de nuevo.", "error");
+    else if(result === "stopped") setMessage("⛔ Detuviste el programa a propósito.", "warn");
+    else if(mode === "free") setMessage("✅ Programa terminado. ¡Sigue experimentando!", "success");
+    else setMessage("El robot terminó el programa pero no llegó a la meta. ¡Sigue intentando!", "warn");
+  });
+
+  /* ============ INICIO ============ */
+  render();
+})();
+</script>
+</body>
+</html>

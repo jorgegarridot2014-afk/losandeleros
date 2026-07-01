@@ -142,7 +142,14 @@ let currentUser = null;
 async function updatePointsOnServer(newPoints) {
   if (!currentUser) return;
   try {
-    const res = await fetch(`/update/${currentUser.ide}`, {method: "PUT", headers: {"Content-Type": "application/json"}, body: JSON.stringify({points: newPoints})});
+    const res = await fetch(`/update/${currentUser.ide}`, {method: "PUT", headers: {"Content-Type": "application/json"},       body: JSON.stringify({ 
+        points: newPoints,
+        weeklyDone: weeklyDone,
+        englishQuizPurchased: currentUser.englishQuizPurchased,
+        historyQuizPurchased: currentUser.historyQuizPurchased,
+        geographyQuizPurchased: currentUser.geographyQuizPurchased,
+        genialQuizPurchased: currentUser.genialQuizPurchased
+      })});
     if (res.ok) { const data = await res.json(); currentUser.points = data.points; document.getElementById("user-points").textContent = "⭐ " + data.points; }
   } catch(e) { console.error("Error updating points:", e); }
 }
@@ -188,22 +195,33 @@ const Qs = [
 ];
 let current = 0, score = 0, answered = false;
 const PTS_PER_Q = 200;
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 function loadQuestion(n) {
   const q = Qs[n];
-  document.getElementById('stage').innerHTML = `<div class="question-card"><div class="q-text">${q.q}</div><div class="options">${q.opts.map((o, i) => `<button class="option" id="opt-${i}" onclick="choose(${i})">${o}<span class="opt-letter">${String.fromCharCode(65 + i)}</span></button>`).join('')}</div><div class="nav-row"><button class="btn-next" id="nextBtn" onclick="nextQ()" style="display:none">Next</button></div></div>`;
+  const shuffled = shuffle(q.opts);
+  const correctIdx = shuffled.indexOf(q.opts[q.ans]);
+  document.getElementById('stage').innerHTML = `<div class="question-card"><div class="q-text">${q.q}</div><div class="options">${shuffled.map((o, i) => `<button class="option" id="opt-${i}" onclick="choose(${i}, ${correctIdx})">${o}<span class="opt-letter">${String.fromCharCode(65 + i)}</span></button>`).join('')}</div><div class="nav-row"><button class="btn-next" id="nextBtn" onclick="nextQ()" style="display:none">Next</button></div></div>`;
   document.getElementById('progressText').textContent = `Question ${n + 1} of 25`;
   document.getElementById('progressPct').textContent = Math.round((n + 1) / 25 * 100) + '%';
   document.getElementById('progressFill').style.width = (n + 1) / 25 * 100 + '%';
   document.getElementById('results').classList.remove('show');
   answered = false;
 }
-function choose(i) {
+function choose(i, correctIdx) {
   if (answered) return;
   answered = true;
   const q = Qs[current];
   const opt = document.getElementById(`opt-${i}`);
-  if (i === q.ans) { opt.classList.add('correct'); score++; if (currentUser) { currentUser.points = (currentUser.points || 0) + PTS_PER_Q; updatePointsOnServer(currentUser.points); } }
-  else { opt.classList.add('wrong'); document.getElementById(`opt-${q.ans}`).classList.add('correct'); }
+  if (i === correctIdx) { opt.classList.add('correct'); score++; if (currentUser) { currentUser.points = (currentUser.points || 0) + PTS_PER_Q; updatePointsOnServer(currentUser.points); } }
+  else { opt.classList.add('wrong'); document.getElementById(`opt-${correctIdx}`).classList.add('correct'); }
   document.getElementById('nextBtn').style.display = 'inline-block';
 }
 function nextQ() {

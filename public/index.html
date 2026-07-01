@@ -17,8 +17,8 @@
 
 <!-- ================= MENU ================= -->
 <div id="menu">
-  <button onclick="mostrarCrear()">Crear cuenta</button>
-  <button onclick="mostrarLogin()">Iniciar sesión</button>
+  <button onclick="closePopup(); mostrarCrear()">Crear cuenta</button>
+  <button onclick="closePopup(); mostrarLogin()">Iniciar sesión</button>
 
   <div id="listaCuentas" style="
     margin-top: 20px;
@@ -127,13 +127,14 @@
 <!-- ================= MENU JUGAR ================= -->
 <div id="menuJugar" class="hidden">
 
-  <button onclick="irTrivialPlayers()">Quiz Multiplayer</button>
-  <button onclick="irMinijuegos()">Minijuegos</button>
-  <button onclick="irEscape()">Escape Room</button>
-  <button onclick="irQuiz()">Quiz</button>
-  <button onclick="irLab()">Laboratorio</button>
-  <button onclick="irMisterio()">Misterio</button>
-  <button onclick="irAdmin()">Admin</button>
+  <button onclick="closePopup(); irTrivialPlayers()">Quiz Multiplayer</button>
+  <button onclick="closePopup(); irMinijuegos()">Minijuegos</button>
+  <button onclick="closePopup(); irPensamiento()">Pensamiento Computacional</button>
+  <button onclick="closePopup(); irEscape()">Escape Room</button>
+  <button onclick="closePopup(); irQuiz()">Quiz</button>
+  <button onclick="closePopup(); irLab()">Laboratorio</button>
+  <button onclick="closePopup(); irMisterio()">Misterio</button>
+  <button onclick="closePopup(); irAdmin()">Admin</button>
 
   <br><br>
   <button onclick="cerrarJugar()">Volver</button>

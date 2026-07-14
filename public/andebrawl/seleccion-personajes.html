@@ -64,6 +64,21 @@
   <h1>ELIGE TU PERSONAJE</h1>
   <h2>Cada luchador tiene habilidades únicas</h2>
   <div class="personajes" id="personajes"></div>
+  <div id="controlSection" style="display:none; flex-direction:column; align-items:center; gap:18px; margin-top:10px;">
+    <h2 style="font-size:16px; letter-spacing:2px; color:#aab; font-weight:normal;">¿Cómo quieres controlar el personaje?</h2>
+    <div style="display:flex; gap:22px; justify-content:center; flex-wrap:wrap;">
+      <div class="ctrl-opt" data-type="teclado" onclick="selectControl('teclado')" style="width:130px; padding:16px; border-radius:14px; background:rgba(10,16,28,0.65); border:2px solid #00ffcc44; cursor:pointer; transition:0.2s; display:flex; flex-direction:column; align-items:center; gap:10px;">
+        <div style="font-size:38px;">⌨️</div>
+        <div style="font-weight:bold; font-size:14px; letter-spacing:1px;">Teclado</div>
+        <div style="font-size:11px; color:#789;">WASD + Ratón</div>
+      </div>
+      <div class="ctrl-opt" data-type="joystick" onclick="selectControl('joystick')" style="width:130px; padding:16px; border-radius:14px; background:rgba(10,16,28,0.65); border:2px solid #00ffcc44; cursor:pointer; transition:0.2s; display:flex; flex-direction:column; align-items:center; gap:10px;">
+        <div style="font-size:38px;">🎮</div>
+        <div style="font-weight:bold; font-size:14px; letter-spacing:1px;">Joystick</div>
+        <div style="font-size:11px; color:#789;">Controles táctiles</div>
+      </div>
+    </div>
+  </div>
   <button class="btn" id="confirmarBtn" disabled onclick="confirmarSeleccion()">Confirmar selección</button>
 </div>
 
@@ -94,6 +109,21 @@ function saveAccount(data) {
 }
 
 let seleccion = null;
+let controlType = null;
+
+function selectControl(type) {
+  controlType = type;
+  document.querySelectorAll(".ctrl-opt").forEach(el => {
+    el.style.borderColor = "#00ffcc44";
+    el.style.background = "rgba(10,16,28,0.65)";
+  });
+  const sel = document.querySelector(`.ctrl-opt[data-type="${type}"]`);
+  if (sel) {
+    sel.style.borderColor = "#00ffcc";
+    sel.style.background = "rgba(0,255,204,0.12)";
+  }
+  document.getElementById("confirmarBtn").disabled = !(seleccion && controlType);
+}
 
 function drawCharacter(canvas, color, nombre) {
   const ctx = canvas.getContext("2d");
@@ -142,12 +172,13 @@ function renderPersonajes() {
     const isSel = seleccion && seleccion.nombre === c.nombre;
     const div = document.createElement("div");
     div.className = "pj" + (isSel ? " selected" : "");
-    div.onclick = () => {
-      document.querySelectorAll(".pj").forEach(el => el.classList.remove("selected"));
-      div.classList.add("selected");
-      seleccion = c;
-      document.getElementById("confirmarBtn").disabled = false;
-    };
+      div.onclick = () => {
+        document.querySelectorAll(".pj").forEach(el => el.classList.remove("selected"));
+        div.classList.add("selected");
+        seleccion = c;
+        document.getElementById("confirmarBtn").disabled = !controlType;
+        document.getElementById("controlSection").style.display = "flex";
+      };
     const canvas = document.createElement("canvas");
     canvas.width = 90;
     canvas.height = 90;
@@ -162,7 +193,6 @@ function renderPersonajes() {
     div.appendChild(nombre);
     div.appendChild(detalle);
     cont.appendChild(div);
-    if (isSel) document.getElementById("confirmarBtn").disabled = false;
   });
 }
 
@@ -182,7 +212,7 @@ async function confirmarSeleccion() {
     const res = await fetch(`${API_BASE}/update/${encodeURIComponent(account.ide)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ personaje: { nombre: seleccion.nombre, color: seleccion.color }, setup: true })
+      body: JSON.stringify({ personaje: { nombre: seleccion.nombre, color: seleccion.color }, setup: true, controlType: controlType || "teclado" })
     });
     if (!res.ok) throw new Error("No se pudo guardar");
     const data = await res.json();
@@ -203,11 +233,20 @@ function init() {
     window.location.href = "../index.html";
     return;
   }
+  renderPersonajes();
   if (account.personaje && account.personaje.nombre) {
     const found = CHARACTERS.find(c => c.nombre === account.personaje.nombre);
-    if (found) seleccion = found;
+    if (found) {
+      seleccion = found;
+      const allPj = document.querySelectorAll(".pj");
+      allPj.forEach(el => el.classList.add("selected"));
+      document.getElementById("confirmarBtn").disabled = !account.controlType;
+      document.getElementById("controlSection").style.display = "flex";
+    }
   }
-  renderPersonajes();
+  if (account.controlType) {
+    selectControl(account.controlType);
+  }
 }
 
 init();

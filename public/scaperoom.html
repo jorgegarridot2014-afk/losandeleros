@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scaperoom - ANDEBRAWL</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: #04050a;
+    color: #e8f6ff;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow: hidden;
+    user-select: none;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(0,255,204,0.08) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(255,77,109,0.08) 0%, transparent 50%),
+      linear-gradient(rgba(4,5,10,0.92), rgba(4,5,10,0.95)), url("fondo.png") center / cover no-repeat;
+  }
+  .box {
+    text-align: center;
+    padding: 40px 50px;
+    border-radius: 18px;
+    background: rgba(8,12,22,0.55);
+    border: 1px solid rgba(0,255,204,0.25);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 0 40px rgba(0,255,204,0.08);
+    max-width: 520px;
+    width: 90%;
+  }
+  .box h1 {
+    font-size: clamp(32px, 8vw, 56px);
+    letter-spacing: 4px;
+    color: #00ffcc;
+    text-shadow: 0 0 18px #00ffcc, 0 0 40px #00ffcc55;
+    margin-bottom: 12px;
+  }
+  .box p {
+    font-size: 16px;
+    color: #aab;
+    letter-spacing: 1px;
+    line-height: 1.5;
+  }
+  .bar {
+    margin-top: 22px;
+    width: 100%;
+    height: 6px;
+    background: #0c1322;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid rgba(0,255,204,0.25);
+  }
+  .bar > div {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #00ffcc, #4dffdb);
+    transition: width 0.1s linear;
+  }
+  .time {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #00ffcc;
+    letter-spacing: 1px;
+    font-family: monospace;
+  }
+</style>
+</head>
+<body>
+  <div class="box">
+    <h1>SCAPEROOM</h1>
+    <p>Estamos en mantenimiento.<br>Volvemos pronto.</p>
+    <div class="bar"><div id="bar"></div></div>
+    <div class="time" id="time">Redirigiendo en 5s...</div>
+  </div>
+
+<script>
+  const TOTAL = 5;
+  const t0 = Date.now();
+  const bar = document.getElementById("bar");
+  const time = document.getElementById("time");
+  const iv = setInterval(() => {
+    const elapsed = (Date.now() - t0) / 1000;
+    const left = Math.max(0, TOTAL - elapsed);
+    const pct = Math.min(100, (elapsed / TOTAL) * 100);
+    if (bar) bar.style.width = pct + "%";
+    if (time) time.textContent = "Redirigiendo en " + Math.ceil(left) + "s...";
+    if (left <= 0) {
+      clearInterval(iv);
+      window.location.href = "/index.html";
+    }
+  }, 100);
+</script>
+</body>
+</html>

@@ -154,7 +154,7 @@
 <div id="menu">
   <h1>ANDEBRAWL</h1>
   <button class="btn" id="playBtn">JUGAR</button>
-  <div class="help"><b>WASD</b> mover · <b>Ratón</b> apuntar · <b>Clic/Espacio</b> disparar</div>
+  <div class="help" id="menuHelp"><b>WASD</b> mover · <b>Ratón</b> apuntar · <b>Clic/Espacio</b> disparar</div>
   <button class="btn sm" onclick="window.location.href='../index.html'">↩ Inicio</button>
 </div>
 
@@ -216,6 +216,37 @@ function normalizeFoto(src) {
 const account = getAccount();
 const skipMenu = new URLSearchParams(window.location.search).has("skipMenu");
 
+const controlType = (account && account.controlType) || "teclado";
+const joystickMode = controlType === "joystick";
+const joyRadius = 65;
+let autoAim = false;
+let mouseJoy = null;
+
+function clampJoy(joy, dx, dy) {
+  const dist = Math.hypot(dx, dy);
+  if (dist > joyRadius) {
+    joy.x = joy.originX + (dx / dist) * joyRadius;
+    joy.y = joy.originY + (dy / dist) * joyRadius;
+  } else {
+    joy.x = joy.originX + dx;
+    joy.y = joy.originY + dy;
+  }
+}
+
+function autoAimAtNearest() {
+  if (!me || !me.alive) return;
+  let best = null, bestD = 1e9;
+  const cand = [];
+  if (me && me.alive) cand.push({ x: me.x, y: me.y, isMe: true });
+  for (const p of players.values()) if (p.alive) cand.push(p);
+  for (const b of bots.values()) if (b.alive) cand.push(b);
+  for (const c of cand) {
+    const d = Math.hypot(c.x - me.x, c.y - me.y);
+    if (d < bestD && !c.isMe) { bestD = d; best = c; }
+  }
+  if (best) me.angle = Math.atan2(best.y - me.y, best.x - me.x);
+}
+
 if (!account) {
   document.getElementById("hudAccount").style.display = "none";
   document.getElementById("notLogged").classList.add("show");
@@ -227,6 +258,10 @@ if (!account) {
   document.getElementById("hudId").textContent = "ID: " + (account.ide || "").slice(0, 8) + "…";
   document.getElementById("hudFoto").src = normalizeFoto(account.foto || "pfp/p1.svg");
   fetchDbPoints();
+  if (joystickMode) {
+    const help = document.getElementById("menuHelp");
+    if (help) help.innerHTML = "<b>Izquierda</b> mover · <b>Derecha</b> apuntar · <b>Soltar</b> disparar · <b>D</b> auto-aim";
+  }
 }
 
 const COLORS = ["#00ffcc", "#ff4d6d", "#ffd23f", "#7c4dff", "#3fa9ff", "#4dff88", "#ff8a3f", "#ff3ff0"];
@@ -351,21 +386,139 @@ function setKey(e, val) {
   keys[k === " " ? "space" : k] = val;
 }
 window.addEventListener("keydown", (e) => {
+  if (joystickMode) {
+    if (e.key.toLowerCase() === "d") autoAim = true;
+    return;
+  }
   if (["arrowup","arrowdown","arrowleft","arrowright"," "].includes(e.key.toLowerCase())) e.preventDefault();
   setKey(e, true);
   if (e.key === " ") shoot();
 });
-window.addEventListener("keyup", (e) => setKey(e, false));
+window.addEventListener("keyup", (e) => {
+  if (joystickMode) {
+    if (e.key.toLowerCase() === "d") autoAim = false;
+    return;
+  }
+  setKey(e, false);
+});
 
 function toCanvas(e) {
   const r = cv.getBoundingClientRect();
   const t = e.touches ? e.touches[0] : e;
   return { x: (t.clientX - r.left) * (cv.width / r.width), y: (t.clientY - r.top) * (cv.height / r.height) };
 }
-cv.addEventListener("mousemove", (e) => { const c = toCanvas(e); mouse.x = c.x; mouse.y = c.y; });
-cv.addEventListener("mousedown", (e) => { const c = toCanvas(e); mouse.x = c.x; mouse.y = c.y; shoot(); });
-cv.addEventListener("touchmove", (e) => { const c = toCanvas(e); mouse.x = c.x; mouse.y = c.y; e.preventDefault(); }, { passive: false });
-cv.addEventListener("touchstart", (e) => { const c = toCanvas(e); mouse.x = c.x; mouse.y = c.y; shoot(); e.preventDefault(); }, { passive: false });
+function toCanvasTouch(touch) {
+  const r = cv.getBoundingClientRect();
+  return { x: (touch.clientX - r.left) * (cv.width / r.width), y: (touch.clientY - r.top) * (cv.height / r.height) };
+}
+
+/* ---------- Joystick mouse handlers ---------- */
+cv.addEventListener("mousedown", (e) => {
+  if (!joystickMode) { const c = toCanvas(e); mouse.x = c.x; mouse.y = c.y; shoot(); return; }
+  const c = toCanvas(e);
+  if (c.x < W / 2) {
+    mouseJoy = { type: "move", originX: c.x, originY: c.y, x: c.x, y: c.y };
+  } else {
+    mouseJoy = { type: "aim", originX: c.x, originY: c.y, x: c.x, y: c.y };
+  }
+});
+cv.addEventListener("mousemove", (e) => {
+  if (!joystickMode) { const c = toCanvas(e); mouse.x = c.x; mouse.y = c.y; return; }
+  if (!mouseJoy) return;
+  const c = toCanvas(e);
+  const dx = c.x - mouseJoy.originX, dy = c.y - mouseJoy.originY;
+  clampJoy(mouseJoy, dx, dy);
+});
+window.addEventListener("mousemove", (e) => {
+  if (!joystickMode || !mouseJoy) return;
+  const c = toCanvas(e);
+  const dx = c.x - mouseJoy.originX, dy = c.y - mouseJoy.originY;
+  clampJoy(mouseJoy, dx, dy);
+});
+window.addEventListener("mouseup", (e) => {
+  if (!joystickMode) return;
+  if (!mouseJoy) return;
+  if (mouseJoy.type === "aim") {
+    const dx = mouseJoy.x - mouseJoy.originX, dy = mouseJoy.y - mouseJoy.originY;
+    if (Math.hypot(dx, dy) > 10) {
+      me.angle = Math.atan2(dy, dx);
+      shoot();
+    } else if (autoAim) {
+      autoAimAtNearest();
+      shoot();
+    }
+  }
+  mouseJoy = null;
+});
+
+/* ---------- Joystick touch handlers ---------- */
+const activeTouches = new Map();
+cv.addEventListener("touchstart", (e) => {
+  if (!joystickMode) { const c = toCanvas(e); mouse.x = c.x; mouse.y = c.y; shoot(); e.preventDefault(); return; }
+  e.preventDefault();
+  for (const touch of e.changedTouches) {
+    const c = toCanvasTouch(touch);
+    if (c.x < W / 2) {
+      activeTouches.set(touch.identifier, { type: "move", originX: c.x, originY: c.y, x: c.x, y: c.y });
+    } else {
+      activeTouches.set(touch.identifier, { type: "aim", originX: c.x, originY: c.y, x: c.x, y: c.y });
+    }
+  }
+}, { passive: false });
+cv.addEventListener("touchmove", (e) => {
+  if (!joystickMode) { const c = toCanvas(e); mouse.x = c.x; mouse.y = c.y; e.preventDefault(); return; }
+  e.preventDefault();
+  for (const touch of e.changedTouches) {
+    const t = activeTouches.get(touch.identifier);
+    if (!t) continue;
+    const c = toCanvasTouch(touch);
+    const dx = c.x - t.originX, dy = c.y - t.originY;
+    clampJoy(t, dx, dy);
+  }
+}, { passive: false });
+cv.addEventListener("touchend", (e) => {
+  if (!joystickMode) return;
+  e.preventDefault();
+  for (const touch of e.changedTouches) {
+    const t = activeTouches.get(touch.identifier);
+    if (!t) continue;
+    if (t.type === "aim") {
+      const dx = t.x - t.originX, dy = t.y - t.originY;
+      if (Math.hypot(dx, dy) > 10) {
+        me.angle = Math.atan2(dy, dx);
+        shoot();
+      } else if (autoAim) {
+        autoAimAtNearest();
+        shoot();
+      }
+    }
+    activeTouches.delete(touch.identifier);
+  }
+}, { passive: false });
+cv.addEventListener("touchcancel", (e) => {
+  if (!joystickMode) return;
+  for (const touch of e.changedTouches) activeTouches.delete(touch.identifier);
+});
+window.addEventListener("touchend", (e) => {
+  if (!joystickMode) return;
+  for (const touch of e.changedTouches) {
+    const t = activeTouches.get(touch.identifier);
+    if (t && t.type === "aim") {
+      const dx = t.x - t.originX, dy = t.y - t.originY;
+      if (Math.hypot(dx, dy) > 10) {
+        me.angle = Math.atan2(dy, dx);
+        shoot();
+      } else if (autoAim) {
+        autoAimAtNearest();
+        shoot();
+      }
+    }
+    activeTouches.delete(touch.identifier);
+  }
+  if (activeTouches.size === 0) {
+    mouseJoy = null;
+  }
+});
 
 /* ============================================================
    LÓGICA
@@ -607,19 +760,56 @@ function update() {
 
   if (me.alive) {
     let dx = 0, dy = 0;
-    if (keys["w"] || keys["arrowup"]) dy -= 1;
-    if (keys["s"] || keys["arrowdown"]) dy += 1;
-    if (keys["a"] || keys["arrowleft"]) dx -= 1;
-    if (keys["d"] || keys["arrowright"]) dx += 1;
+    if (joystickMode) {
+      let mx = 0, my = 0;
+      if (mouseJoy && mouseJoy.type === "move") {
+        mx = (mouseJoy.x - mouseJoy.originX) / joyRadius;
+        my = (mouseJoy.y - mouseJoy.originY) / joyRadius;
+      }
+      for (const t of activeTouches.values()) {
+        if (t.type === "move") {
+          mx = (t.x - t.originX) / joyRadius;
+          my = (t.y - t.originY) / joyRadius;
+        }
+      }
+      const len = Math.hypot(mx, my);
+      if (len > 1) { mx /= len; my /= len; }
+      dx = mx; dy = my;
+    } else {
+      if (keys["w"] || keys["arrowup"]) dy -= 1;
+      if (keys["s"] || keys["arrowdown"]) dy += 1;
+      if (keys["a"] || keys["arrowleft"]) dx -= 1;
+      if (keys["d"] || keys["arrowright"]) dx += 1;
+    }
     if (dx || dy) {
-      const len = Math.hypot(dx, dy);
-      me.x += (dx / len) * SPEED; me.y += (dy / len) * SPEED;
+      me.x += dx * SPEED; me.y += dy * SPEED;
       me.x = Math.max(16, Math.min(W - 16, me.x));
       me.y = Math.max(16, Math.min(H - 16, me.y));
       resolveObstacles(me, 15);
       lastMoveTime = Date.now();
     }
-    me.angle = Math.atan2(mouse.y - me.y, mouse.x - me.x);
+
+    if (joystickMode) {
+      let aimSet = false;
+      if (mouseJoy && mouseJoy.type === "aim") {
+        const adx = mouseJoy.x - mouseJoy.originX, ady = mouseJoy.y - mouseJoy.originY;
+        if (Math.hypot(adx, ady) > 10) { me.angle = Math.atan2(ady, adx); aimSet = true; }
+      }
+      if (!aimSet) {
+        for (const t of activeTouches.values()) {
+          if (t.type === "aim") {
+            const adx = t.x - t.originX, ady = t.y - t.originY;
+            if (Math.hypot(adx, ady) > 10) { me.angle = Math.atan2(ady, adx); aimSet = true; break; }
+          }
+        }
+      }
+      if (!aimSet && autoAim) {
+        autoAimAtNearest();
+        if (me.alive) shoot();
+      }
+    } else {
+      me.angle = Math.atan2(mouse.y - me.y, mouse.x - me.x);
+    }
     if (Date.now() - lastMoveTime > AFK_LIMIT) { salirPartida(); return; }
   }
 
@@ -846,6 +1036,54 @@ function drawBullet(b) {
   ctx.fillStyle = b.color || "#fff"; ctx.shadowColor = b.color || "#fff"; ctx.shadowBlur = 8; ctx.fill(); ctx.shadowBlur = 0;
 }
 
+function drawJoystickBase(cx, cy, color) {
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.beginPath(); ctx.arc(cx, cy, joyRadius, 0, Math.PI * 2);
+  ctx.fillStyle = color; ctx.fill();
+  ctx.globalAlpha = 0.35;
+  ctx.lineWidth = 2; ctx.strokeStyle = color;
+  ctx.beginPath(); ctx.arc(cx, cy, joyRadius, 0, Math.PI * 2); ctx.stroke();
+  ctx.restore();
+}
+function drawJoystickStick(cx, cy, sx, sy, color) {
+  ctx.save();
+  ctx.globalAlpha = 0.85;
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(sx, sy);
+  ctx.lineWidth = 3; ctx.strokeStyle = color; ctx.stroke();
+  ctx.beginPath(); ctx.arc(sx, sy, 18, 0, Math.PI * 2);
+  ctx.fillStyle = color; ctx.shadowColor = color; ctx.shadowBlur = 14; ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+function drawJoysticks() {
+  if (!joystickMode) return;
+  const hasMove = (mouseJoy && mouseJoy.type === "move") || [...activeTouches.values()].some(t => t.type === "move");
+  const hasAimInput = (mouseJoy && mouseJoy.type === "aim") || [...activeTouches.values()].some(t => t.type === "aim");
+  if (hasMove) {
+    const mj = mouseJoy && mouseJoy.type === "move" ? mouseJoy : [...activeTouches.values()].find(t => t.type === "move");
+    if (mj) {
+      drawJoystickBase(mj.originX, mj.originY, "#3fa9ff");
+      drawJoystickStick(mj.originX, mj.originY, mj.x, mj.y, "#3fa9ff");
+    }
+  }
+  if (hasAimInput) {
+    const aj = mouseJoy && mouseJoy.type === "aim" ? mouseJoy : [...activeTouches.values()].find(t => t.type === "aim");
+    drawJoystickBase(aj.originX, aj.originY, "#ff4d6d");
+    drawJoystickStick(aj.originX, aj.originY, aj.x, aj.y, "#ff4d6d");
+  }
+  if (autoAim && me && me.alive) {
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = "#ffd23f"; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
+    ctx.beginPath(); ctx.moveTo(me.x, me.y);
+    ctx.lineTo(me.x + Math.cos(me.angle) * 120, me.y + Math.sin(me.angle) * 120);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+}
+
 function render() {
   drawBackground();
   drawObstacles();
@@ -855,6 +1093,7 @@ function render() {
   for (const b of bullets) drawBullet(b);
   for (const b of botBullets) drawBullet(b);
   for (const b of myBullets) drawBullet({ ...b, color: me.color });
+  drawJoysticks();
   if (hurtFlash > 0) {
     ctx.fillStyle = `rgba(255,40,80,${hurtFlash / 40})`; ctx.fillRect(0, 0, W, H); hurtFlash--;
   }

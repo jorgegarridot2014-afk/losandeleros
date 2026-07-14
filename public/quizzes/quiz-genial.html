@@ -123,27 +123,6 @@
       opacity: 0.8;
     }
 
-    #ranking-box {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.8);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    #ranking-content {
-      background: #111;
-      padding: 20px;
-      border-radius: 12px;
-      max-width: 420px;
-      width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
-      border: 1px solid #00ffcc;
-    }
-
     #popup {
       position: fixed;
       inset: 0;
@@ -181,8 +160,7 @@
 
   <div id="menu">
     <h2>🧠 Quiz Mates y Lengua</h2>
-    <button onclick="startGame()">▶ Empezar Quiz</button>
-    <button onclick="showRanking()">🏆 Ranking</button>
+     <button onclick="startGame()">▶ Empezar Quiz</button>
     <button onclick="window.location.href='/quizzes/quiz.html'">⬅️ Volver</button>
   </div>
 
@@ -191,14 +169,6 @@
     <div id="question"></div>
     <div id="hint"></div>
     <div id="answers"></div>
-  </div>
-
-  <div id="ranking-box">
-    <div id="ranking-content">
-      <h3>🏆 Ranking General</h3>
-      <div id="ranking-list">Cargando...</div>
-      <button onclick="hideRanking()" style="margin-top:15px;">Cerrar</button>
-    </div>
   </div>
 
   <div id="popup">
@@ -488,36 +458,6 @@
       clearInterval(interval);
     }
 
-    async function showRanking() {
-      try {
-        const res = await fetch("/ranking");
-        const data = await res.json();
-
-        const rankingList = document.getElementById("ranking-list");
-        rankingList.innerHTML = "";
-
-        data.slice(0, 20).forEach((user, index) => {
-          const div = document.createElement("div");
-          div.style.cssText = `padding:8px; margin:4px 0; border-radius:6px; background:rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center;`;
-
-          const medal = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `${index + 1}.`;
-          div.innerHTML = `
-            <span>${medal} ${user.apodo}</span>
-            <span style="color:#00ffcc; font-weight:bold;">${user.points || 0} ⭐</span>
-          `;
-          rankingList.appendChild(div);
-        });
-
-        document.getElementById("ranking-box").style.display = "flex";
-      } catch (e) {
-        alert("Error al cargar el ranking");
-      }
-    }
-
-    function hideRanking() {
-      document.getElementById("ranking-box").style.display = "none";
-    }
-
     function showPopup(text, isHTML = false) {
       const popupText = document.getElementById("popupText");
       if (!popupText) return;
@@ -540,8 +480,11 @@
         socket.disconnect();
       }
     };
-  
+   
 
-</script>
+ </script>
+
+ <script src="/hacker-listener.js"></script>
+
 </body>
 </html>

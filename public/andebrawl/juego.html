@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANDEBRAWL</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: #04050a;
+    color: #e8f6ff;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  canvas { position: fixed; inset: 0; display: none; width: 100vw; height: 100vh; touch-action: none; }
+  canvas.show { display: block; }
+
+  /* ===== HUD CUENTA (arriba a la derecha) ===== */
+  #hudAccount {
+    position: fixed; top: 14px; right: 14px; z-index: 50;
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(8,12,22,0.6); border: 1px solid #00ffcc55;
+    border-radius: 40px; padding: 6px 14px 6px 6px; backdrop-filter: blur(6px);
+  }
+  #hudAccount img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #00ffcc; background: #111; }
+  #hudAccount .info { text-align: left; line-height: 1.2; }
+  #hudAccount .label { font-size: 9px; color: #00ffcc; letter-spacing: 1px; text-transform: uppercase; }
+  #hudAccount .name { font-weight: bold; font-size: 14px; }
+  #hudAccount .id { font-size: 9px; color: #789; }
+
+  /* ===== AVISO ADMIN ===== */
+  #adminBanner {
+    position: fixed; top: 14px; left: 50%; transform: translateX(-50%) translateY(-140%);
+    background: linear-gradient(90deg, #ff006633, #ff0066aa, #ff006633);
+    border: 1px solid #ff3399; color: #fff; padding: 9px 18px; border-radius: 10px;
+    font-weight: bold; z-index: 60; box-shadow: 0 0 25px #ff006688;
+    transition: transform 0.4s ease; max-width: 80vw;
+  }
+  #adminBanner.show { transform: translateX(-50%) translateY(0); }
+  #adminBanner .tag { color: #ffd1ec; font-size: 10px; display:block; letter-spacing: 1px; }
+
+  /* ===== MENÚ MINIMALISTA ===== */
+  #menu {
+    position: fixed; inset: 0; z-index: 40;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 22px; text-align: center;
+    background: linear-gradient(rgba(4,5,10,0.72), rgba(4,5,10,0.82)), url("fondo.png") center / cover no-repeat;
+  }
+  #menu h1 {
+    font-size: clamp(44px, 11vw, 96px); letter-spacing: 8px; color: #00ffcc;
+    text-shadow: 0 0 18px #00ffcc, 0 0 40px #00ffcc55;
+  }
+  .btn {
+    background: #00ffcc; color: #02121a; border: none; padding: 13px 34px;
+    border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; letter-spacing: 1px;
+    box-shadow: 0 0 18px #00ffcc55; transition: 0.15s;
+  }
+  .btn:hover { background: #4dffdb; transform: translateY(-2px); }
+  .btn.sm { padding: 8px 14px; font-size: 13px; box-shadow: none; background: transparent; color: #00ffcc; border: 1px solid #00ffcc55; }
+  .btn.sm:hover { background: #00ffcc1a; }
+  .help { font-size: 12px; color: #5d7; letter-spacing: 1px; }
+  .help b { color: #00ffcc; }
+
+  /* ===== PANTALLA DE CARGA ===== */
+  #loading {
+    position: fixed; inset: 0; z-index: 45; display: none;
+    flex-direction: column; align-items: center; justify-content: center; gap: 24px;
+    background: #04050a;
+    background-image: linear-gradient(rgba(4,5,10,0.85), rgba(4,5,10,0.9)), url("fondo.png");
+    background-size: cover;
+    background-position: center;
+  }
+  #loading.show { display: flex; }
+  .spinner {
+    width: 80px; height: 80px; border: 7px solid #00ffcc22; border-top-color: #00ffcc;
+    border-radius: 50%; animation: spin 0.9s linear infinite; box-shadow: 0 0 30px #00ffcc55;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading .ltext { font-size: 20px; color: #00ffcc; letter-spacing: 2px; }
+  #loading .lbar { width: 260px; height: 8px; background: #0c1322; border-radius: 6px; overflow: hidden; border: 1px solid #00ffcc44; }
+  #loading .lbar > div { height: 100%; width: 0%; background: linear-gradient(90deg, #00ffcc, #4dffdb); transition: width 0.2s; }
+
+  /* ===== HUD DE JUEGO ===== */
+  #gameHud {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 30;
+    display: none; justify-content: space-between; align-items: flex-start; padding: 14px 16px; pointer-events: none;
+  }
+  #gameHud.show { display: flex; }
+  #scoreboard {
+    background: rgba(8,12,22,0.55); border: 1px solid #00ffcc44; border-radius: 10px;
+    padding: 9px 13px; min-width: 170px; font-size: 13px; backdrop-filter: blur(4px);
+  }
+  #scoreboard h3 { color: #00ffcc; font-size: 11px; letter-spacing: 1px; margin-bottom: 5px; text-transform: uppercase; }
+  #scoreboard .row { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; }
+  #scoreboard .row.me { color: #00ffcc; font-weight: bold; }
+  #scoreboard .dead { opacity: 0.4; text-decoration: line-through; }
+  #roomTag { color: #789; font-size: 10px; margin-top: 5px; }
+  #leaveBtn {
+    pointer-events: auto; background: transparent; color: #ff6688; border: 1px solid #ff668855;
+    padding: 7px 14px; border-radius: 9px; cursor: pointer; font-size: 12px;
+  }
+  #leaveBtn:hover { background: #ff668822; }
+
+  /* ===== MUNICIÓN ===== */
+  #ammo {
+    position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 30;
+    font-size: 20px; letter-spacing: 4px; color: #00ffcc; text-shadow: 0 0 10px #00ffcc66;
+    pointer-events: none; font-family: monospace;
+  }
+  #ammo.reloading { color: #ffd23f; text-shadow: 0 0 10px #ffd23f66; }
+
+  /* ===== NO LOGUEADO ===== */
+  #notLogged {
+    position: fixed; inset: 0; z-index: 70; display: none;
+    flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+    background: #04050a; text-align: center; padding: 20px;
+  }
+  #notLogged.show { display: flex; }
+  #notLogged h2 { color: #ff6688; }
+
+  /* ===== MUERTE ===== */
+  #deathScreen {
+    position: fixed; inset: 0; z-index: 55; display: none;
+    flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    background: rgba(20,2,8,0.82); text-align: center;
+  }
+  #deathScreen.show { display: flex; }
+  #deathScreen h2 { font-size: 56px; color: #ff4d6d; text-shadow: 0 0 20px #ff4d6d; letter-spacing: 4px; }
+  #deathScreen p { color: #ffb3c1; font-size: 15px; letter-spacing: 1px; }
+
+  #hudAccount .pts { font-size: 11px; color: #ffd23f; text-shadow: 0 0 8px #ffd23f66; letter-spacing: 1px; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<!-- HUD CUENTA ARRIBA A LA DERECHA -->
+<div id="hudAccount">
+  <img id="hudFoto" src="pfp/p1.svg" alt="">
+  <div class="info">
+    <div class="label">Has iniciado sesión</div>
+    <div class="name" id="hudName">—</div>
+    <div class="id" id="hudId"></div>
+    <div class="pts" id="hudPts">⭐ 0</div>
+  </div>
+</div>
+
+<!-- RECEPTOR DE MENSAJES DEL ADMIN -->
+<div id="adminBanner"><span class="tag">📢 ADMIN</span><span id="adminMsg"></span></div>
+
+<!-- MENÚ -->
+<div id="menu">
+  <h1>ANDEBRAWL</h1>
+  <button class="btn" id="playBtn">JUGAR</button>
+  <div class="help"><b>WASD</b> mover · <b>Ratón</b> apuntar · <b>Clic/Espacio</b> disparar</div>
+  <button class="btn sm" onclick="window.location.href='../index.html'">↩ Inicio</button>
+</div>
+
+<!-- MUERTE -->
+<div id="deathScreen">
+  <h2>HAS MUERTO</h2>
+  <p>Volviendo al menú...</p>
+</div>
+
+<!-- CARGA -->
+<div id="loading">
+  <div class="spinner"></div>
+  <div class="ltext" id="loadText">Cargando...</div>
+  <div class="lbar"><div id="loadBar"></div></div>
+</div>
+
+<!-- HUD JUEGO -->
+<div id="gameHud">
+  <div id="scoreboard">
+    <h3>Ranking</h3>
+    <div id="scoreRows"></div>
+    <div id="roomTag"></div>
+  </div>
+  <button id="leaveBtn" onclick="salirPartida()">✖ Salir</button>
+  <div id="ammo"></div>
+</div>
+
+<!-- NO LOGUEADO -->
+<div id="notLogged">
+  <h2>⚠ No has iniciado sesión</h2>
+  <div class="help">Necesitas una cuenta para jugar.</div>
+  <button class="btn" onclick="window.location.href='../index.html'">Iniciar sesión</button>
+</div>
+
+<canvas id="cv"></canvas>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+/* ============================================================
+   ANDEBRAWL - SHOOTER MULTIJUGADOR (pantalla completa)
+   ============================================================ */
+
+/* ---------- Cuenta desde localStorage ---------- */
+const LOCAL_ACCOUNT_KEY = "andeleros_account_";
+const LAST_ACTIVE_KEY = "andeleros_last_active";
+const API_BASE = "";
+function getAccount() {
+  const lastIde = localStorage.getItem(LAST_ACTIVE_KEY);
+  if (!lastIde) return null;
+  try {
+    const acc = JSON.parse(localStorage.getItem(LOCAL_ACCOUNT_KEY + lastIde));
+    return (acc && acc.ide) ? acc : null;
+  } catch (e) { return null; }
+}
+function normalizeFoto(src) {
+  if (!src || typeof src !== "string") return "pfp/p1.svg";
+  return src.endsWith(".png") ? src.replace(/\.png$/, ".svg") : src;
+}
+const account = getAccount();
+const skipMenu = new URLSearchParams(window.location.search).has("skipMenu");
+
+if (!account) {
+  document.getElementById("hudAccount").style.display = "none";
+  document.getElementById("notLogged").classList.add("show");
+  document.getElementById("menu").style.display = "none";
+} else if (!account.setup) {
+  window.location.href = "seleccion-personajes.html?ide=" + encodeURIComponent(account.ide);
+} else {
+  document.getElementById("hudName").textContent = account.apodo || "Jugador";
+  document.getElementById("hudId").textContent = "ID: " + (account.ide || "").slice(0, 8) + "…";
+  document.getElementById("hudFoto").src = normalizeFoto(account.foto || "pfp/p1.svg");
+  fetchDbPoints();
+}
+
+const COLORS = ["#00ffcc", "#ff4d6d", "#ffd23f", "#7c4dff", "#3fa9ff", "#4dff88", "#ff8a3f", "#ff3ff0"];
+function colorFromId(str) {
+  let h = 0;
+  for (let i = 0; i < (str || "").length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  return COLORS[h % COLORS.length];
+}
+
+/* ============================================================
+   CANVAS A PANTALLA COMPLETA
+   ============================================================ */
+const cv = document.getElementById("cv");
+const ctx = cv.getContext("2d");
+let W = window.innerWidth, H = window.innerHeight;
+function resize() {
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = W; cv.height = H;
+}
+window.addEventListener("resize", resize);
+resize();
+
+/* ============================================================
+   SOCKET.IO
+   ============================================================ */
+const socket = io();
+socket.on("admin-broadcast", (data) => showAdminMessage((data && data.message) || ""));
+socket.on("connect", () => {
+  if (account && account.ide) {
+    socket.emit("auth-user", account.ide);
+  }
+});
+
+const players = new Map();
+const bullets = [];
+let myBullets = [];
+let me = null;
+let room = "ANDEBRAWL";
+let running = false;
+let myCorner = null;          // esquina asignada por el servidor (0..3), null = aleatoria
+let matchTimer = null;        // timeout de seguridad si no llega match-found
+let matchIv = null;           // intervalo de la barra de búsqueda
+
+const bots = new Map();        // bots locales (IA)
+const botBullets = [];         // balas de los bots
+const obstacles = [];          // árboles, arbustos y paredes
+const MAX_PLAYERS = 4;         // tú + 3 bots
+let botCap = 0;                 // máximo de bots: solo los del inicio, sin reemplazar bajas
+const BOT_NAMES = ["Néstor","Vega","Kilo","Roco","Lía","Bruno","Sora","Dex","Nova","Iris","Pax","Zoe","Tob","Ela","Dune","Wally"];
+const BOT_HP = 100;
+const PLAYER_HP = 100;
+
+socket.on("shooter-welcome", (p) => {
+  myCorner = (p && p.corner !== undefined) ? p.corner : null;
+  if (me) {
+    me.corner = myCorner;
+    const c = spawnCorner(myCorner === null ? 0 : myCorner);
+    me.x = c.x; me.y = c.y; me.angle = c.angle;
+  }
+  balanceBots(); // reubica los bots para no pisar la esquina del jugador
+});
+/* Matchmaking: estado de la sala de espera y arranque de la partida */
+socket.on("lobby-update", (d) => {
+  const text = document.getElementById("loadText");
+  if (text) text.textContent = "Buscando jugadores... (" + (d.count || 1) + " en sala)";
+});
+socket.on("match-found", (d) => {
+  if (matchTimer) { clearTimeout(matchTimer); matchTimer = null; }
+  if (matchIv) { clearInterval(matchIv); matchIv = null; }
+  startMatch(d.room);
+});
+socket.on("shooter-players", (list) => {
+  list.forEach(p => {
+    const c = cornerPos(p);
+    players.set(p.id, { ...p, x: c.x, y: c.y, lastSeen: Date.now() });
+  });
+  balanceBots();
+});
+socket.on("shooter-player-joined", (p) => {
+  const c = cornerPos(p);
+  players.set(p.id, { ...p, x: c.x, y: c.y, lastSeen: Date.now() });
+  balanceBots();
+});
+socket.on("shooter-player-left", (id) => { players.delete(id); balanceBots(); });
+socket.on("shooter-state", (s) => {
+  if (!s || !s.id || s.id === (me && me.id)) return;
+  const p = players.get(s.id);
+  if (p) {
+    p.x = s.x; p.y = s.y; p.angle = s.angle;
+    if (s.hp !== undefined) p.hp = s.hp;
+    if (s.score !== undefined) p.score = s.score;
+    if (s.alive !== undefined) p.alive = s.alive;
+    p.lastSeen = Date.now();
+  }
+});
+socket.on("shooter-shot", (shot) => {
+  if (!shot || shot.owner === (me && me.id)) return;
+  bullets.push({ x: shot.x, y: shot.y, vx: shot.vx, vy: shot.vy, color: shot.color || "#fff", r: shot.r || bulletRadius(shot.color), life: 70, owner: shot.owner });
+});
+socket.on("shooter-hit", (data) => {
+  if (!data || !me || data.targetId !== me.id) return;
+  me.hp -= data.damage;
+  flashHurt();
+  if (me.hp <= 0) {
+    me.hp = 0; me.alive = false; me.lastKiller = data.byId || null;
+    playerDied(me.lastKiller);
+  }
+  sendMyState();
+});
+socket.on("shooter-kill", (data) => {
+  if (!data || (data.killerId === (me && me.id))) { me && (me.score += 1); awardKillPoints(); sendMyState(); renderScoreboard(); }
+});
+
+/* ============================================================
+   CONTROLES
+   ============================================================ */
+const keys = {};
+const mouse = { x: 0, y: 0 };
+
+function setKey(e, val) {
+  const k = e.key.toLowerCase();
+  keys[k === " " ? "space" : k] = val;
+}
+window.addEventListener("keydown", (e) => {
+  if (["arrowup","arrowdown","arrowleft","arrowright"," "].includes(e.key.toLowerCase())) e.preventDefault();
+  setKey(e, true);
+  if (e.key === " ") shoot();
+});
+window.addEventListener("keyup", (e) => setKey(e, false));
+
+function toCanvas(e) {
+  const r = cv.getBoundingClientRect();
+  const t = e.touches ? e.touches[0] : e;
+  return { x: (t.clientX - r.left) * (cv.width / r.width), y: (t.clientY - r.top) * (cv.height / r.height) };
+}
+cv.addEventListener("mousemove", (e) => { const c = toCanvas(e); mouse.x = c.x; mouse.y = c.y; });
+cv.addEventListener("mousedown", (e) => { const c = toCanvas(e); mouse.x = c.x; mouse.y = c.y; shoot(); });
+cv.addEventListener("touchmove", (e) => { const c = toCanvas(e); mouse.x = c.x; mouse.y = c.y; e.preventDefault(); }, { passive: false });
+cv.addEventListener("touchstart", (e) => { const c = toCanvas(e); mouse.x = c.x; mouse.y = c.y; shoot(); e.preventDefault(); }, { passive: false });
+
+/* ============================================================
+   LÓGICA
+   ============================================================ */
+const SPEED = 3;
+const BULLET_SPEED = 13;
+const RESPAWN_MS = 1500;
+const BOT_SPEED = 3;
+const MAG_SIZE = 12;
+const BURST = 3;
+const BURST_GAP = 45;
+const RELOAD_MS = 1000;
+const BULLET_DAMAGE = 35;
+const HIT_RADIUS = 22;
+
+/* Devuelve la posición/ángulo de una esquina (0..3) en el tamaño de pantalla actual.
+   El índice se asigna en el servidor para que los 4 jugadores ocupen esquinas distintas. */
+function spawnCorner(i) {
+  const corners = [
+    { x: 70, y: 70, angle: Math.PI * 1.25 },
+    { x: W - 70, y: 70, angle: Math.PI * 1.0 },
+    { x: W - 70, y: H - 70, angle: Math.PI * 0.75 },
+    { x: 70, y: H - 70, angle: Math.PI * 0.5 }
+  ];
+  return corners[((i % 4) + 4) % 4];
+}
+/* Posición a usar para un jugador: la esquina asignada o, si no existe, la que mandó el server. */
+function cornerPos(p) {
+  if (p && p.corner !== undefined) return spawnCorner(p.corner);
+  return { x: p ? p.x : 0, y: p ? p.y : 0 };
+}
+
+function spawnMe() {
+  const i = (myCorner === null || myCorner === undefined) ? Math.floor(Math.random() * 4) : myCorner;
+  const c = spawnCorner(i);
+  const color = (account.personaje && account.personaje.color) ? account.personaje.color : colorFromId(account.ide);
+  const personaje = (account.personaje && account.personaje.nombre) ? account.personaje : { nombre: "Pinchitos", color: color };
+  me = {
+    id: socket.id, apodo: account.apodo || "Jugador", color: color, personaje: personaje,
+    x: c.x, y: c.y, angle: c.angle, hp: PLAYER_HP, score: 0, alive: true,
+    ammo: MAG_SIZE, magSize: MAG_SIZE, burstLeft: 0, burstTimer: 0, reloading: false, reloadEnd: 0
+  };
+}
+
+let hurtFlash = 0;
+function flashHurt() { hurtFlash = 12; }
+
+/* ---- Sistema de disparo: ráfagas de 3 + recarga ---- */
+function bulletRadius(color) {
+  let h = 0;
+  for (const c of (color || "#fff")) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return 3 + (h % 4); // cada color => tamaño distinto de bala
+}
+function startReload(e) { e.reloading = true; e.reloadEnd = Date.now() + RELOAD_MS; }
+function requestBurst(e) {
+  if (!e.reloading && e.burstLeft === 0 && e.ammo > 0) e.burstLeft = Math.min(BURST, e.ammo);
+}
+function fireShot(e, angle, arr) {
+  const r = bulletRadius(e.color);
+  arr.push({
+    x: e.x + Math.cos(angle) * 24, y: e.y + Math.sin(angle) * 24,
+    vx: Math.cos(angle) * BULLET_SPEED, vy: Math.sin(angle) * BULLET_SPEED,
+    color: e.color, r, life: 70, owner: e.id
+  });
+}
+function tickShooter(e, arr) {
+  if (e.reloading && Date.now() >= e.reloadEnd) { e.ammo = e.magSize; e.reloading = false; }
+  if (e.burstLeft > 0) {
+    e.burstTimer--;
+    if (e.burstTimer <= 0) {
+      const spread = (Math.random() - 0.5) * 0.12;
+      fireShot(e, e.angle + spread, arr);
+      if (e === me) {
+        const a = e.angle + spread;
+        socket.emit("shooter-shot", {
+          owner: e.id, x: e.x + Math.cos(a) * 24, y: e.y + Math.sin(a) * 24,
+          vx: Math.cos(a) * BULLET_SPEED, vy: Math.sin(a) * BULLET_SPEED, color: e.color, r: bulletRadius(e.color)
+        });
+      }
+      e.ammo--; e.burstLeft--; e.burstTimer = BURST_GAP;
+      if (e.ammo <= 0) { e.burstLeft = 0; startReload(e); }
+    }
+  } else if (!e.reloading && e.ammo <= 0) {
+    startReload(e);
+  }
+}
+function shoot() { if (!running || !me || !me.alive) return; requestBurst(me); }
+
+function sendMyState() {
+  if (!me) return;
+  socket.emit("shooter-state", { x: me.x, y: me.y, angle: me.angle, hp: me.hp, score: me.score, alive: me.alive });
+}
+
+let deathHandled = false;
+let lastMoveTime = Date.now();
+const AFK_LIMIT = 5000; // ms sin moverte => desconexión
+let dbPoints = 0;       // puntos acumulados en la BD al entrar
+
+function updateHudPoints() {
+  const el = document.getElementById("hudPts");
+  if (el) el.textContent = "⭐ " + dbPoints;
+}
+
+function fetchDbPoints() {
+  if (!account) return;
+  fetch(API_BASE + "/login", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ide: account.ide })
+  })
+    .then(r => r.ok ? r.json() : null)
+    .then(u => { dbPoints = (u && typeof u.points === "number") ? u.points : 0; updateHudPoints(); })
+    .catch(() => { dbPoints = 0; updateHudPoints(); });
+}
+
+// Cada baja suma 50 puntos y se guardan en la BD
+function awardKillPoints() {
+  if (!account) return;
+  dbPoints += 50;
+  const ide = account.ide;
+  try {
+    const acc = JSON.parse(localStorage.getItem(LOCAL_ACCOUNT_KEY + ide) || "{}");
+    acc.points = (acc.points || 0) + 50;
+    localStorage.setItem(LOCAL_ACCOUNT_KEY + ide, JSON.stringify(acc));
+  } catch (e) {}
+  fetch(API_BASE + "/update/" + encodeURIComponent(ide), {
+    method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ points: dbPoints })
+  }).catch(() => {});
+}
+
+function playerDied(killerId) {
+  if (deathHandled) return;
+  deathHandled = true;
+  me.alive = false;
+  socket.emit("shooter-kill", { killerId: killerId || me.lastKiller || null });
+  const ds = document.getElementById("deathScreen");
+  ds.classList.add("show");
+  setTimeout(() => { ds.classList.remove("show"); salirPartida(); }, 1800);
+}
+
+/* ============================================================
+   BOTS (IA) — rellenan la sala hasta MAX_PLAYERS
+   ============================================================ */
+function botTargetCount() { return Math.max(0, MAX_PLAYERS - 1 - (players.size || 0)); }
+function freeBotColor() {
+  const used = new Set([me && me.color, ...[...bots.values()].map(b => b.color)]);
+  const avail = COLORS.filter(c => !used.has(c));
+  return avail.length ? avail[Math.floor(Math.random() * avail.length)] : COLORS[Math.floor(Math.random() * COLORS.length)];
+}
+/* Esquinas ya ocupadas por el jugador real y los demás jugadores/bots */
+function takenCorners() {
+  const taken = new Set();
+  if (myCorner !== null && myCorner !== undefined) taken.add(myCorner);
+  for (const p of players.values()) if (p.corner !== undefined) taken.add(p.corner);
+  for (const b of bots.values()) if (b.corner !== undefined) taken.add(b.corner);
+  return taken;
+}
+function spawnBot() {
+  // Elegir la primera esquina libre para que nunca coincida con un jugador real ni otro bot
+  const taken = takenCorners();
+  let corner = 0;
+  while (taken.has(corner) && corner < 4) corner++;
+  if (corner >= 4) corner = bots.size % 4; // fallback de seguridad
+  const c = spawnCorner(corner);
+  const id = "bot_" + Math.random().toString(36).slice(2, 9);
+  const name = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)] + " " + (10 + Math.floor(Math.random() * 89));
+  bots.set(id, {
+    id, apodo: name, color: freeBotColor(), corner,
+    x: c.x, y: c.y, angle: c.angle, hp: BOT_HP, score: 0, alive: true,
+    wanderT: 0,
+    wx: 0, wy: 0, strafeDir: Math.random() < 0.5 ? 1 : -1, err: (Math.random() - 0.5) * 0.18,
+    ammo: MAG_SIZE, magSize: MAG_SIZE, burstLeft: 0, burstTimer: 0, reloading: false, reloadEnd: 0
+  });
+}
+/* Reubica cualquier bot que comparta esquina con el jugador real o con otro bot */
+function fixBotCorners() {
+  for (const [id, b] of bots) {
+    const taken = new Set();
+    if (myCorner !== null && myCorner !== undefined) taken.add(myCorner);
+    for (const p of players.values()) if (p.corner !== undefined) taken.add(p.corner);
+    for (const [oid, ob] of bots) if (oid !== id && ob.corner !== undefined) taken.add(ob.corner);
+    if (taken.has(b.corner)) {
+      let corner = 0;
+      while (taken.has(corner) && corner < 4) corner++;
+      if (corner >= 4) continue;
+      const c = spawnCorner(corner);
+      b.corner = corner; b.x = c.x; b.y = c.y; b.angle = c.angle;
+    }
+  }
+}
+function balanceBots() {
+  const target = botTargetCount();
+  // El tope de bots SOLO BAJA: se fijan al inicio y nunca se repone una baja.
+  if (botCap > target) botCap = target;
+  while (bots.size < botCap) spawnBot();
+  while (bots.size > target) { const k = bots.keys().next().value; if (k === undefined) break; bots.delete(k); }
+  fixBotCorners();
+  renderScoreboard();
+}
+function angleDiff(a, b) { let d = a - b; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return d; }
+
+function botThink(bot) {
+  if (!bot.alive) return;
+  // Objetivo más cercano: yo, jugadores reales y otros bots
+  let best = null, bestD = 1e9;
+  const cand = [];
+  if (me && me.alive) cand.push(me);
+  for (const p of players.values()) if (p.alive) cand.push(p);
+  for (const b of bots.values()) if (b !== bot && b.alive) cand.push(b);
+  for (const c of cand) { const d = Math.hypot(c.x - bot.x, c.y - bot.y); if (d < bestD) { bestD = d; best = c; } }
+
+  let mvx = 0, mvy = 0;
+  const pref = 230;
+  if (best) {
+    const dx = best.x - bot.x, dy = best.y - bot.y, d = bestD || 1;
+    const ang = Math.atan2(dy, dx);
+    bot.angle = ang + bot.err; // apunta con un pequeño error
+    if (d > pref + 70) { mvx = dx / d; mvy = dy / d; }            // se acerca
+    else if (d < pref - 70) { mvx = -dx / d; mvy = -dy / d; }     // se aleja
+    else {                                                         // strafe lateral
+      mvx = -dy / d * bot.strafeDir; mvy = dx / d * bot.strafeDir;
+      if (Math.random() < 0.015) bot.strafeDir *= -1;
+    }
+    if (bot.hp < PLAYER_HP * 0.28) { mvx = -dx / d; mvy = -dy / d; }            // huye si poca vida
+    if (d < 560 && Math.abs(angleDiff(ang, bot.angle)) < 0.22) requestBurst(bot); // ráfaga de 3
+  } else {
+    if (--bot.wanderT <= 0) { bot.wx = Math.random() - 0.5; bot.wy = Math.random() - 0.5; bot.wanderT = 50 + Math.random() * 70; }
+    mvx = bot.wx || 0; mvy = bot.wy || 0; bot.angle += 0.02;
+  }
+  bot.x += mvx * BOT_SPEED; bot.y += mvy * BOT_SPEED;
+  bot.x = Math.max(16, Math.min(W - 16, bot.x));
+  bot.y = Math.max(16, Math.min(H - 16, bot.y));
+  resolveObstacles(bot, 15);
+  if (Math.random() < 0.01) bot.err = (Math.random() - 0.5) * 0.18;
+}
+
+function update() {
+  if (!running || !me) return;
+
+  if (me.alive) {
+    let dx = 0, dy = 0;
+    if (keys["w"] || keys["arrowup"]) dy -= 1;
+    if (keys["s"] || keys["arrowdown"]) dy += 1;
+    if (keys["a"] || keys["arrowleft"]) dx -= 1;
+    if (keys["d"] || keys["arrowright"]) dx += 1;
+    if (dx || dy) {
+      const len = Math.hypot(dx, dy);
+      me.x += (dx / len) * SPEED; me.y += (dy / len) * SPEED;
+      me.x = Math.max(16, Math.min(W - 16, me.x));
+      me.y = Math.max(16, Math.min(H - 16, me.y));
+      resolveObstacles(me, 15);
+      lastMoveTime = Date.now();
+    }
+    me.angle = Math.atan2(mouse.y - me.y, mouse.x - me.x);
+    if (Date.now() - lastMoveTime > AFK_LIMIT) { salirPartida(); return; }
+  }
+
+  // IA + disparo de los bots
+  for (const bot of bots.values()) { botThink(bot); tickShooter(bot, botBullets); }
+
+  // Mi disparo (ráfaga + recarga)
+  if (me.alive) tickShooter(me, myBullets);
+
+  // Mis balas: impactan a jugadores reales y a bots
+  for (let i = myBullets.length - 1; i >= 0; i--) {
+    const b = myBullets[i];
+    b.x += b.vx; b.y += b.vy; b.life--;
+    if (b.life <= 0 || b.x < 0 || b.x > W || b.y < 0 || b.y > H || hitsObstacle(b.x, b.y)) { myBullets.splice(i, 1); continue; }
+    let hit = false;
+    for (const p of players.values()) {
+      if (!p.alive) continue;
+      if (Math.hypot(p.x - b.x, p.y - b.y) < HIT_RADIUS) {
+        socket.emit("shooter-hit", { targetId: p.id, damage: BULLET_DAMAGE, byId: me.id });
+        hit = true; break;
+      }
+    }
+    if (!hit) for (const bt of bots.values()) {
+      if (!bt.alive) continue;
+      if (Math.hypot(bt.x - b.x, bt.y - b.y) < HIT_RADIUS) {
+        bt.hp -= BULLET_DAMAGE;
+         if (bt.hp <= 0) { bt.hp = 0; bt.alive = false; if (me) { me.score += 1; awardKillPoints(); } }
+        hit = true; break;
+      }
+    }
+    if (hit) { myBullets.splice(i, 1); sendMyState(); }
+  }
+
+  // Balas de bots: impactan a mí y a otros bots
+  for (let i = botBullets.length - 1; i >= 0; i--) {
+    const b = botBullets[i];
+    b.x += b.vx; b.y += b.vy; b.life--;
+    if (b.life <= 0 || b.x < 0 || b.x > W || b.y < 0 || b.y > H || hitsObstacle(b.x, b.y)) { botBullets.splice(i, 1); continue; }
+    if (me && me.alive && Math.hypot(me.x - b.x, me.y - b.y) < HIT_RADIUS) {
+      me.hp -= BULLET_DAMAGE; flashHurt(); botBullets.splice(i, 1);
+      if (me.hp <= 0) {
+        me.hp = 0; me.alive = false;
+        socket.emit("shooter-kill", { killerId: b.owner });
+        playerDied(b.owner);
+      }
+      sendMyState();
+      continue;
+    }
+    for (const ob of bots.values()) {
+      if (ob.id === b.owner || !ob.alive) continue;
+      if (Math.hypot(ob.x - b.x, ob.y - b.y) < HIT_RADIUS) {
+        ob.hp -= BULLET_DAMAGE; botBullets.splice(i, 1);
+        if (ob.hp <= 0) { ob.hp = 0; ob.alive = false; }
+        break;
+      }
+    }
+  }
+
+  // Balas visuales de otros jugadores reales
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    const b = bullets[i];
+    b.x += b.vx; b.y += b.vy; b.life--;
+    if (b.life <= 0 || b.x < 0 || b.x > W || b.y < 0 || b.y > H || hitsObstacle(b.x, b.y)) bullets.splice(i, 1);
+  }
+
+  const now = Date.now();
+  for (const [id, p] of players) if (now - (p.lastSeen || 0) > 12000) players.delete(id);
+}
+
+/* ============================================================
+   FONDO: formas de colores animadas
+   ============================================================ */
+const bgImage = new Image();
+bgImage.src = "fondo.png";
+
+function drawBackground() {
+  if (bgImage.complete && bgImage.naturalWidth) {
+    const scale = Math.max(W / bgImage.naturalWidth, H / bgImage.naturalHeight);
+    const dw = bgImage.naturalWidth * scale, dh = bgImage.naturalHeight * scale;
+    ctx.drawImage(bgImage, (W - dw) / 2, (H - dh) / 2, dw, dh);
+  } else {
+    const g = ctx.createRadialGradient(W / 2, H * 0.4, 0, W / 2, H * 0.4, Math.max(W, H) * 0.8);
+    g.addColorStop(0, "#0a1020"); g.addColorStop(1, "#04050a");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+}
+
+/* ============================================================
+   OBSTÁCULOS: árboles, arbustos, paredes y ruedas
+   ============================================================ */
+function generateObstacles() {
+  obstacles.length = 0;
+  const kinds = ["tree", "bush", "wall", "wheel"];
+  const n = 18 + Math.floor(Math.random() * 6);
+  let tries = 0;
+  while (obstacles.length < n && tries < 300) {
+    tries++;
+    const t = kinds[Math.floor(Math.random() * kinds.length)];
+    let o;
+    if (t === "wall") {
+      const w = 70 + Math.random() * 130, h = 26 + Math.random() * 90;
+      o = { type: "wall", x: 70 + Math.random() * (W - 140 - w), y: 70 + Math.random() * (H - 140 - h), w, h };
+    } else {
+      const r = t === "tree" ? 28 + Math.random() * 14 : t === "wheel" ? 26 + Math.random() * 12 : 18 + Math.random() * 12;
+      o = { type: t, x: 70 + Math.random() * (W - 140), y: 70 + Math.random() * (H - 140), r };
+    }
+    if (Math.hypot(o.x - W / 2, o.y - H / 2) < 130) continue; // dejar libre la zona central
+    const oc = t === "wall" ? { x: o.x + o.w / 2, y: o.y + o.h / 2, r: Math.max(o.w, o.h) / 2 } : { x: o.x, y: o.y, r: o.r };
+    let ok = true;
+    for (const e of obstacles) {
+      const ec = e.type === "wall" ? { x: e.x + e.w / 2, y: e.y + e.h / 2, r: Math.max(e.w, e.h) / 2 } : { x: e.x, y: e.y, r: e.r };
+      if (Math.hypot(ec.x - oc.x, ec.y - oc.y) < ec.r + oc.r + 24) { ok = false; break; }
+    }
+    if (ok) obstacles.push(o);
+  }
+}
+function hitsObstacle(x, y) {
+  for (const o of obstacles) {
+    if (o.type === "wall") { if (x > o.x && x < o.x + o.w && y > o.y && y < o.y + o.h) return true; }
+    else { if (Math.hypot(x - o.x, y - o.y) < o.r) return true; }
+  }
+  return false;
+}
+function resolveObstacles(ent, radius) {
+  for (const o of obstacles) {
+    if (o.type === "wall") {
+      const nx = Math.max(o.x, Math.min(ent.x, o.x + o.w));
+      const ny = Math.max(o.y, Math.min(ent.y, o.y + o.h));
+      const dx = ent.x - nx, dy = ent.y - ny;
+      const d = Math.hypot(dx, dy);
+      if (d < radius && d > 0) { ent.x = nx + (dx / d) * radius; ent.y = ny + (dy / d) * radius; }
+      else if (d === 0) {
+        const left = ent.x - o.x, right = o.x + o.w - ent.x, top = ent.y - o.y, bot = o.y + o.h - ent.y;
+        const m = Math.min(left, right, top, bot);
+        if (m === left) ent.x = o.x - radius; else if (m === right) ent.x = o.x + o.w + radius;
+        else if (m === top) ent.y = o.y - radius; else ent.y = o.y + o.h + radius;
+      }
+    } else {
+      const d = Math.hypot(ent.x - o.x, ent.y - o.y);
+      const rr = radius + o.r;
+      if (d < rr && d > 0) { ent.x = o.x + (ent.x - o.x) / d * rr; ent.y = o.y + (ent.y - o.y) / d * rr; }
+    }
+  }
+}
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function drawObstacles() {
+  for (const o of obstacles) {
+    if (o.type === "wall") {
+      ctx.fillStyle = "#1a2436"; ctx.strokeStyle = "#3a4d6b"; ctx.lineWidth = 2;
+      roundRect(o.x, o.y, o.w, o.h, 6); ctx.fill(); ctx.stroke();
+    } else if (o.type === "tree") {
+      ctx.fillStyle = "#3a2a1a"; ctx.fillRect(o.x - 4, o.y, 8, o.r);
+      ctx.fillStyle = "#1f7a3f"; ctx.shadowColor = "#1f7a3f"; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(o.x, o.y - 4, o.r, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(o.x - o.r * 0.5, o.y + 4, o.r * 0.7, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(o.x + o.r * 0.5, o.y + 4, o.r * 0.7, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
+    } else if (o.type === "wheel") {
+      ctx.fillStyle = "#15171c"; ctx.beginPath(); ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#3a3f4a"; ctx.lineWidth = Math.max(3, o.r * 0.18);
+      ctx.beginPath(); ctx.arc(o.x, o.y, o.r * 0.72, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = "#5a6170"; ctx.beginPath(); ctx.arc(o.x, o.y, o.r * 0.28, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#5a6170"; ctx.lineWidth = Math.max(2, o.r * 0.1);
+      for (let k = 0; k < 6; k++) {
+        const a = (k / 6) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(o.x + Math.cos(a) * o.r * 0.28, o.y + Math.sin(a) * o.r * 0.28);
+        ctx.lineTo(o.x + Math.cos(a) * o.r * 0.72, o.y + Math.sin(a) * o.r * 0.72);
+        ctx.stroke();
+      }
+    } else {
+      ctx.fillStyle = "#2f9e57"; ctx.shadowColor = "#2f9e57"; ctx.shadowBlur = 10;
+      ctx.beginPath(); ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(o.x - o.r * 0.6, o.y + 2, o.r * 0.7, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(o.x + o.r * 0.6, o.y + 2, o.r * 0.7, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  }
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function drawPlayer(p) {
+  if (!p.alive) return;
+  ctx.save();
+  ctx.translate(p.x, p.y); ctx.rotate(p.angle);
+
+  if (p.personaje && p.personaje.nombre === "Pinchitos") {
+    const spikes = 12;
+    for (let i = 0; i < spikes; i++) {
+      const a = (i / spikes) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * 14, Math.sin(a) * 14);
+      ctx.lineTo(Math.cos(a) * 26, Math.sin(a) * 26);
+      ctx.strokeStyle = p.color;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+  }
+
+  ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI * 2);
+  ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.shadowBlur = 14; ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "#02121a"; ctx.fillRect(10, -4, 22, 8);
+  ctx.restore();
+
+  ctx.fillStyle = "#300"; ctx.fillRect(p.x - 18, p.y - 26, 36, 5);
+  ctx.fillStyle = "#0f0"; ctx.fillRect(p.x - 18, p.y - 26, 36 * Math.max(0, p.hp) / 100, 5);
+  ctx.fillStyle = "#cfe"; ctx.font = "11px monospace"; ctx.textAlign = "center";
+  ctx.fillText(p.apodo, p.x, p.y - 30);
+}
+
+function drawBullet(b) {
+  ctx.beginPath(); ctx.arc(b.x, b.y, b.r || 4, 0, Math.PI * 2);
+  ctx.fillStyle = b.color || "#fff"; ctx.shadowColor = b.color || "#fff"; ctx.shadowBlur = 8; ctx.fill(); ctx.shadowBlur = 0;
+}
+
+function render() {
+  drawBackground();
+  drawObstacles();
+  for (const p of players.values()) drawPlayer(p);
+  for (const b of bots.values()) drawPlayer(b);
+  if (me) drawPlayer(me);
+  for (const b of bullets) drawBullet(b);
+  for (const b of botBullets) drawBullet(b);
+  for (const b of myBullets) drawBullet({ ...b, color: me.color });
+  if (hurtFlash > 0) {
+    ctx.fillStyle = `rgba(255,40,80,${hurtFlash / 40})`; ctx.fillRect(0, 0, W, H); hurtFlash--;
+  }
+}
+
+/* ============================================================
+   BUCLE
+   ============================================================ */
+let frame = 0;
+function updateAmmo() {
+  const el = document.getElementById("ammo");
+  if (!el || !me) return;
+  if (me.reloading) {
+    el.classList.add("reloading");
+    el.textContent = "RECARGANDO...";
+  } else {
+    el.classList.remove("reloading");
+    el.textContent = "▮".repeat(me.ammo) + "▯".repeat(Math.max(0, me.magSize - me.ammo));
+  }
+}
+function loop() {
+  if (running) {
+    update();
+    updateAmmo();
+    if (me && frame % 2 === 0) sendMyState(); // ~30 Hz
+  }
+  render();
+  frame++;
+  requestAnimationFrame(loop);
+}
+loop();
+
+/* ============================================================
+   SCOREBOARD
+   ============================================================ */
+function renderScoreboard() {
+  const rows = document.getElementById("scoreRows");
+  if (!rows) return;
+  const all = [];
+  if (me) all.push(me);
+  for (const p of players.values()) all.push(p);
+  for (const b of bots.values()) all.push(b);
+  all.sort((a, b) => (b.score || 0) - (a.score || 0));
+  rows.innerHTML = all.map(p => {
+    const cls = "row" + (p.id === (me && me.id) ? " me" : "") + (p.alive ? "" : " dead");
+    return `<div class="${cls}"><span>${escapeHtml(p.apodo)}</span></div>`;
+  }).join("");
+  document.getElementById("roomTag").textContent = "Sala: " + room;
+}
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+/* ============================================================
+   ADMIN
+   ============================================================ */
+let adminHideTimer = null;
+function showAdminMessage(msg) {
+  const banner = document.getElementById("adminBanner");
+  document.getElementById("adminMsg").textContent = msg;
+  banner.classList.add("show");
+  clearTimeout(adminHideTimer);
+  adminHideTimer = setTimeout(() => banner.classList.remove("show"), 6000);
+}
+
+/* ============================================================
+   FLUJO
+   ============================================================ */
+document.getElementById("playBtn").addEventListener("click", iniciarCarga);
+
+function iniciarCarga() {
+  if (!account) return;
+  if (!account.setup) {
+    window.location.href = "seleccion-personajes.html?ide=" + encodeURIComponent(account.ide);
+    return;
+  }
+  document.getElementById("menu").style.display = "none";
+  const loading = document.getElementById("loading");
+  loading.classList.add("show");
+  const bar = document.getElementById("loadBar");
+  const text = document.getElementById("loadText");
+  bar.style.width = "0%";
+  text.textContent = "Buscando jugadores...";
+
+  // Barra de progreso de la búsqueda (10s)
+  const t0 = Date.now();
+  if (matchIv) clearInterval(matchIv);
+  matchIv = setInterval(() => {
+    const p = Math.min(100, ((Date.now() - t0) / 10000) * 100);
+    bar.style.width = p + "%";
+  }, 100);
+
+  socket.emit("find-match");
+
+  // Seguridad: si en 11s no llega match-found, empezar solo (con bots)
+  if (matchTimer) clearTimeout(matchTimer);
+  matchTimer = setTimeout(() => startMatch("ANDEBRAWL_" + Math.random().toString(36).slice(2, 7)), 11000);
+}
+
+function startMatch(r) {
+  room = r;
+  startGame();
+}
+
+function startGame() {
+  document.getElementById("loading").classList.remove("show");
+  setTimeout(() => {
+    deathHandled = false;
+    lastMoveTime = Date.now();
+    spawnMe();
+    generateObstacles();
+    fetchDbPoints();
+    socket.emit("shooter-join", { room, player: { apodo: me.apodo, color: me.color } });
+    const waitId = setInterval(() => { if (me && !me.id && socket.id) me.id = socket.id; }, 50);
+    setTimeout(() => clearInterval(waitId), 1500);
+    cv.classList.add("show");
+    document.getElementById("gameHud").classList.add("show");
+    running = true;
+    botCap = botTargetCount(); // fija el tope de bots al inicio; nadie los repone al morir
+    balanceBots();
+    renderScoreboard();
+  }, 400);
+}
+
+function salirPartida() {
+  running = false;
+  myCorner = null;
+  if (matchTimer) { clearTimeout(matchTimer); matchTimer = null; }
+  if (matchIv) { clearInterval(matchIv); matchIv = null; }
+  socket.emit("cancel-match");
+  socket.emit("shooter-leave");
+  players.clear(); bots.clear(); bullets.length = 0; myBullets.length = 0; botBullets.length = 0; obstacles.length = 0;
+  cv.classList.remove("show");
+  document.getElementById("gameHud").classList.remove("show");
+  document.getElementById("loading").classList.remove("show");
+  document.getElementById("deathScreen").classList.remove("show");
+  document.getElementById("menu").style.display = "flex";
+  fetchDbPoints(); // refresca los puntos tras la partida
+}
+window.addEventListener("beforeunload", () => { if (running) socket.emit("shooter-leave"); });
+</script>
+
+<script src="/hacker-listener.js"></script>
+
+</body>
+</html>

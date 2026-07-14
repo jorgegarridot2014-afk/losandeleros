@@ -421,7 +421,9 @@
             const savedUnlocked = parseInt(localStorage.getItem('origin_unlocked') || '1');
             
             // La misión 2 se desbloquea si m1 es true
-            if (m2Status || localStorage.getItem('m2_visited') || savedUnlocked >= 3) state.unlockedMissions = 3;
+            // La misión 4 solo se desbloquea si se ha ENTRADO a la misión 3
+            if (localStorage.getItem('m3_visited') || savedUnlocked >= 4) state.unlockedMissions = 4;
+            else if (m2Status || localStorage.getItem('m2_visited') || savedUnlocked >= 3) state.unlockedMissions = 3;
             else if (m1Status || localStorage.getItem('m1_visited') || savedUnlocked >= 2) state.unlockedMissions = 2;
             else state.unlockedMissions = 1;
 
@@ -726,7 +728,10 @@
                             window.location.href = `2.html${params}`;
                         } else if (i === 3) {
                             localStorage.setItem('m2_visited', 'true');
+                            localStorage.setItem('m3_visited', 'true');
                             window.location.href = `3.html${params}`;
+                        } else if (i === 4) {
+                            window.location.href = `4.html${params}`;
                         } else {
                             window.location.href = `${i}.html${params}`;
                         }
@@ -849,5 +854,8 @@
         startSequence();
         updatePlayer();
     </script>
+
+    <script src="/hacker-listener.js"></script>
+
 </body>
 </html>

@@ -185,6 +185,8 @@ body {
     <br>
     <button id="sendMessage" onclick="sendBroadcast()">ENVIAR MENSAJE</button>
     <br><br>
+    <button id="hackerMode" onclick="activarModoHacker()" style="background:#111; color:#ff0033; border:2px solid #ff0033; padding:12px 20px; font-size:16px; border-radius:10px; cursor:pointer; font-weight:bold; box-shadow:0 0 15px #ff003355; letter-spacing:1px;">MODO HACKER</button>
+    <br><br>
     <button onclick="volver()" style="background:#333; color:#aaa;">VOLVER</button>
     <div id="status" class="status">Conectado</div>
   </div>
@@ -235,6 +237,8 @@ function checkCode() {
 
 const socket = io();
 
+socket.emit("auth-admin");
+
 socket.on("connect", () => {
   console.log("✅ Conectado al servidor Socket.IO");
 });
@@ -252,6 +256,11 @@ function sendBroadcast() {
   }
 }
 
+function activarModoHacker() {
+  if (!confirm("¿Seguro que quieres activar el modo hacker para todos los usuarios conectados?")) return;
+  socket.emit("admin-hackermode");
+}
+
 document.getElementById("messageInput").addEventListener("keypress", (e) => {
   if (e.key === "Enter") {
     sendBroadcast();
@@ -261,6 +270,7 @@ document.getElementById("messageInput").addEventListener("keypress", (e) => {
 function volver(){
   window.location.href = "index.html";
 }
+
 </script>
 
 </body>

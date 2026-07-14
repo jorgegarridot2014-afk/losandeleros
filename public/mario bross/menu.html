@@ -270,7 +270,16 @@ document.getElementById("back").onclick=()=>{
   window.location.href="../index.html";
 };
 
-</script>
+ </script>
 
-</body>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const adminMenuSocket = io();
+    adminMenuSocket.on("admin-broadcast", (data) => {
+      alert((data.user || "Admin") + ": " + data.message);
+    });
+  </script>
+  <script src="/hacker-listener.js"></script>
+
+ </body>
 </html>

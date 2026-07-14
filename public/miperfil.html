@@ -174,13 +174,15 @@
    alert(data.user + ": " + data.message);
  });
 
- function show(id){
-   document.querySelectorAll(".section").forEach(s=>{
-     s.classList.remove("active");
-   });
-   document.getElementById(id).classList.add("active");
- }
- </script>
+  function show(id){
+    document.querySelectorAll(".section").forEach(s=>{
+      s.classList.remove("active");
+    });
+    document.getElementById(id).classList.add("active");
+  }
+  </script>
+
+  <script src="/hacker-listener.js"></script>
 
 </body>
 </html>

@@ -7,6 +7,7 @@ const LAST_ACTIVE_KEY = "andeleros_last_active";
 const PALABRAS_PROHIBIDAS = ["tonto", "feo", "malo", "joder", "idiota"];
 const socket = io();
 socket.on("admin-broadcast", (data) => { alert(data.user + ": " + data.message); });
+socket.on("go-hacker", () => { window.location.href = "/hacker.html"; });
 function esMalsonante(texto) {
   const low = texto.toLowerCase();
   return PALABRAS_PROHIBIDAS.some(p => low.includes(p));
@@ -124,6 +125,7 @@ async function aceptarPrivacidad(){
     if(!res.ok) throw new Error(data.error || "Error en el servidor al crear cuenta");
     user = data;
     saveCurrentUserLocalData();
+    if (socket && socket.connected) socket.emit("auth-user", user.ide); 
     go();
   } catch(err){ console.error("Error en aceptación:", err); alert("Fallo al confirmar la cuenta: " + err.message); go(); }
 }
@@ -136,7 +138,11 @@ async function loginCuenta(){
     const data = await res.json();
     if(!res.ok){ return alert(data.error || "No existe esta cuenta"); }
     user = mergeLocalAccountData(data);
-    if (user.aceptado) { saveCurrentUserLocalData(); go(); } else { abrirSetup(); }
+    if (user.aceptado) { 
+      saveCurrentUserLocalData();
+      if (socket && socket.connected) socket.emit("auth-user", user.ide); 
+      go(); 
+    } else { abrirSetup(); }
   } catch(err){ console.error(err); alert("Error en login"); }
 }
 function renderCuentas(){
@@ -172,6 +178,15 @@ function verPerfil(){
   const contenedorFotos = document.querySelector("#perfil .fotos");
   if(contenedorFotos){ contenedorFotos.innerHTML = ""; for(let i=1; i<=6; i++){ const img = document.createElement("img"); img.src = `pfp/p${i}.svg`; img.onclick = () => setFoto(img.src); contenedorFotos.appendChild(img); } }
   actualizarFoto();
+  const pjEl = document.getElementById("pfPersonaje");
+  if (pjEl) {
+    if (user.personaje && user.personaje.nombre) {
+      pjEl.innerHTML = `🎮 Personaje: <b>${user.personaje.nombre}</b> <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${user.personaje.color};vertical-align:middle;border:2px solid #fff;"></span>`;
+      pjEl.style.display = "block";
+    } else {
+      pjEl.style.display = "none";
+    }
+  }
 }
 function actualizarFoto(){ const img = document.getElementById("fotoPerfil"); if(img){ img.src = normalizeFoto(user.foto || "pfp/p1.svg") + "?t=" + Date.now(); } }
 async function setFoto(src){
@@ -185,7 +200,9 @@ async function loginSavedAccount(ide, silent = false) {
     const res = await fetch(`${API_BASE}/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ide }) });
     const data = await res.json();
     if (!res.ok) { localStorage.removeItem(LOCAL_ACCOUNT_KEY + ide); if (localStorage.getItem(LAST_ACTIVE_KEY) === ide) localStorage.removeItem(LAST_ACTIVE_KEY); if (!silent) alert(data.error || "Esta cuenta ya no existe en el servidor"); renderCuentas(); return; }
-    user = mergeLocalAccountData(data); saveCurrentUserLocalData(); go();
+    user = mergeLocalAccountData(data); saveCurrentUserLocalData(); 
+    if (socket && socket.connected) socket.emit("auth-user", user.ide); 
+    go();
   } catch (err) { console.error("Error en login automático:", err); alert("Error de conexión con el servidor"); }
 }
 function logout(){ localStorage.removeItem(LAST_ACTIVE_KEY); user = null; go(); }
@@ -194,7 +211,7 @@ function abrirJugar(){ hideAll(); show("menuJugar"); }
 function cerrarJugar(){ go(); }
 function irPensamiento(){ window.location.href = "scratch.html"; }
 function irMinijuegos(){ window.location.href = "mantenimiento.html"; }
-function irEscape(){ window.location.href = "https://darkterminal.onrender.com/"; }
+function irEscape(){ window.location.href = "scaperoom.html"; }
 function irQuiz(){ window.location.href = "/quizzes/quiz.html"; }
 function irTrivialPlayers(){ window.location.href = "/quizzes/trivialplayers.html"; }
 function irQuizIndividual(){ window.location.href = "/quizzes/quiz.html"; }
@@ -202,6 +219,13 @@ function irMisterio(){ if (!user || !user.ide) return alert("Carl Briss: 'Identi
 function irLab(){ window.location.href = "https://elementlab.onrender.com/"; }
 function irMundo(){ window.location.href = "/quizzes/quizmundo.html"; }
 function irAdmin(){ window.location.href = "/admin.html"; }
+function irAndebrawl(){ 
+  if (user && !user.setup) {
+    window.location.href = "/andebrawl/seleccion-personajes.html";
+    return;
+  }
+  window.location.href = "/andebrawl/juego.html"; 
+}
 function abrirNoti(){ hideAll(); show("overlayNoti"); document.getElementById("notiText").innerText = "🔔 ya hay nuevos minijuegos disponibles"; }
 function cerrarNoti(){ go(); }
 function checkMision2() { if (!user) return; if (user.missionCarlBriss2) { alert("Carl Briss dice: 'Buen trabajo con el Protocolo Sombra, el sistema está estable.'"); } else if (user.missionCarlBriss1) { irMision2(); } else { alert("Carl Briss: 'Necesitas completar la Misión 1 primero.'"); } }

@@ -50,7 +50,10 @@ const UserSchema = new mongoose.Schema({
   englishQuizPurchased: { type: Boolean, default: false },
   historyQuizPurchased: { type: Boolean, default: false },
   geographyQuizPurchased: { type: Boolean, default: false },
-  genialQuizPurchased: { type: Boolean, default: false }
+  genialQuizPurchased: { type: Boolean, default: false },
+  scratchRewardClaimed: { type: Boolean, default: false },
+  missionGonjorDone: { type: Boolean, default: false },
+  personaje: { type: { nombre: String, color: String }, default: { nombre: "Pinchitos", color: "#ff4d6d" } }
 }, { minimize: false }); // 🚀 Fuerza a que los campos se guarden siempre en DB
 
 const User = mongoose.model("User", UserSchema);
@@ -210,7 +213,7 @@ app.put("/update/:ide", async (req,res)=>{
   try{
 
     const ide = String(req.params.ide || "").trim();
-    const { points, foto, aceptado, weeklyDone, missionCarlBriss1, missionCarlBriss2, englishQuizPurchased, historyQuizPurchased, geographyQuizPurchased, genialQuizPurchased } = req.body;
+    const { points, foto, aceptado, weeklyDone, missionCarlBriss1, missionCarlBriss2, englishQuizPurchased, historyQuizPurchased, geographyQuizPurchased, genialQuizPurchased, setup, personaje } = req.body;
 
     console.log(`📩 Petición UPDATE para ${ide}. Puntos a guardar: ${points}`);
 
@@ -221,10 +224,12 @@ app.put("/update/:ide", async (req,res)=>{
     if (missionCarlBriss2 !== undefined) updateFields.missionCarlBriss2 = missionCarlBriss2 === true;
     if (foto) updateFields.foto = normalizeFoto(foto);
     if (aceptado !== undefined) updateFields.aceptado = aceptado === true;
- if (englishQuizPurchased !== undefined) updateFields.englishQuizPurchased = englishQuizPurchased === true;
-     if (historyQuizPurchased !== undefined) updateFields.historyQuizPurchased = historyQuizPurchased === true;
-     if (geographyQuizPurchased !== undefined) updateFields.geographyQuizPurchased = geographyQuizPurchased === true;
-     if (genialQuizPurchased !== undefined) updateFields.genialQuizPurchased = genialQuizPurchased === true;
+    if (englishQuizPurchased !== undefined) updateFields.englishQuizPurchased = englishQuizPurchased === true;
+    if (historyQuizPurchased !== undefined) updateFields.historyQuizPurchased = historyQuizPurchased === true;
+    if (geographyQuizPurchased !== undefined) updateFields.geographyQuizPurchased = geographyQuizPurchased === true;
+    if (genialQuizPurchased !== undefined) updateFields.genialQuizPurchased = genialQuizPurchased === true;
+    if (setup !== undefined) updateFields.setup = setup === true;
+    if (personaje && personaje.nombre && personaje.color) updateFields.personaje = personaje;
 
     // 🚀 Usamos findOneAndUpdate con $set para OBLIGAR a MongoDB a crear/actualizar el campo
     const user = await User.findOneAndUpdate(
@@ -246,18 +251,93 @@ app.put("/update/:ide", async (req,res)=>{
   }
 });
 
-/* ================= RANKING ================= */
-app.get("/ranking", async (req,res)=>{
+/* ================= RECOMPENSA MISION GONJOR (SOLO 1 VEZ) ================= */
+app.post("/claim-gonjor/:ide", async (req,res)=>{
   try{
-    // Obtenemos los 10 usuarios con más puntos (que hayan aceptado la privacidad)
-    const top = await User.find({ aceptado: true })
-      .sort({ points: -1 })
-      .limit(10)
-      .select("apodo points foto -_id");
-    
-    res.json(top);
+    const ide = String(req.params.ide || "").trim();
+    if(!ide){
+      return res.status(400).json({ error:"ID requerido" });
+    }
+
+    // Intento atómico: solo suma 300 si aún NO ha completado la misión Gonjor.
+    const user = await User.findOneAndUpdate(
+      { ide: ide, missionGonjorDone: { $ne: true } },
+      { $inc: { points: 300 }, $set: { missionGonjorDone: true } },
+      { new: true }
+    );
+
+    if(user){
+      console.log(`☠️ Misión Gonjor completada por ${user.apodo} (+300 ⭐) -> ${user.points} pts.`);
+      return res.json({ granted: true, points: user.points });
+    }
+
+    // Ya la completó antes o el usuario no existe
+    const existing = await User.findOne({ ide }).select("points missionGonjorDone -_id");
+    if(!existing){
+      return res.status(404).json({ error:"No existe" });
+    }
+    return res.json({ granted: false, points: existing.points });
+
   }catch(err){
-    res.status(500).json({ error: "Error al obtener ranking" });
+    console.log("❌ Error claim-gonjor:", err);
+    res.status(500).json({ error:"Error al reclamar recompensa" });
+  }
+});
+
+/* ================= RECOMPENSA SCRATCH (SOLO 1 VEZ) ================= */
+app.post("/claim-scratch/:ide", async (req,res)=>{
+  try{
+    const ide = String(req.params.ide || "").trim();
+    if(!ide){
+      return res.status(400).json({ error:"ID requerido" });
+    }
+
+    // Intento atómico: solo suma 500 la PRIMERA vez (campo scratchRewardClaimed).
+    const user = await User.findOneAndUpdate(
+      { ide: ide, scratchRewardClaimed: { $ne: true } },
+      { $inc: { points: 500 }, $set: { scratchRewardClaimed: true } },
+      { new: true }
+    );
+
+    if(user){
+      console.log(`🧩 Recompensa Scratch entregada a ${user.apodo} (+500 ⭐) -> ${user.points} pts.`);
+      return res.json({ granted: true, points: user.points });
+    }
+
+    // Ya la reclamó antes o el usuario no existe
+    const existing = await User.findOne({ ide }).select("points scratchRewardClaimed -_id");
+    if(!existing){
+      return res.status(404).json({ error:"No existe" });
+    }
+    return res.json({ granted: false, points: existing.points });
+
+  }catch(err){
+    console.log("❌ Error claim-scratch:", err);
+    res.status(500).json({ error:"Error al reclamar recompensa" });
+  }
+});
+
+/* ================= RECOMPENSA MINIJUEGOS ================= */
+app.post("/claim-minigame/:ide", async (req,res)=>{
+  try{
+    const ide = String(req.params.ide || "").trim();
+    if(!ide){
+      return res.status(400).json({ error:"ID requerido" });
+    }
+    // Se otorgan 50 puntos cada vez que se entra a un minijuego.
+    const user = await User.findOneAndUpdate(
+      { ide: ide },
+      { $inc: { points: 50 } },
+      { new: true }
+    );
+    if(user){
+      console.log(`🎮 Recompensa Minijuego entregada a ${user.apodo} (+50 ⭐) -> ${user.points} pts.`);
+      return res.json({ granted: true, points: user.points });
+    }
+    return res.status(404).json({ error:"No existe" });
+  }catch(err){
+    console.log("❌ Error claim-minigame:", err);
+    res.status(500).json({ error:"Error al reclamar recompensa" });
   }
 });
 
@@ -584,6 +664,63 @@ app.post("/end-game", async (req,res)=>{
   }
 });
 
+/* ================= SHOOTER (ANDEBRAWL) ================= */
+/* Mapa en memoria de salas del shooter: room -> Map(socketId -> player) */
+const shooterRooms = {};
+const authenticatedSockets = new Map(); /* socket.id -> ide */
+
+/* Dimensiones lógicas del mundo del shooter (para spawns en las esquinas) */
+const W = 1280;
+const H = 720;
+
+/* ================= MATCHMAKING (LOBBY DEL SHOOTER) ================= */
+/* Se abre UNA sola sala de espera a la vez. Cualquier jugador que pida
+   matchmaking durante la ventana de búsqueda (LOBBY_MS) entra en la MISMA
+   sala, y al cerrarse la sala todos empiezan la partida juntos. Si nadie más
+   entra, el jugador empieza solo (con bots). */
+const LOBBY_MS = 10000;
+let lobby = null; // { room, sockets: Set<socketId>, timer }
+
+function lobbyNotify() {
+  if (!lobby) return;
+  for (const id of lobby.sockets) {
+    const s = io.sockets.sockets.get(id);
+    if (s) s.emit("lobby-update", { count: lobby.sockets.size });
+  }
+}
+
+function joinLobby(socket) {
+  if (!lobby) {
+    lobby = {
+      room: "ANDE_" + Math.random().toString(36).substring(2, 8).toUpperCase(),
+      sockets: new Set(),
+      timer: setTimeout(closeLobby, LOBBY_MS)
+    };
+  }
+  lobby.sockets.add(socket.id);
+  lobbyNotify();
+}
+
+function leaveLobby(socket) {
+  if (!lobby) return;
+  lobby.sockets.delete(socket.id);
+  if (lobby.sockets.size === 0) {
+    clearTimeout(lobby.timer);
+    lobby = null;
+  }
+}
+
+function closeLobby() {
+  if (!lobby) return;
+  const room = lobby.room;
+  const ids = [...lobby.sockets];
+  lobby = null;
+  for (const id of ids) {
+    const s = io.sockets.sockets.get(id);
+    if (s) s.emit("match-found", { room });
+  }
+}
+
 /* ================= SOCKET.IO ================= */
 io.on("connection", (socket) => {
   console.log("🔌 Usuario conectado:", socket.id);
@@ -591,6 +728,108 @@ io.on("connection", (socket) => {
   socket.on("join-game", (gameId) => {
     socket.join(gameId);
   });
+
+  /* ---------- MATCHMAKING: entrar/salir de la sala de espera ---------- */
+  socket.on("find-match", () => joinLobby(socket));
+  socket.on("cancel-match", () => leaveLobby(socket));
+
+  /* ---------- SHOOTER: unirse a una sala ---------- */
+  socket.on("shooter-join", (data) => {
+    const room = (data && data.room) ? data.room : "ANDEBRAWL";
+    socket.data.shooterRoom = room;
+
+    if (!shooterRooms[room]) shooterRooms[room] = new Map();
+    // Asignar la PRIMERA esquina libre (0=arriba-izq, 1=arriba-der, 2=abajo-der,
+    // 3=abajo-izq) para garantizar que dos jugadores nunca compartan esquina,
+    // aunque alguien entre/salga. El cliente calcula las coordenadas reales en su
+    // propio tamaño de pantalla a partir de este índice.
+    const taken = new Set();
+    for (const p of shooterRooms[room].values()) {
+      if (typeof p.corner === "number") taken.add(p.corner);
+    }
+    let corner = 0;
+    while (taken.has(corner) && corner < 4) corner++;
+    if (corner >= 4) corner = shooterRooms[room].size % 4; // fallback (no debería ocurrir)
+    const corners = [
+      { x: 70, y: 70 },
+      { x: W - 70, y: 70 },
+      { x: W - 70, y: H - 70 },
+      { x: 70, y: H - 70 }
+    ];
+    const c = corners[corner];
+
+    const player = {
+      id: socket.id,
+      apodo: (data && data.player && data.player.apodo) || "Jugador",
+      color: (data && data.player && data.player.color) || "#00ffcc",
+      corner,
+      x: c.x, y: c.y, angle: 0, hp: 100, score: 0, alive: true
+    };
+
+    shooterRooms[room].set(socket.id, player);
+    socket.join(room);
+
+    // Avisar a los demás que llegó un nuevo jugador
+    socket.to(room).emit("shooter-player-joined", player);
+
+    // Enviar al propio jugador su esquina asignada para que se posicione bien
+    socket.emit("shooter-welcome", player);
+
+    // Enviar al nuevo jugador la lista de los que ya estaban
+    const others = [];
+    for (const [id, p] of shooterRooms[room].entries()) {
+      if (id !== socket.id) others.push(p);
+    }
+    socket.emit("shooter-players", others);
+
+    console.log(`🔫 Shooter: ${player.apodo} se unió a ${room} (${shooterRooms[room].size} jugadores)`);
+  });
+
+  /* ---------- SHOOTER: estado del jugador (posición, ángulo, hp...) ---------- */
+  socket.on("shooter-state", (state) => {
+    const room = socket.data.shooterRoom;
+    if (!room || !shooterRooms[room]) return;
+    const p = shooterRooms[room].get(socket.id);
+    if (p) Object.assign(p, state);
+    socket.to(room).emit("shooter-state", { id: socket.id, ...state });
+  });
+
+  /* ---------- SHOOTER: disparo (solo visual para los demás) ---------- */
+  socket.on("shooter-shot", (shot) => {
+    const room = socket.data.shooterRoom;
+    if (!room) return;
+    socket.to(room).emit("shooter-shot", shot);
+  });
+
+  /* ---------- SHOOTER: impacto (daño a un jugador) ---------- */
+  socket.on("shooter-hit", (data) => {
+    const room = socket.data.shooterRoom;
+    if (!room) return;
+    socket.to(room).emit("shooter-hit", data);
+  });
+
+  /* ---------- SHOOTER: baja / muerte ---------- */
+  socket.on("shooter-kill", (data) => {
+    const room = socket.data.shooterRoom;
+    if (!room) return;
+    socket.to(room).emit("shooter-kill", data);
+  });
+
+  /* ---------- SHOOTER: salir de la sala ---------- */
+  function shooterLeave() {
+    const room = socket.data.shooterRoom;
+    if (!room) return;
+    if (shooterRooms[room]) {
+      shooterRooms[room].delete(socket.id);
+      if (shooterRooms[room].size === 0) delete shooterRooms[room];
+    }
+    socket.to(room).emit("shooter-player-left", socket.id);
+    socket.leave(room);
+    socket.data.shooterRoom = null;
+    console.log(`🔫 Shooter: un jugador salió de ${room}`);
+  }
+
+  socket.on("shooter-leave", shooterLeave);
 
   socket.on("start-game", (gameId, questions) => {
     io.to(gameId).emit("game-started", questions);
@@ -633,8 +872,28 @@ io.on("connection", (socket) => {
     io.emit("admin-broadcast", data);
   });
 
+  socket.on("auth-user", (ide) => {
+    authenticatedSockets.set(socket.id, ide);
+  });
+
+  socket.on("auth-admin", () => {
+    socket.data.isAdmin = true;
+    authenticatedSockets.set(socket.id, "admin");
+  });
+
+  socket.on("admin-hackermode", () => {
+    if (!socket.data.isAdmin) return;
+    // Enviar a TODOS los clientes conectados (menos el propio admin)
+    // para que cualquier página abierta de Carl Briss reciba el modo hacker,
+    // aunque no esté autenticada en el mapa de sockets.
+    socket.broadcast.emit("go-hacker");
+  });
+
   socket.on("disconnect", () => {
     console.log("🔌 Usuario desconectado:", socket.id);
+    authenticatedSockets.delete(socket.id);
+    if (socket.data.shooterRoom) shooterLeave();
+    leaveLobby(socket);
   });
 });
 

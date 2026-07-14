@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elige tu personaje - ANDEBRAWL</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: #04050a;
+    color: #e8f6ff;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  #selector {
+    position: fixed; inset: 0; z-index: 40;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 28px; text-align: center;
+    background: linear-gradient(rgba(4,5,10,0.88), rgba(4,5,10,0.92)), url("fondo.png") center / cover no-repeat;
+  }
+  #selector.hidden { display: none; }
+  #selector h1 {
+    font-size: clamp(36px, 10vw, 82px); letter-spacing: 6px; color: #00ffcc;
+    text-shadow: 0 0 18px #00ffcc, 0 0 40px #00ffcc55;
+  }
+  #selector h2 {
+    font-size: 18px; letter-spacing: 2px; color: #aab; font-weight: normal;
+  }
+
+  .personajes {
+    display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; padding: 10px 20px;
+    max-width: 1000px;
+  }
+
+  .pj {
+    width: 150px; padding: 18px 12px; border-radius: 14px;
+    background: rgba(10,16,28,0.65); border: 2px solid #00ffcc44;
+    cursor: pointer; transition: 0.2s; display: flex; flex-direction: column;
+    align-items: center; gap: 10px;
+    backdrop-filter: blur(4px);
+  }
+  .pj:hover { transform: translateY(-4px); border-color: #00ffccaa; background: rgba(0,255,204,0.08); }
+  .pj.selected { border-color: #00ffcc; box-shadow: 0 0 22px #00ffcc66; background: rgba(0,255,204,0.12); }
+
+  .pj canvas { width: 90px; height: 90px; image-rendering: pixelated; }
+  .pj .nombre { font-weight: bold; font-size: 15px; letter-spacing: 1px; }
+  .pj .detalle { font-size: 11px; color: #789; }
+
+  .btn {
+    background: #00ffcc; color: #02121a; border: none; padding: 12px 28px;
+    border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; letter-spacing: 1px;
+    box-shadow: 0 0 18px #00ffcc55; transition: 0.15s;
+  }
+  .btn:hover { background: #4dffdb; transform: translateY(-2px); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+</style>
+</head>
+<body>
+
+<div id="selector">
+  <h1>ELIGE TU PERSONAJE</h1>
+  <h2>Cada luchador tiene habilidades únicas</h2>
+  <div class="personajes" id="personajes"></div>
+  <button class="btn" id="confirmarBtn" disabled onclick="confirmarSeleccion()">Confirmar selección</button>
+</div>
+
+<script>
+const CHARACTERS = [
+  { nombre: "Pinchitos", color: "#ff4d6d", detalle: "Círculo con pinchos", default: true },
+  { nombre: "Rayo", color: "#ffd23f", detalle: "Rápido y brillante" },
+  { nombre: "Neón", color: "#00ffcc", detalle: "Resplandor cyber" },
+  { nombre: "Aqua", color: "#3fa9ff", detalle: "Precisión azul" },
+  { nombre: "Forest", color: "#4dff88", detalle: "Fuerza natural" },
+  { nombre: "Lava", color: "#ff8a3f", detalle: "Impacto ardiente" }
+];
+
+const API_BASE = "";
+const LOCAL_ACCOUNT_KEY = "andeleros_account_";
+const LAST_ACTIVE_KEY = "andeleros_last_active";
+
+function getAccount() {
+  const lastIde = localStorage.getItem(LAST_ACTIVE_KEY);
+  if (!lastIde) return null;
+  try { return JSON.parse(localStorage.getItem(LOCAL_ACCOUNT_KEY + lastIde)); } catch (e) { return null; }
+}
+function saveAccount(data) {
+  if (!data || !data.ide) return;
+  const lastIde = localStorage.getItem(LAST_ACTIVE_KEY) || data.ide;
+  localStorage.setItem(LAST_ACTIVE_KEY, lastIde);
+  localStorage.setItem(LOCAL_ACCOUNT_KEY + data.ide, JSON.stringify(data));
+}
+
+let seleccion = null;
+
+function drawCharacter(canvas, color, nombre) {
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  const cx = w / 2;
+  const cy = h / 2;
+  const r = 22;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  if (nombre === "Pinchitos") {
+    const spikes = 12;
+    for (let i = 0; i < spikes; i++) {
+      const a = (i / spikes) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+      ctx.lineTo(Math.cos(a) * (r + 12), Math.sin(a) * (r + 12));
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 4;
+      ctx.stroke();
+    }
+  }
+
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 14;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = "#02121a";
+  ctx.fillRect(8, -5, 20, 10);
+
+  ctx.restore();
+}
+
+function renderPersonajes() {
+  const cont = document.getElementById("personajes");
+  cont.innerHTML = "";
+  CHARACTERS.forEach((c, idx) => {
+    const isSel = seleccion && seleccion.nombre === c.nombre;
+    const div = document.createElement("div");
+    div.className = "pj" + (isSel ? " selected" : "");
+    div.onclick = () => {
+      document.querySelectorAll(".pj").forEach(el => el.classList.remove("selected"));
+      div.classList.add("selected");
+      seleccion = c;
+      document.getElementById("confirmarBtn").disabled = false;
+    };
+    const canvas = document.createElement("canvas");
+    canvas.width = 90;
+    canvas.height = 90;
+    drawCharacter(canvas, c.color, c.nombre);
+    const nombre = document.createElement("div");
+    nombre.className = "nombre";
+    nombre.textContent = c.nombre;
+    const detalle = document.createElement("div");
+    detalle.className = "detalle";
+    detalle.textContent = c.detalle;
+    div.appendChild(canvas);
+    div.appendChild(nombre);
+    div.appendChild(detalle);
+    cont.appendChild(div);
+    if (isSel) document.getElementById("confirmarBtn").disabled = false;
+  });
+}
+
+async function confirmarSeleccion() {
+  if (!seleccion) return;
+  const btn = document.getElementById("confirmarBtn");
+  btn.disabled = true;
+  btn.textContent = "Guardando...";
+
+  const account = getAccount();
+  if (!account || !account.ide) {
+    window.location.href = "../index.html";
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/update/${encodeURIComponent(account.ide)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ personaje: { nombre: seleccion.nombre, color: seleccion.color }, setup: true })
+    });
+    if (!res.ok) throw new Error("No se pudo guardar");
+    const data = await res.json();
+    saveAccount(data);
+    localStorage.setItem("andeleros_last_active", data.ide);
+    window.location.href = "juego.html?skipMenu=true";
+  } catch (err) {
+    console.error(err);
+    alert("Error al guardar personaje");
+    btn.disabled = false;
+    btn.textContent = "Confirmar selección";
+  }
+}
+
+function init() {
+  const account = getAccount();
+  if (!account || !account.ide) {
+    window.location.href = "../index.html";
+    return;
+  }
+  if (account.personaje && account.personaje.nombre) {
+    const found = CHARACTERS.find(c => c.nombre === account.personaje.nombre);
+    if (found) seleccion = found;
+  }
+  renderPersonajes();
+}
+
+init();
+</script>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/hacker-listener.js"></script>
+
+</body>
+</html>

@@ -448,6 +448,10 @@ function initSocket() {
     goHome();
     showPopup("❌ " + (data.reason || "La partida ha sido eliminada."));
   });
+
+  socket.on("admin-broadcast", (data) => {
+    alert(data.user + ": " + data.message);
+  });
 }
 
 async function updatePointsUI(save = true) {
@@ -899,9 +903,11 @@ async function leaveLobby() {
       console.error("Error leaving game:", err);
    }
 
-   goHome();
- }
-</script>
+    goHome();
+  }
+ </script>
+
+ <script src="/hacker-listener.js"></script>
 
 </body>
 </html>

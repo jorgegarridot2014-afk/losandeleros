@@ -254,8 +254,7 @@ button:hover{
   <h2>🧠 QUIZ PRO FINAL</h2>
   <div id="login-status" style="font-size:11px; color:#aaa; min-height:18px; margin-bottom:8px;"></div>
   <button onclick="startGame()">▶ Empezar Quiz General</button>
-   <button onclick="showRanking()">🏆 Ranking Global</button>
-  <button onclick="weekly()">📅 Quiz semanal</button>
+   <button onclick="weekly()">📅 Quiz semanal</button>
   <button onclick="shop()">🏪 Tienda</button>
   
   <!-- Botones de quizzes comprados -->
@@ -279,15 +278,6 @@ button:hover{
   <div id="hint"></div>
   <div id="answers"></div>
   <button onclick="goHome()">🔙 Volver</button>
-</div>
-
-<!-- RANKING BOX -->
-<div id="ranking-box" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:4000; justify-content:center; align-items:center;">
-  <div class="card" style="width:320px; text-align:center; background:#111; border:2px solid #00ffcc; padding:20px; border-radius:15px;">
-    <h3>🏆 TOP 10 ANDELEROS</h3>
-    <div id="ranking-list" style="margin:15px 0; text-align:left; font-size:14px; max-height:300px; overflow-y:auto;"></div>
-    <button onclick="closeRanking()">Cerrar</button>
-  </div>
 </div>
 
 <!-- WEEKLY OVERLAY -->
@@ -647,40 +637,6 @@ function end(){
   t.innerHTML="";
 }
 
-/* 🏆 RANKING LOGIC */
-async function showRanking() {
-  const list = document.getElementById("ranking-list");
-  list.innerHTML = "<p>Cargando ranking...</p>";
-  document.getElementById("ranking-box").style.display = "flex";
-
-  try {
-    const res = await fetch("/ranking");
-    const top = await res.json();
-    
-    list.innerHTML = "";
-    top.forEach((u, i) => {
-      const row = document.createElement("div");
-      row.style.display = "flex";
-      row.style.alignItems = "center";
-      row.style.gap = "10px";
-      row.style.marginBottom = "8px";
-      row.innerHTML = `
-        <b>${i+1}.</b> 
-        <img src="${u.foto}" style="width:24px; height:24px; border-radius:50%; border:1px solid #00ffcc;">
-        <span style="flex:1">${u.apodo}</span>
-        <span style="color:#00ffcc">${u.points} ⭐</span>
-      `;
-      list.appendChild(row);
-    });
-  } catch(e) {
-    list.innerHTML = "❌ Error al cargar ranking";
-  }
-}
-
-function closeRanking() {
-  document.getElementById("ranking-box").style.display = "none";
-}
-
 /* volver */
 function goHome(){
   box.style.display = "none";
@@ -967,7 +923,9 @@ function closePopup(){
   document.getElementById("popup").style.display="none";
 }
 
-</script>
+ </script>
+
+ <script src="/hacker-listener.js"></script>
 
 </body>
 </html>

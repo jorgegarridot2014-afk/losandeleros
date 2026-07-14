@@ -56,6 +56,13 @@
   }
   .btn:hover { background: #4dffdb; transform: translateY(-2px); }
   .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  #confirmarBtn {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 50;
+  }
 </style>
 </head>
 <body>
@@ -79,8 +86,8 @@
       </div>
     </div>
   </div>
-  <button class="btn" id="confirmarBtn" disabled onclick="confirmarSeleccion()">Confirmar selección</button>
 </div>
+<button class="btn" id="confirmarBtn" disabled onclick="confirmarSeleccion()" style="position:fixed; top:18px; right:18px; z-index:50;">Confirmar selección</button>
 
 <script>
 const CHARACTERS = [

@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Aeronáutica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy: #0A1929;
+    --panel: #122A3A;
+    --panel-2: #0D2230;
+    --steel: #294A5E;
+    --steel-soft: #1D3B4C;
+    --amber: #FFB020;
+    --amber-dim: #B87F1E;
+    --green: #3ECF8E;
+    --red: #E8604A;
+    --ink: #EAF2F5;
+    --ink-dim: #9FB4C0;
+    --ink-faint: #5E7A88;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'IBM Plex Sans', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  *{ box-sizing: border-box; }
+  ::selection{ background: var(--amber); color: #1a1204; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at 50% -10%, #16374a 0%, var(--navy) 55%);
+    color: var(--ink);
+    font-family: var(--font-body);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 32px 16px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  a:focus-visible, button:focus-visible{
+    outline: 2px solid var(--amber);
+    outline-offset: 2px;
+  }
+
+  /* ---------- Background sky ---------- */
+  .sky{
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .sky::after{
+    content:"";
+    position:absolute; inset:0;
+    background: repeating-linear-gradient(180deg, transparent 0 78px, rgba(255,255,255,0.02) 78px 79px);
+    opacity: 0.5;
+  }
+  .sky svg.plane{
+    position: absolute;
+    opacity: 0.14;
+    filter: drop-shadow(0 0 8px rgba(255,255,255,0.05));
+  }
+  .sky .cloud{
+    position: absolute;
+    background: rgba(255,255,255,0.035);
+    border-radius: 50%;
+    filter: blur(3px);
+  }
+  .sky .contrail{
+    position:absolute;
+    height:1px;
+    background: linear-gradient(90deg, transparent, rgba(234,242,245,0.12), transparent);
+  }
+
+  @keyframes fly-right{
+    from{ transform: translateX(-20vw) translateY(0); }
+    to{ transform: translateX(120vw) translateY(-30px); }
+  }
+  @keyframes fly-left{
+    from{ transform: translateX(20vw) scaleX(-1) translateY(0); }
+    to{ transform: translateX(-140vw) scaleX(-1) translateY(20px); }
+  }
+  @keyframes drift{
+    from{ transform: translateX(-10vw); }
+    to{ transform: translateX(110vw); }
+  }
+
+  .plane-1{ top: 10%;  width: 92px; animation: fly-right 32s linear infinite; }
+  .plane-2{ top: 60%;  width: 58px; animation: fly-left  27s linear infinite; animation-delay: -6s; }
+  .plane-3{ top: 36%;  width: 72px; animation: fly-right 40s linear infinite; animation-delay: -14s; }
+  .plane-4{ top: 80%;  width: 48px; animation: fly-left  29s linear infinite; animation-delay: -3s; }
+  .plane-5{ top: 20%;  width: 54px; animation: fly-right 37s linear infinite; animation-delay: -20s; }
+  .plane-6{ top: 48%;  width: 40px; animation: fly-left  24s linear infinite; animation-delay: -11s; }
+
+  .cloud-1{ top: 16%; width: 190px; height: 42px; animation: drift 52s linear infinite; }
+  .cloud-2{ top: 68%; width: 250px; height: 56px; animation: drift 66s linear infinite; animation-delay: -20s; }
+  .cloud-3{ top: 44%; width: 150px; height: 34px; animation: drift 58s linear infinite; animation-delay: -34s; }
+  .cloud-4{ top: 88%; width: 170px; height: 38px; animation: drift 74s linear infinite; animation-delay: -48s; }
+
+  .app-wrap{ position: relative; z-index: 1; width:100%; display:flex; justify-content:center; }
+
+  /* ---------- Frame ---------- */
+  .rivet-frame{
+    width:100%;
+    max-width: 640px;
+    background: linear-gradient(180deg, #16303f 0%, var(--panel-2) 100%);
+    border: 1px solid var(--steel);
+    border-radius: 18px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+    padding: 28px 26px 24px;
+    position: relative;
+    overflow:hidden;
+  }
+  .rivet-frame::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0 1px, transparent 1px 40px);
+    pointer-events:none;
+  }
+
+  /* ---------- Start menu ---------- */
+  .menu-screen{ text-align:center; padding: 26px 8px 8px; animation: fadeIn 0.5s ease; }
+  .menu-screen .tail{
+    width: 64px; height: 64px; margin: 0 auto 14px;
+    border-radius: 50%;
+    background: rgba(255,176,32,0.08);
+    border: 1px solid var(--steel);
+    display:flex; align-items:center; justify-content:center;
+    animation: bob 3.4s ease-in-out infinite;
+  }
+  .menu-screen .tail svg{ width: 34px; height: 34px; }
+  @keyframes bob{ 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(-5px);} }
+
+  .eyebrow{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--amber);
+    text-transform: uppercase;
+  }
+  .menu-screen h1{
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-weight: 700;
+    margin: 8px 0 10px;
+    letter-spacing: -0.01em;
+  }
+  .menu-screen p{
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    color: var(--ink-dim);
+    max-width: 400px;
+    margin: 0 auto 24px;
+    line-height: 1.55;
+  }
+  .menu-stats{
+    display:flex;
+    justify-content:center;
+    gap: 22px;
+    margin-bottom: 26px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 0.05em;
+  }
+  .menu-stats b{ display:block; color: var(--ink); font-size: 16px; font-family: var(--font-display); }
+
+  .categories-row{
+    display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom: 24px;
+  }
+  .cat-chip{
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.05em;
+    color: var(--ink-dim);
+    border: 1px solid var(--steel);
+    border-radius: 20px;
+    padding: 5px 12px;
+    background: rgba(255,255,255,0.02);
+  }
+
+  .play-btn{
+    font-family: var(--font-mono);
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    background: var(--amber);
+    color: #1a1204;
+    border: none;
+    border-radius: 8px;
+    padding: 13px 34px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.15s, transform 0.1s;
+  }
+  .play-btn:hover{ filter: brightness(1.08); transform: translateY(-1px); }
+  .play-btn:active{ transform: translateY(0); }
+  .hint-row{
+    margin-top:14px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    letter-spacing: 0.03em;
+  }
+
+  /* ---------- Quiz header ---------- */
+  header.panel-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom: 20px;
+    gap: 16px;
+  }
+  .titleblock h1{
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 700;
+    margin: 4px 0 0;
+    letter-spacing: -0.01em;
+  }
+  .titleblock .timer{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-top: 4px;
+  }
+
+  .altimeter{ position: relative; width: 88px; height: 88px; flex-shrink:0; }
+  .altimeter svg{ width:100%; height:100%; transform: rotate(-90deg); }
+  .altimeter .track{ fill:none; stroke: var(--steel); stroke-width: 6; }
+  .altimeter .fill{
+    fill:none; stroke: var(--amber); stroke-width: 6; stroke-linecap: round;
+    transition: stroke-dashoffset 0.6s ease;
+  }
+  .altimeter .readout{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .altimeter .readout .num{ font-family: var(--font-mono); font-size: 19px; font-weight: 600; color: var(--ink); }
+  .altimeter .readout .lbl{ font-family: var(--font-mono); font-size: 9px; color: var(--ink-dim); letter-spacing: 0.08em; }
+
+  /* ---------- Display / question card ---------- */
+  .display{
+    background: #08161f;
+    border: 1px solid var(--steel);
+    border-radius: 12px;
+    padding: 20px 20px 18px;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+    min-height: 320px;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .qmeta{ display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px; }
+  .qcount{ font-family: var(--font-mono); font-size: 12px; color: var(--amber); letter-spacing: 0.08em; }
+  .qcat{
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--ink-dim); border: 1px solid var(--steel); border-radius: 4px; padding: 3px 8px;
+  }
+
+  .question-block{ animation: slideIn 0.35s ease; }
+  @keyframes slideIn{ from{ opacity:0; transform: translateX(14px); } to{ opacity:1; transform: translateX(0); } }
+  @keyframes fadeIn{ from{ opacity:0; } to{ opacity:1; } }
+
+  .display h2{
+    font-family: var(--font-display);
+    font-size: 19px;
+    line-height: 1.4;
+    font-weight: 600;
+    margin: 0 0 18px;
+    color: var(--ink);
+  }
+
+  .options{ display:flex; flex-direction:column; gap: 10px; margin-top: auto; }
+
+  .opt{
+    text-align:left;
+    background: var(--panel);
+    border: 1px solid var(--steel);
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    width:100%;
+  }
+  .opt .key{
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    border: 1px solid var(--steel);
+    border-radius: 4px;
+    width: 18px; height: 18px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .opt .switch{ width:8px; height:8px; border-radius:50%; background: var(--steel); flex-shrink:0; transition: background 0.15s; }
+  .opt:hover:not(:disabled){ border-color: var(--amber); transform: translateX(2px); }
+  .opt:disabled{ cursor: default; }
+  .opt.correct{ border-color: var(--green); background: rgba(62,207,142,0.1); }
+  .opt.correct .switch{ background: var(--green); }
+  .opt.incorrect{ border-color: var(--red); background: rgba(232,96,74,0.1); }
+  .opt.incorrect .switch{ background: var(--red); }
+
+  .feedback{
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--steel);
+    color: var(--ink-dim);
+    min-height: 18px;
+    line-height: 1.5;
+    animation: fadeIn 0.25s ease;
+  }
+  .feedback.show-correct{ color: var(--green); }
+  .feedback.show-incorrect{ color: var(--red); }
+
+  .footer-row{ display:flex; justify-content:space-between; align-items:center; margin-top: 18px; }
+
+  .next-btn{
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    background: var(--amber);
+    color: #1a1204;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 18px;
+    font-weight: 600;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .next-btn.active{ opacity: 1; pointer-events: auto; }
+  .next-btn:hover{ filter: brightness(1.08); }
+
+  .score-tag{ font-family: var(--font-mono); font-size: 12px; color: var(--ink-dim); }
+  .score-tag b{ color: var(--ink); }
+
+  /* ---------- Results ---------- */
+  .results{ text-align:center; padding: 14px 4px 4px; animation: fadeIn 0.4s ease; }
+  .results .stamp{ font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.14em; color: var(--amber); text-transform: uppercase; }
+  .results .bignum{ font-family: var(--font-display); font-size: 54px; font-weight: 700; margin: 6px 0 2px; color: var(--ink); }
+  .results .submeta{ font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-bottom: 10px; }
+  .results .verdict{ font-family: var(--font-body); font-size: 14.5px; color: var(--ink-dim); max-width: 400px; margin: 6px auto 20px; line-height: 1.55; }
+
+  .results-actions{ display:flex; gap: 10px; justify-content:center; flex-wrap: wrap; margin-bottom: 6px; }
+  .restart-btn, .review-btn{
+    font-family: var(--font-mono);
+    font-size: 13px;
+    background: transparent;
+    color: var(--amber);
+    border: 1px solid var(--amber);
+    border-radius: 6px;
+    padding: 10px 20px;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: background 0.15s;
+  }
+  .restart-btn:hover, .review-btn:hover{ background: rgba(255,176,32,0.1); }
+  .review-btn.secondary{ color: var(--ink-dim); border-color: var(--steel); }
+  .review-btn.secondary:hover{ background: rgba(255,255,255,0.03); }
+
+  .review-list{
+    text-align:left;
+    margin-top: 20px;
+    display:flex;
+    flex-direction:column;
+    gap: 10px;
+    max-height: 340px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .review-item{
+    border: 1px solid var(--steel);
+    border-radius: 8px;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.015);
+  }
+  .review-item.wrong{ border-color: rgba(232,96,74,0.4); }
+  .review-item .ri-q{ font-family: var(--font-body); font-size: 13.5px; font-weight: 500; margin-bottom: 6px; }
+  .review-item .ri-a{ font-family: var(--font-mono); font-size: 11.5px; line-height: 1.6; }
+  .review-item .ri-a.correct-line{ color: var(--green); }
+  .review-item .ri-a.wrong-line{ color: var(--red); }
+
+  ::-webkit-scrollbar{ width: 7px; }
+  ::-webkit-scrollbar-thumb{ background: var(--steel); border-radius: 4px; }
+
+  @media (max-width: 480px){
+    .rivet-frame{ padding: 20px 16px 18px; }
+    .titleblock h1{ font-size: 20px; }
+    .altimeter{ width: 72px; height: 72px; }
+    .display h2{ font-size: 17px; }
+    .results .bignum{ font-size: 44px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<button id="btnInicio" onclick="window.location.href='/index.html'" style="position:fixed; top:14px; left:14px; z-index:99; padding: 8px 16px; background: rgba(0,0,0,0.45); color: #EAF2F5; border: 1px solid var(--ink-faint); border-radius: 6px; font-family: var(--font-mono); font-size: 12px; cursor: pointer;">⬅️ Inicio</button>
+
+<div class="sky" aria-hidden="true">
+  <div class="cloud cloud-1"></div>
+  <div class="cloud cloud-2"></div>
+  <div class="cloud cloud-3"></div>
+  <div class="cloud cloud-4"></div>
+
+  <svg class="plane plane-1" viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg"><path d="M2 22 L58 20 L76 6 L85 6 L74 20 L100 20 L100 24 L74 24 L85 36 L76 36 L58 24 L2 24 L2 20 Z" fill="#EAF2F5"/></svg>
+  <svg class="plane plane-2" viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg"><path d="M2 22 L58 20 L76 6 L85 6 L74 20 L100 20 L100 24 L74 24 L85 36 L76 36 L58 24 L2 24 L2 20 Z" fill="#FFB020"/></svg>
+  <svg class="plane plane-3" viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg"><path d="M2 22 L58 20 L76 6 L85 6 L74 20 L100 20 L100 24 L74 24 L85 36 L76 36 L58 24 L2 24 L2 20 Z" fill="#EAF2F5"/></svg>
+  <svg class="plane plane-4" viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg"><path d="M2 22 L58 20 L76 6 L85 6 L74 20 L100 20 L100 24 L74 24 L85 36 L76 36 L58 24 L2 24 L2 20 Z" fill="#EAF2F5"/></svg>
+  <svg class="plane plane-5" viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg"><path d="M2 22 L58 20 L76 6 L85 6 L74 20 L100 20 L100 24 L74 24 L85 36 L76 36 L58 24 L2 24 L2 20 Z" fill="#3ECF8E"/></svg>
+  <svg class="plane plane-6" viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg"><path d="M2 22 L58 20 L76 6 L85 6 L74 20 L100 20 L100 24 L74 24 L85 36 L76 36 L58 24 L2 24 L2 20 Z" fill="#EAF2F5"/></svg>
+</div>
+
+<div class="app-wrap">
+  <div class="rivet-frame">
+    <div id="menuScreen" class="menu-screen">
+      <div class="tail">
+        <svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg"><path d="M2 22 L58 20 L76 6 L85 6 L74 20 L100 20 L100 24 L74 24 L85 36 L76 36 L58 24 L2 24 L2 20 Z" fill="#FFB020"/></svg>
+      </div>
+      <div class="eyebrow">Panel de instrucción · VFR</div>
+      <h1>Quiz de Aeronáutica</h1>
+      <p>Pon a prueba tus conocimientos sobre fuerzas de vuelo, instrumentos, sistemas de control e historia de la aviación.</p>
+      <div class="categories-row" id="catRow"></div>
+      <div class="menu-stats">
+        <div><b id="statTotal">15</b>preguntas</div>
+        <div><b>~4</b>min</div>
+        <div><b>4</b>opciones c/u</div>
+        <div style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-dim); letter-spacing: 0.05em;"><b id="menuPoints">⭐ 0</b></div>
+      </div>
+      <button class="play-btn" id="playBtn">▶ Jugar</button>
+      <div class="hint-row">Tip: usa las teclas 1–4 para responder y Enter para avanzar</div>
+    </div>
+
+    <div id="quizScreen" style="display:none;">
+      <header class="panel-head">
+        <div class="titleblock">
+          <div class="eyebrow">Panel de instrucción · VFR</div>
+          <h1>Quiz de Aeronáutica</h1>
+          <div class="timer" id="timerReadout">00:00</div>
+        </div>
+        <div class="altimeter">
+          <svg viewBox="0 0 100 100">
+            <circle class="track" cx="50" cy="50" r="42"></circle>
+            <circle id="gaugeFill" class="fill" cx="50" cy="50" r="42" stroke-dasharray="264" stroke-dashoffset="264"></circle>
+          </svg>
+          <div class="readout">
+            <div class="num" id="gaugeNum">0/15</div>
+            <div class="lbl">PROGRESO</div>
+          </div>
+        </div>
+      </header>
+
+      <div class="display" id="display"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================== ACCOUNT / POINTS ===================== */
+const API_BASE = "";
+const LAST_ACTIVE_KEY = "andeleros_last_active";
+let currentUser = null;
+let isUserLoaded = false;
+let points = 0;
+
+async function initAccount(){
+  const ide = localStorage.getItem(LAST_ACTIVE_KEY);
+  if(!ide){
+    points = 0;
+    isUserLoaded = true;
+    updatePointsUI(false);
+    return;
+  }
+  try{
+    const res = await fetch(`${API_BASE}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ide })
+    });
+    if(res.ok){
+      currentUser = await res.json();
+      points = currentUser.points || 0;
+      isUserLoaded = true;
+      updatePointsUI(false);
+    } else {
+      isUserLoaded = true;
+      points = 0;
+      updatePointsUI(false);
+    }
+  } catch(e){
+    isUserLoaded = true;
+    points = 0;
+    updatePointsUI(false);
+  }
+}
+
+function updatePointsUI(save){
+  const ptsEl = document.getElementById("pointsDisplay");
+  if(ptsEl) ptsEl.textContent = "⭐ " + points;
+  const menuPtsEl = document.getElementById("menuPoints");
+  if(menuPtsEl) menuPtsEl.textContent = "⭐ " + points;
+  if(save && currentUser && isUserLoaded){
+    fetch(`${API_BASE}/update/${encodeURIComponent(currentUser.ide)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ points: points })
+    }).then(r => {
+      if(r.ok) return r.json().then(d => { currentUser.points = d.points; });
+    }).catch(() => {});
+  }
+}
+
+const QUESTIONS = [
+  { cat: "Aerodinámica", q: "¿Qué fuerza permite que un avión se eleve venciendo el peso?",
+    opts: ["Empuje", "Sustentación", "Resistencia", "Torque"], correct: 1,
+    note: "La sustentación se genera principalmente en las alas gracias a la diferencia de presión entre su superficie superior e inferior." },
+  { cat: "Aerodinámica", q: "¿Cómo se llama la fuerza que se opone al avance del avión debido al aire?",
+    opts: ["Sustentación", "Peso", "Resistencia", "Empuje"], correct: 2,
+    note: "La resistencia aerodinámica (drag) actúa en sentido contrario al movimiento del avión." },
+  { cat: "Aerodinámica", q: "¿Qué fuerza impulsa al avión hacia adelante, generada normalmente por los motores?",
+    opts: ["Empuje", "Sustentación", "Peso", "Resistencia"], correct: 0,
+    note: "El empuje (thrust) es producido por los motores y debe superar la resistencia para acelerar el avión." },
+  { cat: "Aerodinámica", q: "Según el principio de Bernoulli, cuando aumenta la velocidad del aire, su presión...",
+    opts: ["Aumenta", "Disminuye", "Se mantiene igual", "Se vuelve negativa"], correct: 1,
+    note: "A mayor velocidad del flujo de aire, menor es su presión estática, un efecto clave en la generación de sustentación." },
+  { cat: "Aerodinámica", q: "¿Qué ocurre con el ángulo de ataque cuando un avión entra en pérdida (stall)?",
+    opts: ["Es demasiado bajo", "Es exactamente 0°", "Supera el ángulo crítico", "No influye en la pérdida"], correct: 2,
+    note: "La pérdida ocurre cuando el ángulo de ataque supera el ángulo crítico y el flujo de aire se separa del ala." },
+  { cat: "Sistemas de control", q: "¿Qué superficie de control se encuentra en las alas y controla el alabeo (roll)?",
+    opts: ["Timón de dirección", "Elevadores", "Alerones", "Flaps"], correct: 2,
+    note: "Los alerones se mueven en direcciones opuestas entre sí para inclinar el avión lateralmente." },
+  { cat: "Sistemas de control", q: "¿Qué superficie de control, ubicada en el estabilizador horizontal, controla el cabeceo (pitch)?",
+    opts: ["Elevadores", "Alerones", "Spoilers", "Timón de dirección"], correct: 0,
+    note: "Los elevadores suben o bajan el morro del avión, controlando el ángulo de ataque." },
+  { cat: "Sistemas de control", q: "¿Qué superficie controla la guiñada (yaw), el giro sobre el eje vertical?",
+    opts: ["Alerones", "Timón de dirección", "Elevadores", "Flaps"], correct: 1,
+    note: "El timón de dirección, ubicado en el estabilizador vertical, controla el movimiento de guiñada." },
+  { cat: "Sistemas de control", q: "¿Para qué se utilizan principalmente los flaps durante el despegue y aterrizaje?",
+    opts: ["Reducir la sustentación", "Aumentar la sustentación a baja velocidad", "Frenar en tierra", "Enfriar el motor"], correct: 1,
+    note: "Los flaps aumentan la curvatura y superficie del ala, generando más sustentación a baja velocidad." },
+  { cat: "Instrumentos", q: "¿Qué instrumento mide la altitud de un avión basándose en la presión atmosférica?",
+    opts: ["Anemómetro", "Altímetro", "Horizonte artificial", "Variómetro"], correct: 1,
+    note: "El altímetro traduce la presión estática del aire en una lectura de altitud." },
+  { cat: "Instrumentos", q: "¿Qué instrumento indica la velocidad vertical de ascenso o descenso del avión?",
+    opts: ["Variómetro", "Anemómetro", "Girómetro", "Altímetro"], correct: 0,
+    note: "El variómetro (VSI) muestra la razón de cambio de altitud en pies o metros por minuto." },
+  { cat: "Instrumentos", q: "¿Qué significa la sigla ILS en aviación?",
+    opts: ["International Landing Standard", "Instrument Landing System", "Inertial Locator System", "Interior Lighting System"], correct: 1,
+    note: "El ILS es un sistema de radionavegación que guía a la aeronave durante la aproximación y aterrizaje con baja visibilidad." },
+  { cat: "Sistemas y motores", q: "¿Qué tipo de motor utiliza la mayoría de los aviones comerciales modernos de gran tamaño?",
+    opts: ["Motor de pistón", "Turbohélice", "Turbofán", "Estatorreactor"], correct: 2,
+    note: "El turbofán combina eficiencia y potencia, siendo el estándar en la aviación comercial actual." },
+  { cat: "Historia", q: "¿En qué año realizaron los hermanos Wright su primer vuelo motorizado y controlado?",
+    opts: ["1898", "1903", "1912", "1927"], correct: 1,
+    note: "El 17 de diciembre de 1903, en Kitty Hawk, Carolina del Norte, el Wright Flyer completó el primer vuelo sostenido y controlado." },
+  { cat: "Historia", q: "¿Qué avión comercial fue el primero en volar más rápido que el sonido de forma regular?",
+    opts: ["Boeing 747", "Concorde", "Airbus A380", "Douglas DC-3"], correct: 1,
+    note: "El Concorde operó vuelos comerciales supersónicos entre 1976 y 2003, alcanzando Mach 2." }
+];
+
+let current = 0;
+let score = 0;
+let answered = false;
+let userAnswers = [];
+let startTime = null;
+let timerInterval = null;
+const TOTAL = QUESTIONS.length;
+const CIRC = 264;
+
+const display = document.getElementById('display');
+const gaugeFill = document.getElementById('gaugeFill');
+const gaugeNum = document.getElementById('gaugeNum');
+const timerReadout = document.getElementById('timerReadout');
+
+document.getElementById('statTotal').textContent = TOTAL;
+const cats = [...new Set(QUESTIONS.map(q => q.cat))];
+document.getElementById('catRow').innerHTML = cats.map(c => `<span class="cat-chip">${c}</span>`).join('');
+gaugeNum.textContent = `0/${TOTAL}`;
+
+function updateGauge(){
+  const pct = current / TOTAL;
+  gaugeFill.style.strokeDashoffset = CIRC - (CIRC * pct);
+  gaugeNum.textContent = current + "/" + TOTAL;
+}
+
+function formatTime(sec){
+  const m = Math.floor(sec/60).toString().padStart(2,'0');
+  const s = Math.floor(sec%60).toString().padStart(2,'0');
+  return m + ":" + s;
+}
+
+function startTimer(){
+  startTime = Date.now();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timerReadout.textContent = formatTime((Date.now() - startTime)/1000);
+  }, 1000);
+}
+
+function renderQuestion(){
+  answered = false;
+  const item = QUESTIONS[current];
+  display.innerHTML = `
+    <div class="question-block">
+      <div class="qmeta">
+        <div class="qcount">PREGUNTA ${current+1} DE ${TOTAL}</div>
+        <div class="qcat">${item.cat}</div>
+      </div>
+      <h2>${item.q}</h2>
+      <div class="options" id="optionsBox"></div>
+      <div class="feedback" id="feedback"></div>
+      <div class="footer-row">
+        <div class="score-tag">Aciertos: <b id="scoreNow">${score}</b></div>
+      <div class="score-tag">Puntuación: <b id="pointsDisplay">⭐ 0</b></div>
+        <button class="next-btn" id="nextBtn">${current === TOTAL - 1 ? 'Ver resultado →' : 'Siguiente →'}</button>
+      </div>
+    </div>
+  `;
+  const box = document.getElementById('optionsBox');
+  item.opts.forEach((optText, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML = `<span class="key">${i+1}</span><span class="switch"></span><span>${optText}</span>`;
+    btn.onclick = () => selectOption(i, btn);
+    box.appendChild(btn);
+  });
+  document.getElementById('nextBtn').onclick = nextQuestion;
+  updateGauge();
+}
+
+function selectOption(i, btnEl){
+  if(answered) return;
+  answered = true;
+  const item = QUESTIONS[current];
+  const allBtns = document.querySelectorAll('.opt');
+  allBtns.forEach(b => b.disabled = true);
+
+  const isCorrect = i === item.correct;
+  userAnswers.push({ q: item.q, chosen: item.opts[i], correctText: item.opts[item.correct], isCorrect });
+
+  const feedback = document.getElementById('feedback');
+  if(isCorrect){
+    score++;
+    points += 500;
+    btnEl.classList.add('correct');
+    feedback.textContent = "✓ Correcto (+500 ⭐) — " + item.note;
+    feedback.classList.add('show-correct');
+  } else {
+    btnEl.classList.add('incorrect');
+    allBtns[item.correct].classList.add('correct');
+    feedback.textContent = "✕ Incorrecto — " + item.note;
+    feedback.classList.add('show-incorrect');
+  }
+  document.getElementById('scoreNow').textContent = score;
+  updatePointsUI();
+  document.getElementById('nextBtn').classList.add('active');
+}
+
+function nextQuestion(){
+  current++;
+  if(current >= TOTAL){
+    clearInterval(timerInterval);
+    showResults();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResults(){
+  updateGauge();
+  const pct = Math.round((score/TOTAL) * 100);
+  const totalTime = formatTime((Date.now() - startTime)/1000);
+  let verdict;
+  if(pct >= 90) verdict = "Nivel comandante. Dominas los fundamentos de vuelo, historia e instrumentación.";
+  else if(pct >= 70) verdict = "Buen manejo de los conceptos clave. Un repaso de instrumentos y superficies de control te llevaría al 100%.";
+  else if(pct >= 40) verdict = "Vas por buen camino. Repasa las fuerzas del vuelo y los sistemas de navegación para afinar la puntería.";
+  else verdict = "Toca repasar la cabina desde cero: fuerzas de vuelo, superficies de control e instrumentos básicos.";
+
+  display.innerHTML = `
+    <div class="results">
+      <div class="stamp">Informe de vuelo</div>
+      <div class="bignum">${score}/${TOTAL}</div>
+      <div class="submeta">${pct}% de aciertos · tiempo total ${totalTime}</div>
+      <div class="submeta" style="color: var(--green); margin-top: 6px;">Puntuación total: ${points} ⭐ (+${score*500} por aciertos)</div>
+      <div class="verdict">${verdict}</div>
+      <div class="results-actions">
+        <button class="restart-btn" id="restartBtn">Reiniciar quiz</button>
+        <button class="review-btn secondary" id="reviewBtn">Repasar respuestas</button>
+      </div>
+      <div class="review-list" id="reviewList" style="display:none;"></div>
+    </div>
+  `;
+
+  updatePointsUI(true);
+
+  document.getElementById('restartBtn').onclick = () => {
+    current = 0; score = 0; userAnswers = [];
+    renderQuestion();
+    startTimer();
+  };
+
+  document.getElementById('reviewBtn').onclick = () => {
+    const list = document.getElementById('reviewList');
+    if(list.style.display === 'none'){
+      list.style.display = 'flex';
+      list.innerHTML = userAnswers.map((a, idx) => `
+        <div class="review-item ${a.isCorrect ? '' : 'wrong'}">
+          <div class="ri-q">${idx+1}. ${a.q}</div>
+          <div class="ri-a ${a.isCorrect ? 'correct-line' : 'wrong-line'}">${a.isCorrect ? '✓ Tu respuesta: ' + a.chosen : '✕ Tu respuesta: ' + a.chosen}</div>
+          ${a.isCorrect ? '' : `<div class="ri-a correct-line">✓ Correcta: ${a.correctText}</div>`}
+        </div>
+      `).join('');
+      document.getElementById('reviewBtn').textContent = 'Ocultar respuestas';
+    } else {
+      list.style.display = 'none';
+      document.getElementById('reviewBtn').textContent = 'Repasar respuestas';
+    }
+  };
+}
+
+document.getElementById('playBtn').onclick = () => {
+  document.getElementById('menuScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  renderQuestion();
+  startTimer();
+};
+
+initAccount();
+
+// Keyboard support: 1-4 to answer, Enter to advance
+document.addEventListener('keydown', (e) => {
+  const quizVisible = document.getElementById('quizScreen').style.display !== 'none';
+  if(!quizVisible) return;
+
+  if(['1','2','3','4'].includes(e.key) && !answered){
+    const idx = parseInt(e.key, 10) - 1;
+    const btns = document.querySelectorAll('.opt');
+    if(btns[idx]) btns[idx].click();
+  }
+  if(e.key === 'Enter'){
+    const nextBtn = document.getElementById('nextBtn');
+    if(nextBtn && nextBtn.classList.contains('active')) nextBtn.click();
+  }
+});
+</script>
+
+</body>
+</html>

@@ -12,6 +12,14 @@
 
 <body>
 
+<div id="overlayMantenimiento" style="position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:20000; display:flex; justify-content:center; align-items:center;">
+  <div style="text-align:center; padding:40px; background:#111; border:2px solid #f97316; border-radius:20px; max-width:400px; width:90%;">
+    <p style="font-size:48px; margin-bottom:15px;">🔧</p>
+    <h2 style="color:#f97316; margin-bottom:15px;">Página en Mantenimiento</h2>
+    <p style="color:#aaa; font-size:15px; line-height:1.6;">Esta página está en mantenimiento.<br>Volveremos en unas horas.</p>
+  </div>
+</div>
+
 <h1>Gonjor presents Los Andeleros</h1>
 <h2 id="estado">No logueado</h2>
 
@@ -130,14 +138,14 @@
 
   <button onclick="closePopup(); irTrivialPlayers()">Quiz Multiplayer</button>
   <button onclick="closePopup(); irQuiz()">Quiz</button>
-  <button onclick="closePopup(); irQuizIndividual()">Quiz Individual</button>
-  <button onclick="closePopup(); irMundo()">Quiz Mundo</button>
   <button onclick="closePopup(); irMinijuegos()">Minijuegos</button>
   <button onclick="closePopup(); irPensamiento()">Pensamiento Computacional</button>
   <button onclick="closePopup(); irEscape()">Escape Room</button>
   <button onclick="closePopup(); irLab()">Laboratorio</button>
   <button onclick="closePopup(); irMisterio()">Carl Briss</button>
   <button onclick="closePopup(); irAndebrawl()">ANDEBRAWL</button>
+  <button onclick="closePopup(); irVoxelcraft()">🧱 Voxelcraft</button>
+  <button onclick="closePopup(); irTower()">🗼 Defensa Épica</button>
   <button onclick="closePopup(); irAjedrez()">Ajedrez</button>
   <button onclick="closePopup(); irCristales()">Jugo de los cristales</button>
   <button onclick="closePopup(); irConecta10()">Conecta 10</button>
@@ -164,14 +172,20 @@
   </div>
 </div>
 
-<!-- ================= VOXELCRAFT ================= -->
-<div id="overlayVoxelcraft" class="overlay hidden">
-  <div class="card" style="text-align: center;">
-    <p style="font-size: 48px;">🧱</p>
-    <p><strong>VoxelVortex</strong> no está disponible.<br>Disponible a partir del 14 de agosto.</p>
-    <button onclick="cerrarOverlayVoxelcraft()">Cerrar</button>
-  </div>
-</div>
+ <!-- ================= VOXELCRAFT ================= -->
+ <div id="overlayVoxelcraft" class="overlay hidden" style="z-index: 10001;">
+   <div class="card" style="text-align: center;">
+     <p style="font-size: 48px;">🧱</p>
+     <h3>VoxelVortex</h3>
+     <p><strong>¿Comprar acceso?</strong></p>
+     <p>Accede al mundo de bloques por <strong>500 ⭐</strong>.</p>
+     <div id="voxelcraftBalance" style="margin: 10px 0; font-size: 14px;"></div>
+     <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+       <button id="btnPagarVoxelcraft" onclick="pagarVoxelcraft()" style="background: #4CAF50; color: white; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer;">Pagar 500 ⭐</button>
+     </div>
+     <button onclick="cerrarOverlayVoxelcraft()" style="margin-top: 10px; background: #222; color: #666; padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer;">Cerrar</button>
+   </div>
+ </div>
 
 <!-- ================= MODO NO DISPONIBLE ================= -->
 <div id="overlayModo" class="overlay hidden" style="z-index: 10000;">

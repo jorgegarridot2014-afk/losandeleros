@@ -326,14 +326,15 @@ async function updatePointsUI(save = true) {
             weeklyDone: currentUser.weeklyDone,
             englishQuizPurchased: currentUser.englishQuizPurchased,
             historyQuizPurchased: currentUser.historyQuizPurchased,
-            geographyQuizPurchased: currentUser.geographyQuizPurchased
+            geographyQuizPurchased: currentUser.geographyQuizPurchased,
+          genialQuizPurchased: currentUser.genialQuizPurchased
          })
       });
 
       if (res.ok) {
         const data = await res.json();
         currentUser.points = data.points;
-        console.log("✅ Puntos guardados en DB:", data.points);
+        points = data.points || points;
       }
     } finally {
       pointsUI.style.opacity = "1";
@@ -645,6 +646,7 @@ function checkWeekly() {
 }
 
 function shop(){
+  if (currentUser && isUserLoaded) points = currentUser.points || points;
   const popupText = document.getElementById("popupText");
   
   const hasEnglish = currentUser && currentUser.englishQuizPurchased;

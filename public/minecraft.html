@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>VoxelCraft - 50 Bloques</title>
+<style>
+  html,body{margin:0;padding:0;overflow:hidden;background:#87CEEB;font-family:'Segoe UI',Arial,sans-serif;}
+  #canvasHolder{position:fixed;inset:0;}
+  canvas{display:block;}
+
+  .hiddenEl{display:none !important;}
+
+  #crosshair{
+    position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:20px;height:20px;pointer-events:none;z-index:20;
+  }
+  #crosshair::before, #crosshair::after{
+    content:"";position:absolute;background:rgba(255,255,255,0.9);
+    box-shadow:0 0 2px rgba(0,0,0,0.9);
+  }
+  #crosshair::before{left:9px;top:0;width:2px;height:20px;}
+  #crosshair::after{left:0;top:9px;width:20px;height:2px;}
+
+  #hud{
+    position:fixed;top:10px;left:10px;color:#fff;text-shadow:1px 1px 2px #000;
+    z-index:20;font-size:13px;background:rgba(0,0,0,0.4);padding:8px 12px;border-radius:8px;
+    line-height:1.5;
+  }
+  #selectedInfo{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;text-shadow:1px 1px 2px #000;
+    z-index:20;font-size:15px;background:rgba(0,0,0,0.5);padding:8px 16px;border-radius:10px;
+    display:flex;align-items:center;gap:10px;
+  }
+  #selSwatch{width:26px;height:26px;border:2px solid #fff;border-radius:3px;image-rendering:pixelated;background-size:cover;}
+
+  #timeIndicator{
+    position:fixed;top:10px;left:50%;transform:translateX(-50%);color:#fff;text-shadow:1px 1px 2px #000;
+    z-index:20;font-size:14px;background:rgba(0,0,0,0.4);padding:6px 14px;border-radius:8px;
+  }
+
+  #overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.7);color:#fff;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;z-index:60;
+  }
+  #overlay h1{font-size:2.2em;margin-bottom:0.2em;}
+  #overlay p{margin:4px 0;font-size:1.05em;max-width:500px;}
+  #overlay .btn{
+    margin-top:20px;padding:14px 32px;font-size:1.2em;background:#5B8C34;color:#fff;
+    border:none;border-radius:8px;cursor:pointer;
+  }
+  #overlay .btn:hover{background:#6ea23f;}
+
+  /* ---- Inventario ---- */
+  #invOverlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:55;
+    display:flex;align-items:center;justify-content:center;
+  }
+  #invPanel{
+    width:min(760px,92vw);max-height:82vh;background:#2b2b2b;border:4px solid #555;
+    border-radius:10px;padding:14px;display:flex;flex-direction:column;color:#fff;
+    box-shadow:0 10px 40px rgba(0,0,0,0.6);
+  }
+  #invPanel h2{margin:0 0 10px 0;text-align:center;font-size:1.3em;}
+  #invTabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap;}
+  .invTab{
+    flex:1 1 auto;padding:8px 6px;background:#3d3d3d;border:2px solid #555;border-radius:6px;
+    cursor:pointer;font-size:12.5px;text-align:center;color:#ddd;
+  }
+  .invTab.active{background:#5B8C34;border-color:#8fce5a;color:#fff;font-weight:bold;}
+  #invGrid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:8px;
+    overflow-y:auto;padding:6px;background:#1f1f1f;border-radius:6px;flex:1;
+  }
+  .invItem{
+    aspect-ratio:1/1;border:2px solid #555;border-radius:6px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;background-size:cover;
+    image-rendering:pixelated;position:relative;
+  }
+  .invItem:hover{border-color:#fff;transform:scale(1.05);}
+  .invItem.selectedItem{border-color:#ffd23c;box-shadow:0 0 8px 2px #ffd23c;}
+  .invItem span{
+    position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);
+    font-size:9px;color:#fff;white-space:nowrap;background:rgba(0,0,0,0.7);
+    padding:1px 4px;border-radius:3px;display:none;
+  }
+  .invItem:hover span{display:block;}
+  #invClose{
+    margin-top:12px;align-self:center;padding:8px 22px;background:#8a3b3b;color:#fff;
+    border:none;border-radius:6px;cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<button id="btnInicio" onclick="window.location.href='/index.html'" style="position:fixed; top:12px; left:12px; z-index:100; padding: 8px 16px; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid #555; border-radius: 6px; font-size: 13px; cursor: pointer;">⬅️ Inicio</button>
+
+<div id="canvasHolder"></div>
+<div id="crosshair" class="hiddenEl"></div>
+<div id="hud" class="hiddenEl">
+  <b>WASD</b> mover · <b>Ratón</b> mirar · <b>Espacio</b> subir · <b>Shift</b> bajar<br>
+  <b>Click Izq</b> romper · <b>Click Der</b> colocar · <b>E</b> inventario (50 bloques) · <b>ESC</b> pausa
+</div>
+<div id="selectedInfo" class="hiddenEl">
+  <div id="selSwatch"></div>
+  <span id="selName">Bloque</span>
+</div>
+<div id="timeIndicator" class="hiddenEl">☀️ Día</div>
+
+<div id="invOverlay" class="hiddenEl">
+  <div id="invPanel">
+    <h2>🎒 Inventario — 50 bloques</h2>
+    <div id="invTabs"></div>
+    <div id="invGrid"></div>
+    <button id="invClose">Cerrar (E)</button>
+  </div>
+</div>
+
+<div id="overlay">
+  <h1>🧱 VoxelCraft</h1>
+  <p>Un mini mundo estilo Minecraft con <b>50 tipos de bloques</b> distintos, cada uno con su propia textura.</p>
+  <p>Pulsa <b>E</b> en cualquier momento para abrir el inventario y elegir el bloque a colocar.</p>
+  <button class="btn" id="startBtn">▶ Empezar a jugar</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ==================== 1. DEFINICIÓN DE LOS 50 BLOQUES ==================== */
+const CATEGORIES = ["Tierra y Naturaleza","Madera y Plantas","Minerales y Menas","Líquidos y Nether","Construcción y Decoración"];
+
+const BLOCK_TYPES = [
+  {id:1,  name:"Césped",             color:0x5B8C34, pattern:"noise",   cat:0},
+  {id:2,  name:"Tierra",             color:0x7B5230, pattern:"pebbles", cat:0},
+  {id:3,  name:"Piedra",             color:0x8A8A8A, pattern:"cracks",  cat:0},
+  {id:4,  name:"Adoquín",            color:0x6E6E6E, pattern:"cobble",  cat:0},
+  {id:5,  name:"Roca madre",         color:0x2B2B2B, pattern:"cracks",  cat:0},
+  {id:6,  name:"Arena",              color:0xE6D28C, pattern:"ripples", cat:0},
+  {id:7,  name:"Arenisca",           color:0xD9C77E, pattern:"stripesH",cat:0},
+  {id:8,  name:"Grava",              color:0x999385, pattern:"pebbles", cat:0},
+  {id:9,  name:"Nieve",              color:0xF5F8FA, pattern:"sparkleSnow", cat:0},
+  {id:10, name:"Arcilla",            color:0xA9B3BD, pattern:"cracks",  cat:0},
+  {id:11, name:"Hielo",              color:0xA8D8EF, pattern:"ice",     cat:0, transparent:true, opacity:0.8},
+
+  {id:12, name:"Madera de roble",    color:0x7A5230, pattern:"wood",    cat:1},
+  {id:13, name:"Hojas de roble",     color:0x3E7D32, pattern:"leaves",  cat:1},
+  {id:14, name:"Madera de abedul",   color:0xC9BE91, pattern:"wood",    cat:1},
+  {id:15, name:"Hojas de abedul",    color:0x7CB86B, pattern:"leaves",  cat:1},
+  {id:16, name:"Madera de pícea",    color:0x4E3524, pattern:"wood",    cat:1},
+  {id:17, name:"Hojas de pícea",     color:0x2E5233, pattern:"leaves",  cat:1},
+  {id:18, name:"Cactus",             color:0x4E8B3A, pattern:"stripesV",cat:1},
+  {id:19, name:"Calabaza",           color:0xD9861D, pattern:"stripesV",cat:1},
+  {id:20, name:"Melón",              color:0x6FA83B, pattern:"melon",   cat:1},
+
+  {id:21, name:"Mena de carbón",     color:0x8A8A8A, accent:0x232323, pattern:"ore", cat:2},
+  {id:22, name:"Mena de hierro",     color:0x8A8A8A, accent:0xD8C6A5, pattern:"ore", cat:2},
+  {id:23, name:"Mena de oro",        color:0x8A8A8A, accent:0xF4D160, pattern:"ore", cat:2},
+  {id:24, name:"Mena de diamante",   color:0x8A8A8A, accent:0x61D8D6, pattern:"ore", cat:2},
+  {id:25, name:"Mena de esmeralda",  color:0x8A8A8A, accent:0x3FCB6E, pattern:"ore", cat:2},
+  {id:26, name:"Mena de redstone",   color:0x8A8A8A, accent:0xC43C34, pattern:"ore", cat:2},
+  {id:27, name:"Mena de lapislázuli",color:0x8A8A8A, accent:0x2452C4, pattern:"ore", cat:2},
+  {id:28, name:"Obsidiana",          color:0x14121A, accent:0x2f1a55, pattern:"ore", cat:2},
+  {id:29, name:"Granito",            color:0xA9695A, pattern:"speckleFine", accent:0xE0A98F, cat:2},
+  {id:30, name:"Diorita",            color:0xDADADA, pattern:"speckleFine", accent:0x4a4a4a, cat:2},
+  {id:31, name:"Andesita",           color:0x7A7A7A, pattern:"speckleFine", accent:0x545454, cat:2},
+
+  {id:32, name:"Agua",               color:0x3B78C2, pattern:"wave",    cat:3, transparent:true, opacity:0.65},
+  {id:33, name:"Lava",               color:0xE25822, pattern:"sparkle", cat:3, emissive:0xE25822, emissiveIntensity:0.6, accent:0xFFD060},
+  {id:34, name:"Netherrack",         color:0x6B2E2E, pattern:"cracks",  cat:3},
+  {id:35, name:"Arena de almas",     color:0x4F3A2E, pattern:"pebbles", cat:3},
+  {id:36, name:"Piedra luminosa",    color:0xF5D97A, pattern:"sparkle", cat:3, emissive:0xF5D97A, emissiveIntensity:0.8, accent:0xFFFFC0},
+
+  {id:37, name:"Vidrio",             color:0xCFEFFA, pattern:"glass",  cat:4, transparent:true, opacity:0.4},
+  {id:38, name:"Ladrillo",           color:0x9C4B3A, pattern:"brick",  cat:4},
+  {id:39, name:"Lana blanca",        color:0xF2F2F2, pattern:"wool",   cat:4},
+  {id:40, name:"Lana roja",          color:0xC23B3B, pattern:"wool",   cat:4},
+  {id:41, name:"Lana azul",          color:0x3B57C2, pattern:"wool",   cat:4},
+  {id:42, name:"Lana amarilla",      color:0xE8D93B, pattern:"wool",   cat:4},
+  {id:43, name:"Lana verde",         color:0x4FA83B, pattern:"wool",   cat:4},
+  {id:44, name:"Lana negra",         color:0x262626, pattern:"wool",   cat:4},
+  {id:45, name:"TNT",                color:0xD9401E, pattern:"stripesHW", cat:4},
+  {id:46, name:"Estantería",         color:0x8A5A34, pattern:"books",  cat:4},
+  {id:47, name:"Mesa de crafteo",    color:0x9C6B3A, pattern:"craftgrid", cat:4},
+  {id:48, name:"Horno",              color:0x737373, pattern:"furnace",cat:4},
+  {id:49, name:"Adoquín musgoso",    color:0x6E7E5E, pattern:"cobble", cat:4, accent:0x3FA83B},
+  {id:50, name:"Bloque de cuarzo",   color:0xEDE8DD, pattern:"stripesV", cat:4},
+];
+const BLOCK_BY_ID = {};
+BLOCK_TYPES.forEach(b => BLOCK_BY_ID[b.id] = b);
+
+/* ==================== 2. GENERADOR DE TEXTURAS PROCEDURALES ==================== */
+function shade(hex, amt){
+  let r=(hex>>16)&255, g=(hex>>8)&255, b=hex&255;
+  r=Math.max(0,Math.min(255,r+amt)); g=Math.max(0,Math.min(255,g+amt)); b=Math.max(0,Math.min(255,b+amt));
+  return `rgb(${r|0},${g|0},${b|0})`;
+}
+function hexCss(hex){ return "#"+hex.toString(16).padStart(6,"0"); }
+
+function buildTextureCanvas(block){
+  const S = 40;
+  const c = document.createElement("canvas"); c.width=S; c.height=S;
+  const ctx = c.getContext("2d");
+  const base = block.color;
+  ctx.fillStyle = hexCss(base); ctx.fillRect(0,0,S,S);
+
+  const rnd = () => Math.random();
+
+  switch(block.pattern){
+    case "noise": {
+      for(let i=0;i<320;i++){
+        const x=(rnd()*S)|0, y=(rnd()*S)|0;
+        ctx.fillStyle = shade(base, (rnd()-0.5)*70);
+        ctx.fillRect(x,y,1,1);
+      }
+      break;
+    }
+    case "cracks": {
+      for(let i=0;i<260;i++){
+        ctx.fillStyle = shade(base, (rnd()-0.5)*50);
+        ctx.fillRect((rnd()*S)|0,(rnd()*S)|0,1,1);
+      }
+      ctx.strokeStyle = shade(base,-55); ctx.lineWidth=1;
+      for(let i=0;i<5;i++){
+        let x=rnd()*S, y=rnd()*S;
+        ctx.beginPath(); ctx.moveTo(x,y);
+        const segs = 3+((rnd()*3)|0);
+        for(let s=0;s<segs;s++){ x+=(rnd()-0.5)*10; y+=(rnd()-0.5)*10; ctx.lineTo(x,y); }
+        ctx.stroke();
+      }
+      break;
+    }
+    case "pebbles": {
+      for(let i=0;i<200;i++){
+        ctx.fillStyle = shade(base,(rnd()-0.5)*40);
+        ctx.fillRect((rnd()*S)|0,(rnd()*S)|0,1,1);
+      }
+      for(let i=0;i<22;i++){
+        const x=rnd()*S, y=rnd()*S, r=1+rnd()*1.8;
+        ctx.fillStyle = shade(base,(rnd()-0.5)*45);
+        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+      }
+      break;
+    }
+    case "ripples": {
+      ctx.fillStyle = hexCss(base); ctx.fillRect(0,0,S,S);
+      for(let y=0;y<S;y+=3){
+        ctx.strokeStyle = shade(base,(y%6===0)? -18:12);
+        ctx.beginPath();
+        for(let x=0;x<S;x++) ctx.lineTo(x, y+Math.sin(x*0.6+y*0.4)*1.4);
+        ctx.stroke();
+      }
+      for(let i=0;i<40;i++){ ctx.fillStyle=shade(base,(rnd()-0.5)*30); ctx.fillRect((rnd()*S)|0,(rnd()*S)|0,1,1); }
+      break;
+    }
+    case "speckleFine": {
+      ctx.fillStyle = hexCss(base); ctx.fillRect(0,0,S,S);
+      const accent = block.accent !== undefined ? block.accent : shade(base,-60);
+      for(let i=0;i<300;i++){
+        ctx.fillStyle = shade(base,(rnd()-0.5)*35);
+        ctx.fillRect((rnd()*S)|0,(rnd()*S)|0,1,1);
+      }
+      for(let i=0;i<120;i++){
+        ctx.fillStyle = typeof accent==="number" ? shade(accent,(rnd()-0.5)*25) : accent;
+        ctx.fillRect((rnd()*S)|0,(rnd()*S)|0,1,1);
+      }
+      break;
+    }
+    case "sparkleSnow": {
+      for(let i=0;i<260;i++){
+        ctx.fillStyle = shade(base,(rnd()-0.5)*30);
+        ctx.fillRect((rnd()*S)|0,(rnd()*S)|0,1,1);
+      }
+      for(let i=0;i<16;i++){
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
+        const x=(rnd()*S)|0,y=(rnd()*S)|0;
+        ctx.fillRect(x,y,1,1);
+      }
+      break;
+    }
+    case "cobble": {
+      ctx.fillStyle = shade(base,-25); ctx.fillRect(0,0,S,S);
+      for(let i=0;i<14;i++){
+        const x=(rnd()*S)|0, y=(rnd()*S)|0, r=3+rnd()*5;
+        ctx.fillStyle = shade(base,(rnd()-0.3)*40);
+        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+      }
+      if(block.accent!==undefined){
+        for(let i=0;i<10;i++){
+          ctx.fillStyle = shade(block.accent,(rnd()-0.5)*30);
+          ctx.fillRect((rnd()*S)|0,(rnd()*S)|0,2,2);
+        }
+      }
+      break;
+    }
+    case "wood": {
+      for(let x=0;x<S;x++){
+        const stripe = Math.sin(x*1.3)*10 + (rnd()-0.5)*8;
+        ctx.fillStyle = shade(base, stripe);
+        ctx.fillRect(x,0,1,S);
+      }
+      ctx.fillStyle = shade(base,-35);
+      ctx.beginPath(); ctx.ellipse(S/2,S/2,6,9,0,0,Math.PI*2); ctx.stroke();
+      ctx.strokeStyle = shade(base,-35); ctx.lineWidth=1.4;
+      ctx.beginPath(); ctx.ellipse(S/2,S/2,10,13,0,0,Math.PI*2); ctx.stroke();
+      break;
+    }
+    case "leaves": {
+      ctx.fillStyle = shade(base,-15); ctx.fillRect(0,0,S,S);
+      for(let i=0;i<140;i++){
+        ctx.fillStyle = shade(base, (rnd()-0.4)*55);
+        const x=(rnd()*S)|0, y=(rnd()*S)|0;
+        ctx.fillRect(x,y,2,2);
+      }
+      break;
+    }
+    case "stripesV": {
+      for(let x=0;x<S;x+=4){
+        ctx.fillStyle = shade(base, (x/4)%2===0 ? -12 : 8);
+        ctx.fillRect(x,0,4,S);
+      }
+      for(let i=0;i<40;i++){ ctx.fillStyle=shade(base,(rnd()-0.5)*20); ctx.fillRect((rnd()*S)|0,(rnd()*S)|0,1,1); }
+      break;
+    }
+    case "stripesH": {
+      for(let y=0;y<S;y+=4){
+        ctx.fillStyle = shade(base, (y/4)%2===0 ? -10 : 10);
+        ctx.fillRect(0,y,S,4);
+      }
+      break;
+    }
+    case "melon": {
+      ctx.fillStyle = shade(base,-20);
+      for(let x=0;x<S;x+=4){ ctx.fillRect(x,0,2,S); }
+      for(let i=0;i<20;i++){ ctx.fillStyle=shade(base,(rnd()-0.5)*30); ctx.fillRect((rnd()*S)|0,(rnd()*S)|0,2,2); }
+      break;
+    }
+    case "ore": {
+      ctx.fillStyle = hexCss(base); ctx.fillRect(0,0,S,S);
+      for(let i=0;i<220;i++){
+        ctx.fillStyle = shade(base,(rnd()-0.5)*40);
+        ctx.fillRect((rnd()*S)|0,(rnd()*S)|0,1,1);
+      }
+      const accent = block.accent !== undefined ? block.accent : 0xffffff;
+      for(let i=0;i<9;i++){
+        const x=4+rnd()*(S-8), y=4+rnd()*(S-8);
+        ctx.fillStyle = shade(accent,(rnd()-0.5)*30);
+        ctx.beginPath(); ctx.arc(x,y,2+rnd()*2,0,Math.PI*2); ctx.fill();
+      }
+      break;
+    }
+    case "glass": {
+      ctx.fillStyle = hexCss(base); ctx.fillRect(0,0,S,S);
+      ctx.strokeStyle = shade(base,60); ctx.lineWidth=2;
+      ctx.strokeRect(1,1,S-2,S-2);
+      break;
+    }
+    case "ice": {
+      for(let i=0;i<10;i++){
+        ctx.strokeStyle = shade(base,(rnd()-0.5)*40);
+        ctx.beginPath();
+        const x1=rnd()*S,y1=rnd()*S;
+        ctx.moveTo(x1,y1); ctx.lineTo(x1+rnd()*10-5,y1+rnd()*10-5); ctx.stroke();
+      }
+      break;
+    }
+    case "wave": {
+      for(let y=0;y<S;y+=3){
+        ctx.strokeStyle = shade(base,(rnd()-0.5)*30);
+        ctx.beginPath();
+        for(let x=0;x<S;x++) ctx.lineTo(x, y+Math.sin(x*0.5+y)*2);
+        ctx.stroke();
+      }
+      break;
+    }
+    case "sparkle": {
+      ctx.fillStyle = hexCss(base); ctx.fillRect(0,0,S,S);
+      for(let i=0;i<40;i++){ ctx.fillStyle=shade(base,(rnd()-0.5)*40); ctx.fillRect((rnd()*S)|0,(rnd()*S)|0,1,1); }
+      const accent = block.accent !== undefined ? block.accent : 0xffffff;
+      for(let i=0;i<10;i++){
+        ctx.fillStyle = hexCss(accent);
+        const x=(rnd()*S)|0,y=(rnd()*S)|0;
+        ctx.fillRect(x,y,2,2);
+      }
+      break;
+    }
+    case "brick": {
+      ctx.fillStyle = shade(base,45); ctx.fillRect(0,0,S,S);
+      const bw=14, bh=6, gap=2;
+      let row=0;
+      for(let y=0;y<S;y+=bh+gap){
+        const offset = (row%2===0)?0:(bw/2);
+        for(let x=-bw;x<S;x+=bw+gap){
+          ctx.fillStyle = shade(base,(rnd()-0.5)*20);
+          ctx.fillRect(x+offset,y,bw,bh);
+        }
+        row++;
+      }
+      break;
+    }
+    case "wool": {
+      for(let i=0;i<240;i++){
+        ctx.fillStyle = shade(base,(rnd()-0.5)*22);
+        ctx.fillRect((rnd()*S)|0,(rnd()*S)|0,1,1);
+      }
+      break;
+    }
+    case "stripesHW": {
+      for(let y=0;y<S;y+=6){
+        ctx.fillStyle = (Math.floor(y/6)%2===0) ? hexCss(base) : "#F2F2F2";
+        ctx.fillRect(0,y,S,6);
+      }
+      break;
+    }
+    case "books": {
+      ctx.fillStyle = shade(base,-15); ctx.fillRect(0,0,S,S);
+      const cols=[0xC23B3B,0x3B57C2,0xE8D93B,0x4FA83B,0x9C6B3A,0xF2F2F2];
+      let x=2;
+      while(x<S-2){
+        const w = 3+((rnd()*3)|0);
+        ctx.fillStyle = hexCss(cols[(rnd()*cols.length)|0]);
+        ctx.fillRect(x,4,w,S-8);
+        x += w+1;
+      }
+      break;
+    }
+    case "craftgrid": {
+      ctx.fillStyle = hexCss(base); ctx.fillRect(0,0,S,S);
+      ctx.strokeStyle = shade(base,-40); ctx.lineWidth=1.5;
+      for(let i=1;i<3;i++){
+        ctx.beginPath(); ctx.moveTo(i*S/3,2); ctx.lineTo(i*S/3,S-2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(2,i*S/3); ctx.lineTo(S-2,i*S/3); ctx.stroke();
+      }
+      break;
+    }
+    case "furnace": {
+      ctx.fillStyle = hexCss(base); ctx.fillRect(0,0,S,S);
+      ctx.fillStyle = "#1a1a1a";
+      ctx.fillRect(S*0.28,S*0.32,S*0.44,S*0.4);
+      ctx.strokeStyle = shade(base,-40); ctx.lineWidth=2;
+      ctx.strokeRect(2,2,S-4,S-4);
+      break;
+    }
+    default: {
+      for(let i=0;i<100;i++){ ctx.fillStyle=shade(base,(rnd()-0.5)*40); ctx.fillRect((rnd()*S)|0,(rnd()*S)|0,1,1); }
+    }
+  }
+  return c;
+}
+
+/* ==================== 3. ESCENA THREE.JS ==================== */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87CEEB);
+scene.fog = new THREE.Fog(0x87CEEB, 65, 300);
+
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.rotation.order = "YXZ";
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.getElementById("canvasHolder").appendChild(renderer.domElement);
+
+const hemi = new THREE.HemisphereLight(0xbfe0ff, 0x4a3b2a, 0.9);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+sun.position.set(50, 80, 20);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1536,1536);
+sun.shadow.camera.near = 1;
+sun.shadow.camera.far = 260;
+sun.shadow.camera.left = -48;
+sun.shadow.camera.right = 48;
+sun.shadow.camera.top = 48;
+sun.shadow.camera.bottom = -48;
+sun.shadow.bias = -0.0016;
+scene.add(sun);
+scene.add(sun.target);
+const moon = new THREE.DirectionalLight(0x8fa6ff, 0.0);
+moon.position.set(-50, 60, -20);
+scene.add(moon);
+const ambient = new THREE.AmbientLight(0xffffff, 0.25);
+scene.add(ambient);
+
+/* ---- Sol y luna visibles en el cielo ---- */
+function makeGlowSprite(innerColor, size){
+  const c=document.createElement("canvas"); c.width=c.height=64;
+  const ctx=c.getContext("2d");
+  const grad=ctx.createRadialGradient(32,32,2,32,32,32);
+  grad.addColorStop(0, innerColor);
+  grad.addColorStop(0.45, innerColor);
+  grad.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle=grad; ctx.fillRect(0,0,64,64);
+  const tex = new THREE.CanvasTexture(c);
+  const mat = new THREE.SpriteMaterial({map:tex, transparent:true, depthWrite:false, fog:false});
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(size,size,1);
+  scene.add(sprite);
+  return sprite;
+}
+const sunSprite = makeGlowSprite("rgba(255,246,214,1)", 34);
+const moonSprite = makeGlowSprite("rgba(210,222,255,1)", 22);
+
+/* ---- Nubes que van a la deriva, siguiendo siempre cerca del jugador ---- */
+const cloudGroup = new THREE.Group();
+scene.add(cloudGroup);
+function makeCloudTexture(){
+  const c=document.createElement("canvas"); c.width=c.height=64;
+  const ctx=c.getContext("2d");
+  ctx.fillStyle="rgba(255,255,255,0)"; ctx.fillRect(0,0,64,64);
+  for(let i=0;i<6;i++){
+    const x=10+Math.random()*44, y=24+Math.random()*20, r=10+Math.random()*10;
+    const grad=ctx.createRadialGradient(x,y,1,x,y,r);
+    grad.addColorStop(0,"rgba(255,255,255,0.9)");
+    grad.addColorStop(1,"rgba(255,255,255,0)");
+    ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+  }
+  return new THREE.CanvasTexture(c);
+}
+const cloudTex = makeCloudTexture();
+const cloudMat = new THREE.SpriteMaterial({map:cloudTex, transparent:true, opacity:0.85, depthWrite:false, fog:true});
+const CLOUD_FIELD = 260;
+const clouds = [];
+for(let i=0;i<22;i++){
+  const s = new THREE.Sprite(cloudMat);
+  const sz = 22+Math.random()*20;
+  s.scale.set(sz, sz*0.5, 1);
+  s.userData.baseX = Math.random()*CLOUD_FIELD;
+  s.userData.baseZ = (Math.random()-0.5)*CLOUD_FIELD;
+  s.userData.baseY = 42 + Math.random()*10;
+  cloudGroup.add(s);
+  clouds.push(s);
+}
+
+const lampLights = []; // farolas: se encienden de noche (se rellena más abajo, al construir el mobiliario)
+
+/* ---- Ciclo de día y noche ---- */
+const DAY_LENGTH = 240; // segundos que dura un día completo (dia+noche)
+let dayTime = DAY_LENGTH * 0.28; // empezar de mañana
+const SKY_DAY   = new THREE.Color(0x87CEEB);
+const SKY_SUNSET= new THREE.Color(0xff9a5a);
+const SKY_NIGHT = new THREE.Color(0x060812);
+const _skyTmp = new THREE.Color();
+
+function updateDayNight(delta, playerPos){
+  dayTime = (dayTime + delta) % DAY_LENGTH;
+  const angle = (dayTime / DAY_LENGTH) * Math.PI * 2; // 0 = amanecer
+  const sunHeight = Math.sin(angle); // -1 noche profunda ... 1 mediodía
+
+  const dist = 130;
+  const sunOffset = new THREE.Vector3(Math.cos(angle)*dist, sunHeight*dist*0.72 + 25, Math.sin(angle)*dist*0.4 + 35);
+  sun.position.copy(playerPos).add(sunOffset);
+  sun.target.position.copy(playerPos);
+  sun.target.updateMatrixWorld();
+
+  const moonOffset = new THREE.Vector3(-sunOffset.x, -sunOffset.y+50, -sunOffset.z);
+  moon.position.copy(playerPos).add(moonOffset);
+
+  sunSprite.position.copy(sun.position);
+  moonSprite.position.copy(moon.position);
+
+  const t = THREE.MathUtils.clamp((sunHeight+1)/2, 0, 1);
+
+  sun.intensity  = Math.max(0, sunHeight) * 1.0;
+  moon.intensity = Math.max(0, -sunHeight) * 0.2;
+  hemi.intensity   = 0.15 + 0.75*t;
+  ambient.intensity= 0.06 + 0.22*t;
+
+  if(sunHeight > 0.15){
+    _skyTmp.copy(SKY_DAY);
+  } else if(sunHeight > -0.15){
+    const k = (sunHeight+0.15)/0.3;
+    _skyTmp.copy(SKY_SUNSET).lerp(SKY_DAY, Math.max(0,k));
+    if(k<0) _skyTmp.copy(SKY_NIGHT).lerp(SKY_SUNSET, (sunHeight+0.3)/0.15);
+  } else {
+    const k = THREE.MathUtils.clamp((sunHeight+0.4)/0.25, 0, 1);
+    _skyTmp.copy(SKY_NIGHT).lerp(SKY_SUNSET, k);
+  }
+  scene.background.copy(_skyTmp);
+  scene.fog.color.copy(_skyTmp);
+
+  // Nubes: van a la deriva y siempre reaparecen alrededor del jugador
+  const drift = (dayTime*3.2) % CLOUD_FIELD;
+  for(const c of clouds){
+    const relX = ((c.userData.baseX + drift) % CLOUD_FIELD) - CLOUD_FIELD/2;
+    c.position.set(playerPos.x+relX, c.userData.baseY, playerPos.z+c.userData.baseZ);
+    c.material.opacity = 0.55 + 0.3*t;
+  }
+
+  // Farolas: se encienden solas al anochecer
+  const lampOn = sunHeight < 0.1 ? 1 : 0;
+  const lampIntensity = lampOn * (0.9 - 0.5*Math.max(0,sunHeight));
+  for(const l of lampLights) l.intensity = lampIntensity;
+
+  const timeEl = document.getElementById("timeIndicator");
+  if(timeEl){
+    if(sunHeight>0.55) timeEl.textContent = "☀️ Día";
+    else if(sunHeight>0.15) timeEl.textContent = "🌤️ Media mañana / tarde";
+    else if(sunHeight>-0.15) timeEl.textContent = (Math.cos(angle)<0) ? "🌅 Amanecer" : "🌇 Atardecer";
+    else if(sunHeight>-0.55) timeEl.textContent = "🌙 Anochecer";
+    else timeEl.textContent = "🌌 Noche cerrada";
+  }
+}
+updateDayNight(0, new THREE.Vector3(0,10,-10));
+
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+/* ==================== 4. MUNDO: ALMACENAMIENTO Y GEOMETRÍA ==================== */
+const world = new Map();
+const meshMap = new Map();
+const blockGroup = new THREE.Group();
+scene.add(blockGroup);
+
+const boxGeo = new THREE.BoxGeometry(1,1,1);
+const materialCache = {};
+function getMaterial(id){
+  if(materialCache[id]) return materialCache[id];
+  const b = BLOCK_BY_ID[id];
+  const canvas = buildTextureCanvas(b);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  const mat = new THREE.MeshLambertMaterial({
+    map: tex,
+    transparent: !!b.transparent,
+    opacity: b.transparent ? b.opacity : 1,
+    emissive: b.emissive !== undefined ? b.emissive : 0x000000,
+    emissiveIntensity: b.emissiveIntensity || 0
+  });
+  materialCache[id] = mat;
+  return mat;
+}
+function getIconDataUrl(id){
+  const b = BLOCK_BY_ID[id];
+  if(!b._icon) b._icon = buildTextureCanvas(b).toDataURL();
+  return b._icon;
+}
+
+/* ---- Materiales especiales multi-cara (más realistas que un color uniforme) ---- */
+let grassMaterials = null;
+const logMaterials = {};
+
+function makeCanvasMat(canvas){
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  return new THREE.MeshLambertMaterial({map:tex});
+}
+
+function getGrassMaterials(){
+  if(grassMaterials) return grassMaterials;
+  const topMat = getMaterial(ID.grass); // verde con ruido, ya generado
+
+  const S=40;
+  const sc=document.createElement("canvas"); sc.width=S; sc.height=S;
+  const ctx=sc.getContext("2d");
+  const dirtColor = BLOCK_BY_ID[ID.dirt].color, grassColor = BLOCK_BY_ID[ID.grass].color;
+  ctx.fillStyle = hexCss(dirtColor); ctx.fillRect(0,0,S,S);
+  for(let i=0;i<220;i++){ ctx.fillStyle=shade(dirtColor,(Math.random()-0.5)*60); ctx.fillRect((Math.random()*S)|0, (S*0.32+Math.random()*S*0.68)|0, 1,1); }
+  const stripH = S*0.32;
+  ctx.fillStyle = hexCss(grassColor); ctx.fillRect(0,0,S,stripH);
+  for(let i=0;i<110;i++){ ctx.fillStyle=shade(grassColor,(Math.random()-0.5)*50); ctx.fillRect((Math.random()*S)|0,(Math.random()*stripH)|0,1,1); }
+  ctx.fillStyle = shade(grassColor,-45);
+  for(let x=0;x<S;x++){ const drip = Math.random()<0.35 ? (1+((Math.random()*3)|0)) : 0; ctx.fillRect(x, stripH-1, 1, 2+drip); }
+  const sideMat = makeCanvasMat(sc);
+
+  const bottomMat = getMaterial(ID.dirt);
+  grassMaterials = [sideMat, sideMat, topMat, bottomMat, sideMat, sideMat];
+  return grassMaterials;
+}
+
+function getLogMaterials(id){
+  if(logMaterials[id]) return logMaterials[id];
+  const b = BLOCK_BY_ID[id];
+  const sideMat = getMaterial(id); // veta vertical (corteza), ya generado
+
+  const S=40;
+  const rc=document.createElement("canvas"); rc.width=S; rc.height=S;
+  const rctx=rc.getContext("2d");
+  rctx.fillStyle = hexCss(b.color); rctx.fillRect(0,0,S,S);
+  const cx=S/2, cy=S/2;
+  for(let r=S*0.48; r>1.5; r-=2.6){
+    rctx.strokeStyle = shade(b.color, (Math.floor(r)%2===0? -24 : 10));
+    rctx.lineWidth = 2;
+    rctx.beginPath(); rctx.arc(cx,cy,r,0,Math.PI*2); rctx.stroke();
+  }
+  const ringMat = makeCanvasMat(rc);
+  const arr = [sideMat, sideMat, ringMat, ringMat, sideMat, sideMat];
+  logMaterials[id] = arr;
+  return arr;
+}
+
+function key(x,y,z){ return x+","+y+","+z; }
+function neighborsExist(x,y,z){
+  return [
+    world.has(key(x+1,y,z)), world.has(key(x-1,y,z)),
+    world.has(key(x,y+1,z)), world.has(key(x,y-1,z)),
+    world.has(key(x,y,z+1)), world.has(key(x,y,z-1))
+  ];
+}
+function isExposed(x,y,z){ return neighborsExist(x,y,z).some(v => !v); }
+
+function createMeshFor(x,y,z){
+  const id = world.get(key(x,y,z));
+  if(id === undefined) return;
+  let mat;
+  if(id === ID.grass) mat = getGrassMaterials();
+  else if(id === ID.oak || id === ID.birch || id === ID.spruce) mat = getLogMaterials(id);
+  else mat = getMaterial(id);
+  const mesh = new THREE.Mesh(boxGeo, mat);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  mesh.position.set(x,y,z);
+  mesh.userData = {x,y,z};
+  blockGroup.add(mesh);
+  meshMap.set(key(x,y,z), mesh);
+}
+function setBlock(x,y,z,id){ world.set(key(x,y,z), id); }
+
+function removeBlock(x,y,z){
+  const k = key(x,y,z);
+  world.delete(k);
+  const m = meshMap.get(k);
+  if(m){ blockGroup.remove(m); meshMap.delete(k); }
+  const deltas = [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+  for(const [dx,dy,dz] of deltas){
+    const nk = key(x+dx,y+dy,z+dz);
+    if(world.has(nk) && !meshMap.has(nk)) createMeshFor(x+dx,y+dy,z+dz);
+  }
+}
+function placeBlock(x,y,z,id){
+  const k = key(x,y,z);
+  if(world.has(k)) return false;
+  world.set(k, id);
+  createMeshFor(x,y,z);
+  return true;
+}
+
+/* ==================== 5. GENERACIÓN DEL TERRENO ==================== */
+function terrainHeight(x,z){
+  let h = 8;
+  h += 4.0 * Math.sin(x*0.045) * Math.cos(z*0.045);
+  h += 2.2 * Math.sin(x*0.11 + 1.7) * Math.cos(z*0.09 - 0.6);
+  h += 1.1 * Math.sin(x*0.27 + 4.1) * Math.cos(z*0.24 + 2.2);
+  h += 0.6 * Math.sin((x+z)*0.5 + 0.3);
+  return Math.round(h);
+}
+const WORLD_MIN=-100, WORLD_MAX=100, WATER_LEVEL=6;
+function biomeAt(x,z){
+  if(x>50) return "desert";
+  if(x<-50) return "snow";
+  if(z>50) return "nether";
+  return "grass";
+}
+
+// IDs útiles según la nueva numeración
+const ID = {
+  grass:1, dirt:2, stone:3, cobble:4, bedrock:5, sand:6, sandstone:7, gravel:8, snow:9, clay:10, ice:11,
+  oak:12, oakLeaf:13, birch:14, birchLeaf:15, spruce:16, spruceLeaf:17, cactus:18, pumpkin:19, melon:20,
+  coal:21, iron:22, gold:23, diamond:24, emerald:25, redstone:26, lapis:27, obsidian:28, granite:29, diorite:30, andesite:31,
+  water:32, lava:33, netherrack:34, soulsand:35, glowstone:36,
+  glass:37, brick:38, woolW:39, woolR:40, woolB:41, woolY:42, woolG:43, woolK:44, tnt:45, bookshelf:46, craft:47, furnace:48, mossy:49, quartz:50
+};
+
+/* ==================== 5b. MOBILIARIO (piezas 3D reales, no solo cubos texturizados) ==================== */
+const furnitureGroup = new THREE.Group();
+scene.add(furnitureGroup);
+
+function addPart(group,w,h,d,x,y,z,mat){
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
+  m.position.set(x,y,z);
+  m.castShadow = true; m.receiveShadow = true;
+  group.add(m);
+  return m;
+}
+function furnAt(x,y,z,rotY=0){
+  const g = new THREE.Group();
+  g.position.set(x,y,z);
+  g.rotation.y = rotY;
+  furnitureGroup.add(g);
+  return g;
+}
+
+function buildTable(x,y,z,rotY=0){
+  const g = furnAt(x,y,z,rotY), wood = getMaterial(ID.oak);
+  addPart(g,0.9,0.08,0.9, 0,0.5,0, wood);
+  for(const [lx,lz] of [[-0.38,-0.38],[0.38,-0.38],[-0.38,0.38],[0.38,0.38]]) addPart(g,0.08,0.5,0.08, lx,0.25,lz, wood);
+  return g;
+}
+function buildChair(x,y,z,rotY=0){
+  const g = furnAt(x,y,z,rotY), wood = getMaterial(ID.oak);
+  addPart(g,0.45,0.06,0.45, 0,0.4,0, wood);
+  for(const [lx,lz] of [[-0.18,-0.18],[0.18,-0.18],[-0.18,0.18],[0.18,0.18]]) addPart(g,0.05,0.4,0.05, lx,0.2,lz, wood);
+  addPart(g,0.45,0.5,0.06, 0,0.66,-0.2, wood);
+  return g;
+}
+function buildBed(x,y,z,rotY=0){
+  const g = furnAt(x,y,z,rotY), wood=getMaterial(ID.spruce), white=getMaterial(ID.woolW), red=getMaterial(ID.woolR);
+  addPart(g,1.0,0.2,2.0, 0,0.1,0, wood);
+  addPart(g,0.95,0.15,1.9, 0,0.28,0, white);
+  addPart(g,0.95,0.2,0.9, 0,0.32,0.45, red);
+  addPart(g,0.85,0.14,0.32, 0,0.36,-0.75, white);
+  return g;
+}
+function buildLampPost(x,y,z){
+  const g = furnAt(x,y,z,0), stone=getMaterial(ID.cobble), glow=getMaterial(ID.glowstone);
+  addPart(g,0.2,0.22,0.2, 0,0.11,0, stone);
+  addPart(g,0.09,2.0,0.09, 0,1.1,0, stone);
+  addPart(g,0.32,0.32,0.32, 0,2.25,0, glow);
+  const light = new THREE.PointLight(0xffdca0, 0, 10, 2);
+  light.position.set(0,2.25,0);
+  light.castShadow = false;
+  g.add(light);
+  lampLights.push(light);
+  return g;
+}
+function buildBench(x,y,z,rotY=0){
+  const g = furnAt(x,y,z,rotY), wood=getMaterial(ID.oak);
+  addPart(g,1.2,0.08,0.4, 0,0.45,0, wood);
+  for(const [lx,lz] of [[-0.5,-0.15],[0.5,-0.15],[-0.5,0.15],[0.5,0.15]]) addPart(g,0.08,0.45,0.08, lx,0.225,lz, wood);
+  return g;
+}
+function buildFencePost(x,y,z){
+  const g = furnAt(x,y,z,0), wood=getMaterial(ID.oak);
+  addPart(g,0.12,1.0,0.12, 0,0.5,0, wood);
+  return g;
+}
+function buildFenceRail(x,y,z,rotY=0){
+  const g = furnAt(x,y,z,rotY), wood=getMaterial(ID.oak);
+  addPart(g,1.0,0.1,0.05, 0,0.55,0, wood);
+  addPart(g,1.0,0.1,0.05, 0,0.78,0, wood);
+  return g;
+}
+function buildFlowerPot(x,y,z){
+  const g = furnAt(x,y,z,0), clay=getMaterial(ID.brick), leaf=getMaterial(ID.oakLeaf);
+  addPart(g,0.35,0.35,0.35, 0,0.18,0, clay);
+  const stem = new THREE.Mesh(new THREE.SphereGeometry(0.22,8,6), leaf);
+  stem.position.set(0,0.5,0); stem.castShadow=true; stem.receiveShadow=true;
+  g.add(stem);
+  return g;
+}
+function buildRug(x,y,z,colorId,rotY=0){
+  const g = furnAt(x,y,z,rotY);
+  addPart(g,1.6,0.03,1.0, 0,0.02,0, getMaterial(colorId));
+  return g;
+}
+function buildPainting(x,y,z,rotY,colorId){
+  const g = furnAt(x,y,z,rotY), wood=getMaterial(ID.oak);
+  addPart(g,0.7,0.9,0.05, 0,0,0, wood);
+  addPart(g,0.55,0.75,0.02, 0,0,0.035, getMaterial(colorId));
+  return g;
+}
+function buildSofa(x,y,z,rotY=0){
+  const g = furnAt(x,y,z,rotY), blue=getMaterial(ID.woolB);
+  addPart(g,1.6,0.35,0.6, 0,0.2,0, blue);
+  addPart(g,1.6,0.5,0.15, 0,0.5,-0.25, blue);
+  addPart(g,0.15,0.5,0.6, -0.78,0.4,0, blue);
+  addPart(g,0.15,0.5,0.6, 0.78,0.4,0, blue);
+  return g;
+}
+
+for(let x=WORLD_MIN; x<=WORLD_MAX; x++){
+  for(let z=WORLD_MIN; z<=WORLD_MAX; z++){
+    const h = terrainHeight(x,z);
+    const biome = biomeAt(x,z);
+    setBlock(x,0,z,ID.bedrock);
+
+    for(let y=1; y<h-3; y++){
+      let id = ID.stone;
+      const r = Math.random();
+      if(r<0.004) id=ID.diamond;
+      else if(r<0.01) id=ID.emerald;
+      else if(r<0.02) id=ID.lapis;
+      else if(r<0.035) id=ID.redstone;
+      else if(r<0.055) id=ID.gold;
+      else if(r<0.09) id=ID.iron;
+      else if(r<0.16) id=ID.coal;
+      else if(r<0.19) id=ID.granite;
+      else if(r<0.21) id=ID.diorite;
+      else if(r<0.23) id=ID.andesite;
+      setBlock(x,y,z,id);
+    }
+    for(let y=Math.max(1,h-3); y<h; y++){
+      let id = ID.dirt;
+      if(biome==="desert") id=ID.sandstone;
+      if(biome==="snow") id=ID.stone;
+      if(biome==="nether") id=ID.netherrack;
+      setBlock(x,y,z,id);
+    }
+    let topId = ID.grass;
+    if(biome==="desert") topId=ID.sand;
+    if(biome==="snow") topId=ID.snow;
+    if(biome==="nether") topId=ID.soulsand;
+    if(h<=WATER_LEVEL+1 && biome==="grass") topId=ID.sand;
+    setBlock(x,h,z,topId);
+
+    if(h<WATER_LEVEL && biome!=="nether"){
+      for(let y=h+1;y<=WATER_LEVEL;y++) setBlock(x,y,z,ID.water);
+    }
+    if(biome==="grass" && topId===ID.grass && Math.random()<0.02 && Math.abs(z-(-15))>2){
+      const woodSet=[[ID.oak,ID.oakLeaf],[ID.birch,ID.birchLeaf],[ID.spruce,ID.spruceLeaf]][Math.floor(Math.random()*3)];
+      const trunkH=3+Math.floor(Math.random()*2);
+      for(let ty=1;ty<=trunkH;ty++) setBlock(x,h+ty,z,woodSet[0]);
+      for(let lx=-1;lx<=1;lx++) for(let lz=-1;lz<=1;lz++) for(let ly=0;ly<=1;ly++){
+        if(Math.abs(lx)===1 && Math.abs(lz)===1 && ly===1) continue;
+        setBlock(x+lx,h+trunkH+ly,z+lz,woodSet[1]);
+      }
+    }
+    if(biome==="desert" && topId===ID.sand && Math.random()<0.015){
+      const ch=1+Math.floor(Math.random()*3);
+      for(let cy=1;cy<=ch;cy++) setBlock(x,h+cy,z,ID.cactus);
+    }
+    if(biome==="grass" && topId===ID.grass && Math.random()<0.008) setBlock(x,h+1,z,ID.pumpkin);
+    if(biome==="grass" && topId===ID.grass && Math.random()<0.008) setBlock(x,h+1,z,ID.melon);
+  }
+}
+
+for(let x=-4;x<=4;x++) for(let z=16;z<=22;z++){
+  const h=terrainHeight(x,z);
+  if(x>=-1&&x<=1&&z>=18&&z<=20) setBlock(x,h+1,z,ID.lava);
+}
+for(let i=0;i<6;i++){
+  const gx=-3+Math.floor(Math.random()*7), gz=17+Math.floor(Math.random()*5);
+  const h=terrainHeight(gx,gz);
+  setBlock(gx,h+2+Math.floor(Math.random()*2),gz,ID.glowstone);
+}
+for(let dx=-4;dx<=4;dx++){ const h=terrainHeight(dx,16); setBlock(dx,h+1,16,ID.obsidian); }
+
+(function buildHouse(){
+  const bx=-6, bz=-4, h=terrainHeight(bx,bz), w=5,d=5,ht=4;
+  for(let x=0;x<w;x++) for(let z=0;z<d;z++) for(let y=1;y<=ht;y++){
+    const isWall=(x===0||x===w-1||z===0||z===d-1);
+    const isRoof=(y===ht), isDoor=(x===2&&z===0&&(y===1||y===2));
+    const isWindow=((x===2&&z===d-1)||(x===0&&z===2)||(x===w-1&&z===2))&&y===2;
+    if(isDoor) continue;
+    if(isRoof){ setBlock(bx+x,h+y,bz+z,ID.brick); continue; }
+    if(isWindow){ setBlock(bx+x,h+y,bz+z,ID.glass); continue; }
+    if(isWall){ setBlock(bx+x,h+y,bz+z,ID.woolW); continue; }
+  }
+  setBlock(bx+1,h+1,bz+1,ID.craft);
+  setBlock(bx+3,h+1,bz+1,ID.furnace);
+  setBlock(bx+1,h+1,bz+3,ID.bookshelf);
+  setBlock(bx+3,h+1,bz+3,ID.tnt);
+
+  // Mobiliario real dentro de la casa: mesa con dos sillas, alfombra y un cuadro
+  buildRug(bx+2, h+0.51, bz+2, ID.woolB);
+  buildTable(bx+2, h+0.5, bz+2);
+  buildChair(bx+2, h+0.5, bz+1.3, 0);
+  buildChair(bx+2, h+0.5, bz+2.7, Math.PI);
+  buildPainting(bx+2, h+1.6, bz+3.4, Math.PI, ID.woolY);
+
+  // Farolas y jardín junto a la puerta de entrada
+  buildLampPost(bx+1, terrainHeight(bx+1,bz-1)+0.5, bz-1);
+  buildLampPost(bx+3, terrainHeight(bx+3,bz-1)+0.5, bz-1);
+  buildFlowerPot(bx+0.5, terrainHeight(bx,bz-2)+0.5, bz-2);
+  buildFlowerPot(bx+3.5, terrainHeight(bx+4,bz-2)+0.5, bz-2);
+  buildBench(bx+2, terrainHeight(bx+2,bz-2)+0.5, bz-2, Math.PI);
+
+  // Terraza lateral con cama y sofá al aire libre
+  buildBed(bx+6.5, terrainHeight(bx+6,bz+1)+0.5, bz+1, Math.PI/2);
+  buildSofa(bx+6.5, terrainHeight(bx+6,bz+3)+0.5, bz+3, -Math.PI/2);
+})();
+
+// Farolas iluminando el paseo de la galería de bloques (para que se vea bien de noche)
+for(let gx=-24; gx<=25; gx+=8){
+  buildLampPost(gx, terrainHeight(gx,-16)+0.5, -16);
+}
+
+for(let x=-24;x<=-16;x++){ const h=terrainHeight(x,-20); setBlock(x,h+1,-20,ID.ice); }
+
+for(let i=0;i<BLOCK_TYPES.length;i++){
+  const gx=-24+i, gz=-15, h=terrainHeight(gx,gz);
+  setBlock(gx,h+1,gz,ID.cobble);
+  setBlock(gx,h+2,gz,BLOCK_TYPES[i].id);
+}
+
+for(const k of world.keys()){
+  const [x,y,z] = k.split(",").map(Number);
+  if(isExposed(x,y,z)) createMeshFor(x,y,z);
+}
+
+/* ==================== 6. JUGADOR / CONTROLES (sin Pointer Lock) ==================== */
+const spawnH = terrainHeight(0,-10);
+camera.position.set(0.5, spawnH+3, -10);
+
+/* --- Colisiones: el jugador es una caja (AABB) que no puede atravesar bloques sólidos --- */
+const PLAYER_HALF = 0.32;   // medio-ancho del jugador (x/z)
+const PLAYER_EYE  = 1.6;    // altura de los ojos respecto a los pies
+const PLAYER_HEAD = 0.2;    // margen por encima de los ojos
+
+function isSolid(id){
+  return id !== undefined && id !== ID.water; // el agua no bloquea el paso
+}
+function cellsOverlapping(x,y,z){
+  const feet = y - PLAYER_EYE, head = y + PLAYER_HEAD;
+  return {
+    xmin: Math.round(x-PLAYER_HALF), xmax: Math.round(x+PLAYER_HALF),
+    ymin: Math.round(feet),          ymax: Math.round(head),
+    zmin: Math.round(z-PLAYER_HALF), zmax: Math.round(z+PLAYER_HALF)
+  };
+}
+function collidesAt(x,y,z){
+  const c = cellsOverlapping(x,y,z);
+  for(let ix=c.xmin; ix<=c.xmax; ix++)
+    for(let iy=c.ymin; iy<=c.ymax; iy++)
+      for(let iz=c.zmin; iz<=c.zmax; iz++)
+        if(isSolid(world.get(key(ix,iy,iz)))) return true;
+  return false;
+}
+// Mueve al jugador eje por eje para poder deslizarse por las paredes sin atravesarlas
+function tryMove(dx,dy,dz){
+  const p = camera.position;
+  if(dx!==0){
+    const nx = p.x+dx;
+    if(!collidesAt(nx,p.y,p.z)) p.x = nx;
+  }
+  if(dz!==0){
+    const nz = p.z+dz;
+    if(!collidesAt(p.x,p.y,nz)) p.z = nz;
+  }
+  if(dy!==0){
+    const ny = p.y+dy;
+    if(!collidesAt(p.x,ny,p.z)) p.y = ny;
+  }
+}
+
+let yaw = Math.PI, pitch = 0;
+const keys = {};
+let playing = false;
+let invOpen = false;
+
+const canvas = renderer.domElement;
+
+function startGame(){
+  playing = true;
+  document.getElementById("overlay").classList.add("hiddenEl");
+  document.getElementById("hud").classList.remove("hiddenEl");
+  document.getElementById("selectedInfo").classList.remove("hiddenEl");
+  document.getElementById("crosshair").classList.remove("hiddenEl");
+  document.getElementById("timeIndicator").classList.remove("hiddenEl");
+}
+document.getElementById("startBtn").addEventListener("click", startGame);
+
+document.addEventListener("mousemove", (e) => {
+  if(!playing || invOpen) return;
+  yaw -= (e.movementX||0) * 0.0022;
+  pitch -= (e.movementY||0) * 0.0022;
+  pitch = Math.max(-Math.PI/2+0.01, Math.min(Math.PI/2-0.01, pitch));
+});
+
+document.addEventListener("keydown", e => {
+  keys[e.code] = true;
+  if(e.code === "KeyE"){ toggleInventory(); }
+  if(e.code === "Escape"){
+    if(invOpen){ toggleInventory(false); }
+    else { playing=false; document.getElementById("overlay").classList.remove("hiddenEl"); }
+  }
+});
+document.addEventListener("keyup", e => keys[e.code] = false);
+
+/* ---- Inventario (E) con 5 categorías ---- */
+let selectedIndex = 0;
+function currentBlockId(){ return BLOCK_TYPES[selectedIndex].id; }
+
+const invOverlay = document.getElementById("invOverlay");
+const invTabsEl = document.getElementById("invTabs");
+const invGridEl = document.getElementById("invGrid");
+let activeCat = 0;
+
+CATEGORIES.forEach((name,i) => {
+  const tab = document.createElement("div");
+  tab.className = "invTab" + (i===0 ? " active":"");
+  tab.textContent = name;
+  tab.addEventListener("click", () => { activeCat=i; renderInvGrid(); document.querySelectorAll(".invTab").forEach((t,ti)=>t.classList.toggle("active",ti===i)); });
+  invTabsEl.appendChild(tab);
+});
+
+function renderInvGrid(){
+  invGridEl.innerHTML = "";
+  BLOCK_TYPES.forEach((b, idx) => {
+    if(b.cat !== activeCat) return;
+    const item = document.createElement("div");
+    item.className = "invItem" + (idx===selectedIndex ? " selectedItem":"");
+    item.style.backgroundImage = `url(${getIconDataUrl(b.id)})`;
+    const label = document.createElement("span");
+    label.textContent = b.name;
+    item.appendChild(label);
+    item.addEventListener("click", () => {
+      selectedIndex = idx;
+      updateSelectedUI();
+      toggleInventory(false);
+    });
+    invGridEl.appendChild(item);
+  });
+}
+
+function toggleInventory(force){
+  invOpen = (force !== undefined) ? force : !invOpen;
+  invOverlay.classList.toggle("hiddenEl", !invOpen);
+  if(invOpen) renderInvGrid();
+}
+document.getElementById("invClose").addEventListener("click", () => toggleInventory(false));
+
+function updateSelectedUI(){
+  const b = BLOCK_TYPES[selectedIndex];
+  document.getElementById("selSwatch").style.backgroundImage = `url(${getIconDataUrl(b.id)})`;
+  document.getElementById("selName").textContent = b.name;
+}
+updateSelectedUI();
+
+document.addEventListener("wheel", (e) => {
+  if(!playing || invOpen) return;
+  selectedIndex = (selectedIndex + (e.deltaY>0?1:-1) + BLOCK_TYPES.length) % BLOCK_TYPES.length;
+  updateSelectedUI();
+});
+
+/* Romper / colocar bloques */
+const raycaster = new THREE.Raycaster();
+raycaster.far = 7;
+canvas.addEventListener("mousedown", (e) => {
+  if(!playing || invOpen) return;
+  raycaster.setFromCamera({x:0,y:0}, camera);
+  const hits = raycaster.intersectObjects(blockGroup.children);
+  if(hits.length===0) return;
+  const hit = hits[0];
+  const {x,y,z} = hit.object.userData;
+
+  if(e.button===0){
+    if(world.get(key(x,y,z)) === ID.bedrock) return;
+    removeBlock(x,y,z);
+  } else if(e.button===2){
+    const n = hit.face.normal;
+    const nx=x+Math.round(n.x), ny=y+Math.round(n.y), nz=z+Math.round(n.z);
+    const c = cellsOverlapping(camera.position.x, camera.position.y, camera.position.z);
+    const insidePlayer = nx>=c.xmin && nx<=c.xmax && ny>=c.ymin && ny<=c.ymax && nz>=c.zmin && nz<=c.zmax;
+    if(insidePlayer) return;
+    placeBlock(nx,ny,nz,currentBlockId());
+  }
+});
+canvas.addEventListener("contextmenu", e => e.preventDefault());
+
+/* ==================== 7. BUCLE PRINCIPAL ==================== */
+const clock = new THREE.Clock();
+function animate(){
+  requestAnimationFrame(animate);
+  const delta = Math.min(clock.getDelta(), 0.1);
+  updateDayNight(delta, camera.position);
+
+  camera.rotation.y = yaw;
+  camera.rotation.x = pitch;
+
+  if(playing && !invOpen){
+    const speed = (keys["ShiftLeft"]||keys["ShiftRight"] ? 4 : 8) * delta;
+    const forward = new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw)).multiplyScalar(-1);
+    const right = new THREE.Vector3(forward.z,0,-forward.x);
+    let move = new THREE.Vector3();
+    if(keys["KeyW"]) move.add(forward);
+    if(keys["KeyS"]) move.sub(forward);
+    if(keys["KeyD"]) move.add(right);
+    if(keys["KeyA"]) move.sub(right);
+    if(move.lengthSq()>0) move.normalize().multiplyScalar(speed);
+    let dy = 0;
+    if(keys["Space"]) dy += speed;
+    if(keys["ControlLeft"]||keys["KeyC"]) dy -= speed;
+    tryMove(move.x, dy, move.z);
+  }
+
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>

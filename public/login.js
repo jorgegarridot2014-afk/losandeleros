@@ -43,7 +43,7 @@ function mergeLocalAccountData(account){
 function saveCurrentUserLocalData(){
   if(!user || !user.ide) return;
   localStorage.setItem(LAST_ACTIVE_KEY, user.ide);
-  saveLocalAccountData(user.ide, { ide: user.ide, apodo: user.apodo, foto: normalizeFoto(user.foto), aceptado: user.aceptado === true, noMostrar: user.noMostrar === true });
+  saveLocalAccountData(user.ide, { ide: user.ide, apodo: user.apodo, foto: normalizeFoto(user.foto), aceptado: user.aceptado === true, noMostrar: user.noMostrar === true, points: user.points || 0, voxelcraftPurchased: user.voxelcraftPurchased === true });
 }
 let audio = null;
 let musicaActiva = false;
@@ -346,16 +346,52 @@ function cerrarOverlayMusica(){
   if(m){ m.classList.add("hidden"); m.style.display = "none"; }
 }
 function irVoxelcraft(){
-  document.getElementById("overlayVoxelcraft").classList.remove("hidden");
+  if (!user || !user.ide) return alert("Debes iniciar sesión para acceder a Voxelcraft.");
+  if (user.voxelcraftPurchased) {
+    closePopup();
+    window.location.href = "minecraft.html";
+    return;
+  }
+  const overlay = document.getElementById("overlayVoxelcraft");
+  const balance = document.getElementById("voxelcraftBalance");
+  if (balance) balance.textContent = `Tu saldo: ${(user.points || 0)} ⭐`;
+  if (overlay) overlay.classList.remove("hidden");
 }
 function cerrarOverlayVoxelcraft(){
   document.getElementById("overlayVoxelcraft").classList.add("hidden");
 }
-function irEpicTower(){
-  document.getElementById("overlayVoxelcraft").classList.remove("hidden");
+async function pagarVoxelcraft(){
+  if (!user || !user.ide) return;
+  if ((user.points || 0) < 500) {
+    alert("❌ No tienes suficientes puntos. Necesitas 500 ⭐.\nSaldo actual: " + (user.points || 0) + " ⭐");
+    return;
+  }
+  user.points -= 500;
+  user.voxelcraftPurchased = true;
+  saveCurrentUserLocalData();
+  showPopup("✅ Compra realizada: -500 ⭐\n¡Acceso a Voxelcraft desbloqueado!");
+  try {
+    const res = await fetch(`${API_BASE}/update/${encodeURIComponent(user.ide)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ points: user.points, voxelcraftPurchased: true })
+    });
+    if (res.ok) { const data = await res.json(); user.points = data.points; }
+  } catch(err) { console.error("Error actualizando compra:", err); }
+  document.getElementById("overlayVoxelcraft").classList.add("hidden");
+  setTimeout(() => { window.location.href = "minecraft.html"; }, 1500);
+}
+function jugarVoxelcraft(){
+  if (!user || !user.voxelcraftPurchased) return;
+  closePopup();
+  window.location.href = "minecraft.html";
 }
 function irAeronautica(){
   document.getElementById("overlayVoxelcraft").classList.remove("hidden");
+}
+function irTower(){
+  if (!user || !user.ide) return alert("Debes iniciar sesión para acceder a esta sala.");
+  window.location.href = "tower.html";
 }
 document.addEventListener("DOMContentLoaded", () => {
   const audio = document.getElementById("musica");
@@ -399,5 +435,11 @@ async function abrirRanking(){
 }
 function cerrarOverlayRanking(){
   document.getElementById("overlayRanking").classList.add("hidden");
+}
+function showPopup(text){
+  const popup = document.getElementById("popup");
+  const popupText = document.getElementById("popupText");
+  if (popupText) popupText.innerHTML = text + '<br><br><button onclick="closePopup()" style="margin-top: 10px; background: #222; color: #666;">Cerrar</button>';
+  if (popup) { popup.classList.remove("hidden"); popup.style.display = "flex"; }
 }
 function irAmigos(){ window.location.href = "amigos.html"; }

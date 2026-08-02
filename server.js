@@ -51,6 +51,7 @@ const UserSchema = new mongoose.Schema({
   geographyQuizPurchased: { type: Boolean, default: false },
   genialQuizPurchased: { type: Boolean, default: false },
   scratchRewardClaimed: { type: Boolean, default: false },
+  voxelcraftPurchased: { type: Boolean, default: false },
   missionGonjorDone: { type: Boolean, default: false },
   friends: [{ ide: String, apodo: String, foto: String, online: Boolean }],
   friendRequests: [{ ide: String, status: String }],
@@ -190,7 +191,7 @@ app.get("/user/:ide", async (req, res) => {
 app.put("/update/:ide", async (req,res)=>{
   try{
     const ide = String(req.params.ide || "").trim();
-    const { points, foto, aceptado, weeklyDone, missionCarlBriss1, missionCarlBriss2, englishQuizPurchased, historyQuizPurchased, geographyQuizPurchased, genialQuizPurchased, setup, personaje, controlType } = req.body;
+    const { points, foto, aceptado, weeklyDone, missionCarlBriss1, missionCarlBriss2, englishQuizPurchased, historyQuizPurchased, geographyQuizPurchased, genialQuizPurchased, voxelcraftPurchased, setup, personaje, controlType } = req.body;
 
     const updateFields = {};
     if (points !== undefined) updateFields.points = Number(points);
@@ -203,6 +204,7 @@ app.put("/update/:ide", async (req,res)=>{
     if (historyQuizPurchased !== undefined) updateFields.historyQuizPurchased = historyQuizPurchased === true;
     if (geographyQuizPurchased !== undefined) updateFields.geographyQuizPurchased = geographyQuizPurchased === true;
     if (genialQuizPurchased !== undefined) updateFields.genialQuizPurchased = genialQuizPurchased === true;
+    if (voxelcraftPurchased !== undefined) updateFields.voxelcraftPurchased = voxelcraftPurchased === true;
     if (setup !== undefined) updateFields.setup = setup === true;
     if (personaje && personaje.nombre && personaje.color) updateFields.personaje = personaje;
     if (controlType) updateFields.controlType = controlType;

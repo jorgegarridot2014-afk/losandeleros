@@ -19,24 +19,37 @@
     position: fixed; inset: 0; z-index: 40;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 28px; text-align: center;
-    background: linear-gradient(rgba(4,5,10,0.88), rgba(4,5,10,0.92)), url("fondo.png") center / cover no-repeat;
+    background: linear-gradient(rgba(4,5,10,0.88), rgba(4,5,10,0.92)), url("../playa.png") center / cover no-repeat;
+    padding: 20px;
+  }
+  #selector::before {
+    content: '';
+    position: absolute; inset: 0; z-index: -1;
+    background: radial-gradient(ellipse at 50% 40%, rgba(0,255,204,0.06) 0%, transparent 60%);
   }
   #selector.hidden { display: none; }
   #selector h1 {
     font-size: clamp(36px, 10vw, 82px); letter-spacing: 6px; color: #00ffcc;
-    text-shadow: 0 0 18px #00ffcc, 0 0 40px #00ffcc55;
+    text-shadow: 0 0 18px #00ffcc, 0 0 40px #00ffcc55, 0 0 80px #00ffcc22;
+    position: relative;
+  }
+  #selector h1::after {
+    content: '';
+    position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+    width: 60%; height: 2px;
+    background: linear-gradient(90deg, transparent, #00ffcc, transparent);
   }
   #selector h2 {
-    font-size: 18px; letter-spacing: 2px; color: #aab; font-weight: normal;
+    font-size: clamp(14px, 3.5vw, 18px); letter-spacing: 2px; color: #aab; font-weight: normal;
   }
 
   .personajes {
     display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; padding: 10px 20px;
-    max-width: 1000px;
+    max-width: 1000px; width: 95%;
   }
 
   .pj {
-    width: 150px; padding: 18px 12px; border-radius: 14px;
+    width: min(150px, 45vw); padding: 18px 12px; border-radius: 14px;
     background: rgba(10,16,28,0.65); border: 2px solid #00ffcc44;
     cursor: pointer; transition: 0.2s; display: flex; flex-direction: column;
     align-items: center; gap: 10px;
@@ -45,23 +58,51 @@
   .pj:hover { transform: translateY(-4px); border-color: #00ffccaa; background: rgba(0,255,204,0.08); }
   .pj.selected { border-color: #00ffcc; box-shadow: 0 0 22px #00ffcc66; background: rgba(0,255,204,0.12); }
 
-  .pj canvas { width: 90px; height: 90px; image-rendering: pixelated; }
-  .pj .nombre { font-weight: bold; font-size: 15px; letter-spacing: 1px; }
-  .pj .detalle { font-size: 11px; color: #789; }
+  .pj canvas { width: 90px; height: 90px; max-width: 100%; image-rendering: pixelated; }
+  .pj .nombre { font-weight: bold; font-size: clamp(12px, 2.5vw, 15px); letter-spacing: 1px; }
+  .pj .detalle { font-size: clamp(10px, 2vw, 11px); color: #789; }
 
   .btn {
-    background: #00ffcc; color: #02121a; border: none; padding: 12px 28px;
-    border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; letter-spacing: 1px;
-    box-shadow: 0 0 18px #00ffcc55; transition: 0.15s;
+    background: #00ffcc; color: #02121a; border: none; padding: 12px clamp(20px, 5vw, 28px);
+    border-radius: 12px; font-size: clamp(14px, 3.5vw, 16px); font-weight: bold; cursor: pointer; letter-spacing: 1px;
+    box-shadow: 0 0 20px #00ffcc44, 0 4px 15px rgba(0,0,0,0.3); transition: 0.2s;
+    position: relative; overflow: hidden;
   }
-  .btn:hover { background: #4dffdb; transform: translateY(-2px); }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .btn:hover { background: #4dffdb; transform: translateY(-3px); box-shadow: 0 0 30px #00ffcc66, 0 6px 20px rgba(0,0,0,0.4); }
+  .btn:hover::before { opacity: 1; }
+  .btn:active { transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+  .btn:disabled:hover { transform: none; box-shadow: none; }
 
   #confirmarBtn {
     position: fixed;
     top: 18px;
     right: 18px;
     z-index: 50;
+    padding: 10px clamp(16px, 4vw, 24px);
+    font-size: clamp(13px, 3vw, 16px);
+  }
+
+  .ctrl-opt {
+    width: min(130px, 40vw);
+    padding: 16px; border-radius: 14px;
+    background: rgba(10,16,28,0.65); border: 2px solid #00ffcc44;
+    cursor: pointer; transition: 0.2s; display: flex; flex-direction: column;
+    align-items: center; gap: 10px;
+  }
+
+  @media (max-width: 600px) {
+    .personajes { gap: 16px; padding: 10px; }
+    .pj { width: min(140px, 44vw); padding: 14px 10px; }
+    .pj canvas { width: 70px; height: 70px; }
+    #confirmarBtn { top: 10px; right: 10px; }
+    #selector { gap: 20px; padding: 15px; }
   }
 </style>
 </head>
@@ -74,12 +115,12 @@
   <div id="controlSection" style="display:none; flex-direction:column; align-items:center; gap:18px; margin-top:10px;">
     <h2 style="font-size:16px; letter-spacing:2px; color:#aab; font-weight:normal;">¿Cómo quieres controlar el personaje?</h2>
     <div style="display:flex; gap:22px; justify-content:center; flex-wrap:wrap;">
-      <div class="ctrl-opt" data-type="teclado" onclick="selectControl('teclado')" style="width:130px; padding:16px; border-radius:14px; background:rgba(10,16,28,0.65); border:2px solid #00ffcc44; cursor:pointer; transition:0.2s; display:flex; flex-direction:column; align-items:center; gap:10px;">
+      <div class="ctrl-opt" data-type="teclado" onclick="selectControl('teclado')">
         <div style="font-size:38px;">⌨️</div>
         <div style="font-weight:bold; font-size:14px; letter-spacing:1px;">Teclado</div>
         <div style="font-size:11px; color:#789;">WASD + Ratón</div>
       </div>
-      <div class="ctrl-opt" data-type="joystick" onclick="selectControl('joystick')" style="width:130px; padding:16px; border-radius:14px; background:rgba(10,16,28,0.65); border:2px solid #00ffcc44; cursor:pointer; transition:0.2s; display:flex; flex-direction:column; align-items:center; gap:10px;">
+      <div class="ctrl-opt" data-type="joystick" onclick="selectControl('joystick')">
         <div style="font-size:38px;">🎮</div>
         <div style="font-weight:bold; font-size:14px; letter-spacing:1px;">Joystick</div>
         <div style="font-size:11px; color:#789;">Controles táctiles</div>
@@ -87,7 +128,8 @@
     </div>
   </div>
 </div>
-<button class="btn" id="confirmarBtn" disabled onclick="confirmarSeleccion()" style="position:fixed; top:18px; right:18px; z-index:50;">Confirmar selección</button>
+
+<button class="btn" id="confirmarBtn" disabled onclick="confirmarSeleccion()">Confirmar selección</button>
 
 <script>
 const CHARACTERS = [
@@ -225,7 +267,7 @@ async function confirmarSeleccion() {
     const data = await res.json();
     saveAccount(data);
     localStorage.setItem("andeleros_last_active", data.ide);
-    window.location.href = "juego.html?skipMenu=true";
+    window.location.href = "menu.html";
   } catch (err) {
     console.error(err);
     alert("Error al guardar personaje");

@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amigos - Los Andeleros</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+    background: url('playa.png') no-repeat center center fixed;
+    background-size: cover;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .card {
+    width: 95%;
+    max-width: 700px;
+    min-height: 70vh;
+    background: rgba(0, 0, 0, 0.75);
+    border-radius: 24px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(249, 115, 22, 0.3);
+    border: 1px solid rgba(249, 115, 22, 0.4);
+  }
+
+  h2 {
+    margin: 0 0 25px;
+    color: #fb923c;
+    font-size: 32px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 16px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 18px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    transition: 0.3s;
+  }
+
+  .tab.active {
+    background: linear-gradient(90deg, #f59e0b, #f97316, #fb923c);
+    color: white;
+  }
+
+  .tab:hover {
+    transform: scale(1.05);
+  }
+
+  input {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    outline: none;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+    font-size: 16px;
+  }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    background: linear-gradient(90deg, #f59e0b, #f97316, #fb923c);
+    color: white;
+    transition: 0.3s;
+    margin-bottom: 10px;
+    font-size: 16px;
+  }
+
+  button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(251, 146, 60, 0.5);
+  }
+
+  .btn-inicio {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 8px 16px;
+    border-radius: 12px;
+    color: white;
+    cursor: pointer;
+    z-index: 100;
+    text-decoration: none;
+    font-size: 14px;
+  }
+
+  .btn-inicio:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  .content {
+    margin-top: 10px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    text-align: left;
+    min-height: 200px;
+  }
+
+  .user-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .user-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.02);
+  }
+
+  .user-card img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid #f97316;
+  }
+
+  .user-card .info {
+    flex: 1;
+  }
+
+  .user-card .apodo {
+    font-weight: bold;
+    font-size: 16px;
+    color: #fff;
+  }
+
+  .user-card .estado {
+    font-size: 12px;
+    color: #aaa;
+  }
+
+  .online-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background: #22c55e;
+    border-radius: 50%;
+    margin-left: 8px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 10000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .overlay.active {
+    display: flex;
+  }
+
+  .overlay-card {
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid #f97316;
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 0 40px rgba(249, 115, 22, 0.4);
+  }
+
+  .overlay-card h3 {
+    color: #fb923c;
+    margin-bottom: 15px;
+  }
+
+  .overlay-card p {
+    margin-bottom: 20px;
+    color: #ddd;
+  }
+
+  .overlay-buttons {
+    display: flex;
+    gap: 10px;
+  }
+
+  .overlay-buttons button {
+    flex: 1;
+  }
+
+  .btn-secondary {
+    background: #374151 !important;
+  }
+
+  .request-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    margin-bottom: 10px;
+  }
+
+  .request-card img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid #f97316;
+  }
+
+  .request-info {
+    flex: 1;
+    text-align: left;
+  }
+
+  .request-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .request-actions button {
+    width: auto;
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+  <a href="index.html" class="btn-inicio">Inicio</a>
+
+  <div class="card">
+    <h2>👥 Amigos</h2>
+
+    <div class="tabs">
+      <button class="tab active" onclick="mostrarTab('amigos')">Amigos</button>
+      <button class="tab" onclick="mostrarTab('buscar')">Buscar amigos</button>
+      <button class="tab" onclick="mostrarTab('solicitudes')">Solicitudes</button>
+    </div>
+
+    <div id="tab-amigos" class="content">
+      <p style="text-align: center; opacity: 0.7;">No tienes amigos todavía.</p>
+    </div>
+
+    <div id="tab-buscar" class="content" style="display:none;">
+      <input type="text" placeholder="Buscar por apodo..." id="buscarInput" oninput="buscarAmigos()">
+      <div id="resultadosBusqueda"></div>
+    </div>
+
+    <div id="tab-solicitudes" class="content" style="display:none;">
+      <p style="text-align: center; opacity: 0.7;">No tienes solicitudes pendientes.</p>
+      <div id="listaSolicitudes"></div>
+    </div>
+  </div>
+
+  <!-- Overlay solicitud -->
+  <div id="overlaySolicitud" class="overlay">
+    <div class="overlay-card">
+      <h3>Enviar solicitud</h3>
+      <p id="solicitudTexto">¿Quieres enviar una solicitud a este usuario?</p>
+      <div class="overlay-buttons">
+        <button class="btn-secondary" onclick="cerrarOverlaySolicitud()">Cancelar</button>
+        <button onclick="confirmarSolicitud()">Enviar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "";
+    let currentUser = null;
+    let selectedUser = null;
+    let onlineUsers = [];
+
+    // Obtener usuario actual desde localStorage
+    async function getCurrentUser() {
+      const lastIde = localStorage.getItem("andeleros_last_active");
+      if (!lastIde) return null;
+      try {
+        const res = await fetch(`${API_BASE}/user/${encodeURIComponent(lastIde)}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data;
+      } catch (err) {
+        console.error("Error obteniendo usuario:", err);
+        return null;
+      }
+    }
+
+    // Cargar usuario actual al iniciar
+    async function init() {
+      currentUser = await getCurrentUser();
+      if (!currentUser) {
+        window.location.href = "index.html";
+        return;
+      }
+      cargarAmigos();
+      cargarSolicitudes();
+      escucharOnline();
+    }
+
+    // Buscar amigos
+    async function buscarAmigos() {
+      const query = document.getElementById("buscarInput").value.trim();
+      const resultados = document.getElementById("resultadosBusqueda");
+      
+      if (!query) {
+        resultados.innerHTML = "";
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/friends/search?q=${encodeURIComponent(query)}`);
+        const users = await res.json();
+        
+        resultados.innerHTML = "";
+        users.forEach(user => {
+          if (user.ide === (currentUser && currentUser.ide)) return;
+          const card = document.createElement("div");
+          card.className = "user-card";
+          const isOnline = onlineUsers.includes(user.ide);
+          card.innerHTML = `
+            <img src="${user.foto || 'pfp/p1.svg'}" alt="foto">
+            <div class="info">
+              <div class="apodo">${user.apodo} ${isOnline ? '<span class="online-dot"></span>' : ''}</div>
+              <div class="estado">${isOnline ? 'En línea' : 'Desconectado'}</div>
+            </div>
+          `;
+          card.onclick = () => abrirSolicitud(user);
+          resultados.appendChild(card);
+        });
+      } catch (err) {
+        console.error("Error buscando:", err);
+      }
+    }
+
+    // Abrir overlay de solicitud
+    function abrirSolicitud(user) {
+      selectedUser = user;
+      document.getElementById("solicitudTexto").innerText = `¿Enviar solicitud a ${user.apodo}?`;
+      document.getElementById("overlaySolicitud").classList.add("active");
+    }
+
+    function cerrarOverlaySolicitud() {
+      document.getElementById("overlaySolicitud").classList.remove("active");
+      selectedUser = null;
+    }
+
+    // Confirmar solicitud
+    async function confirmarSolicitud() {
+      if (!selectedUser || !currentUser) {
+        alert("No hay sesión activa. Vuelve a iniciar sesión.");
+        return;
+      }
+      
+      try {
+        const res = await fetch(`${API_BASE}/friends/request`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ from: currentUser.ide, to: selectedUser.ide })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          alert("Error enviando solicitud: " + (data.error || "Error desconocido"));
+          return;
+        }
+        alert("Solicitud enviada correctamente a " + selectedUser.apodo);
+        cerrarOverlaySolicitud();
+      } catch (err) {
+        console.error("Error detallado:", err);
+        alert("Error de conexión al enviar solicitud. Revisa que el servidor esté corriendo.");
+      }
+    }
+
+    // Cargar amigos
+    async function cargarAmigos() {
+      if (!currentUser) return;
+      try {
+        const res = await fetch(`${API_BASE}/friends/${encodeURIComponent(currentUser.ide)}`);
+        const amigos = await res.json();
+        const container = document.getElementById("tab-amigos");
+        
+        if (amigos.length === 0) {
+          container.innerHTML = "<p style='text-align: center; opacity: 0.7;'>No tienes amigos todavía.</p>";
+          return;
+        }
+
+        container.innerHTML = "";
+        amigos.forEach(amigo => {
+          const isOnline = onlineUsers.includes(amigo.ide);
+          const card = document.createElement("div");
+          card.className = "user-card";
+          card.innerHTML = `
+            <img src="${amigo.foto || 'pfp/p1.svg'}" alt="foto">
+            <div class="info">
+              <div class="apodo">${amigo.apodo} ${isOnline ? '<span class="online-dot"></span>' : ''}</div>
+              <div class="estado">${isOnline ? 'En línea' : 'Desconectado'}</div>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error("Error cargando amigos:", err);
+      }
+    }
+
+    // Cargar solicitudes
+    async function cargarSolicitudes() {
+      if (!currentUser) return;
+      try {
+        const res = await fetch(`${API_BASE}/friends/requests/${encodeURIComponent(currentUser.ide)}`);
+        const solicitudes = await res.json();
+        const container = document.getElementById("listaSolicitudes");
+        const emptyMsg = document.querySelector("#tab-solicitudes p");
+        
+        if (solicitudes.length === 0) {
+          if (emptyMsg) emptyMsg.style.display = "block";
+          container.innerHTML = "";
+          return;
+        }
+
+        if (emptyMsg) emptyMsg.style.display = "none";
+        container.innerHTML = "";
+        solicitudes.forEach(sol => {
+          const card = document.createElement("div");
+          card.className = "request-card";
+          card.innerHTML = `
+            <img src="${sol.foto || 'pfp/p1.svg'}" alt="foto">
+            <div class="request-info">
+              <div class="apodo">${sol.apodo}</div>
+              <div class="estado">Quiere ser tu amigo</div>
+            </div>
+            <div class="request-actions">
+              <button onclick="aceptarSolicitud('${sol.ide}')">Aceptar</button>
+              <button class="btn-secondary" onclick="rechazarSolicitud('${sol.ide}')">Rechazar</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error("Error cargando solicitudes:", err);
+      }
+    }
+
+    // Aceptar solicitud
+    async function aceptarSolicitud(friendId) {
+      if (!currentUser) return;
+      try {
+        const res = await fetch(`${API_BASE}/friends/accept`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ me: currentUser.ide, friendId })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          alert(data.error || "Error aceptando solicitud");
+          return;
+        }
+        cargarSolicitudes();
+        cargarAmigos();
+      } catch (err) {
+        console.error("Error:", err);
+        alert("Error aceptando solicitud");
+      }
+    }
+
+    // Rechazar solicitud
+    async function rechazarSolicitud(friendId) {
+      if (!currentUser) return;
+      try {
+        const res = await fetch(`${API_BASE}/friends/reject`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ me: currentUser.ide, friendId })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          alert(data.error || "Error rechazando solicitud");
+          return;
+        }
+        cargarSolicitudes();
+      } catch (err) {
+        console.error("Error:", err);
+        alert("Error rechazando solicitud");
+      }
+    }
+
+    // Escuchar usuarios en línea y solicitudes
+    function escucharOnline() {
+      if (typeof io !== "undefined") {
+        const socket = io();
+        socket.on("online-users", (users) => {
+          onlineUsers = users;
+          cargarAmigos();
+          buscarAmigos();
+        });
+        socket.on("friend-request", (data) => {
+          if (currentUser && data.from !== currentUser.ide) {
+            cargarSolicitudes();
+            alert(`📨 ${data.apodo} te ha enviado una solicitud de amistad`);
+          }
+        });
+      }
+    }
+
+    // Mostrar pestaña
+    function mostrarTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.content').forEach(c => c.style.display = 'none');
+
+      if (tab === 'amigos') {
+        document.querySelectorAll('.tab')[0].classList.add('active');
+        document.getElementById('tab-amigos').style.display = 'block';
+        cargarAmigos();
+      } else if (tab === 'buscar') {
+        document.querySelectorAll('.tab')[1].classList.add('active');
+        document.getElementById('tab-buscar').style.display = 'block';
+      } else if (tab === 'solicitudes') {
+        document.querySelectorAll('.tab')[2].classList.add('active');
+        document.getElementById('tab-solicitudes').style.display = 'block';
+        cargarSolicitudes();
+      }
+    }
+
+    // Iniciar
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,2505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Vallesol — Libro Mayor del Pueblo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EDE3C8;
+    --paper-dark:#E2D5B0;
+    --paper-light:#F6EFDB;
+    --ink:#2B2A22;
+    --ink-soft:#5A5442;
+    --forest:#3F5B3A;
+    --forest-dark:#324a2e;
+    --soil:#6B4A34;
+    --soil-dark:#4E3526;
+    --gold:#B5891C;
+    --roof:#A15C34;
+    --danger:#8B3A3A;
+    --water:#5C82A6;
+    --water-1:#6f9cbb;
+    --water-2:#5C82A6;
+    --water-3:#4C7797;
+    --forest-1:#3f5c39;
+    --forest-2:#2d4527;
+    --forest-3:#23361e;
+    --stone:#8C8672;
+    --iron:#4A4A48;
+    --line:#c9bb92;
+  }
+  *{box-sizing:border-box;}
+
+  /* ===== Pantalla de presentación del estudio ===== */
+  .splash-screen{
+    position:fixed; inset:0; z-index:500;
+    background:#1b1a16;
+    display:flex; align-items:center; justify-content:center;
+    opacity:1;
+    transition:opacity 0.8s ease;
+  }
+  .splash-screen.fade-out{ opacity:0; pointer-events:none; }
+  .splash-inner{ text-align:center; opacity:0; animation:splashReveal 3s ease forwards; }
+  .splash-mark{
+    font-size:26px; color:#B5891C;
+    margin-bottom:10px;
+    animation:splashSpin 3s ease forwards;
+  }
+  .splash-name{
+    font-family:'Fraunces', serif; font-weight:700;
+    font-size:clamp(26px,5vw,44px);
+    letter-spacing:6px;
+    color:#F6EFDB;
+  }
+  .splash-sub{
+    margin-top:10px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px; letter-spacing:3px; text-transform:uppercase;
+    color:#B5891C;
+  }
+  @keyframes splashReveal{
+    0%{ opacity:0; transform:translateY(8px) scale(0.97); }
+    20%{ opacity:1; transform:translateY(0) scale(1); }
+    80%{ opacity:1; transform:translateY(0) scale(1); }
+    100%{ opacity:0; transform:translateY(-4px) scale(1.01); }
+  }
+  @keyframes splashSpin{
+    0%{ transform:rotate(0deg) scale(0.6); opacity:0; }
+    20%{ transform:rotate(180deg) scale(1); opacity:1; }
+    80%{ transform:rotate(180deg) scale(1); opacity:1; }
+    100%{ transform:rotate(360deg) scale(1); opacity:0; }
+  }
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.015) 0px, rgba(0,0,0,0.015) 1px, transparent 1px, transparent 26px);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    padding:18px;
+    padding-bottom:90px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  /* ===== Header / Ledger ===== */
+  header{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:20px;
+    border-bottom:3px double var(--ink);
+    padding-bottom:12px;
+    margin-bottom:14px;
+    flex-wrap:wrap;
+  }
+  .title-block{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .title-block h1{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:clamp(28px,4vw,42px);
+    margin:0;
+    letter-spacing:0.5px;
+  }
+  .title-block .sub{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    font-family:'JetBrains Mono', monospace;
+    width:100%;
+  }
+  .seal{width:46px;height:46px;flex-shrink:0;}
+  .home-btn{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:0.5px;
+    color:var(--ink);
+    text-decoration:none;
+    background:var(--paper-light);
+    border:1.5px solid var(--line);
+    border-radius:6px;
+    padding:8px 14px;
+    white-space:nowrap;
+    align-self:flex-start;
+    transition:background 0.15s ease, border-color 0.15s ease;
+  }
+  .home-btn:hover{ background:var(--paper-dark); border-color:var(--gold); }
+
+  .ledger{
+    display:flex;
+    gap:0;
+    background:var(--paper-dark);
+    border:1px solid var(--line);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .ledger .cell{
+    padding:8px 14px;
+    text-align:center;
+    border-right:1px solid var(--line);
+    min-width:78px;
+  }
+  .ledger .cell:last-child{border-right:none;}
+  .ledger .cell .lbl{
+    font-size:10px;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:2px;
+  }
+  .ledger .cell .val{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    font-size:19px;
+  }
+  .ledger .cell .cap{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    color:var(--ink-soft);
+  }
+  .ledger .cell.warn .val{color:var(--danger);}
+
+  /* ===== Layout ===== */
+  .board{
+    display:grid;
+    grid-template-columns:1fr 300px;
+    gap:18px;
+  }
+  @media (max-width:820px){ .board{grid-template-columns:1fr;} }
+
+  .panel{
+    background:var(--paper-dark);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:14px;
+  }
+  .panel h2{
+    font-family:'Fraunces', serif;
+    font-size:15px;
+    margin:0 0 10px 0;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+
+  /* ===== Map ===== */
+  .map-toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .daycount{font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--ink-soft);}
+  .speedbtns button{
+    font-family:'Inter', sans-serif;
+    font-size:12px;
+    border:1px solid var(--ink);
+    background:var(--paper);
+    color:var(--ink);
+    padding:5px 10px;
+    border-radius:4px;
+    cursor:pointer;
+    margin-left:4px;
+  }
+  .speedbtns button.active{background:var(--forest); color:var(--paper); border-color:var(--forest-dark);}
+
+  .grid-wrap{ position:relative; }
+  .villager-layer{ position:absolute; inset:8px; pointer-events:none; z-index:5; }
+  .villager{
+    position:absolute;
+    width:16px; height:16px;
+    transition:left 1.3s ease-in-out, top 1.3s ease-in-out;
+    will-change:left, top;
+  }
+  .villager-flip{ width:100%; height:100%; transform:translate(-50%,-50%); }
+  .villager-bob{
+    width:100%; height:100%;
+    animation:villagerBob 0.5s ease-in-out infinite alternate;
+    filter:drop-shadow(0 1.5px 1px rgba(0,0,0,0.3));
+  }
+  .villager svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .villager .frameA{ animation:walkFlip 0.5s steps(1) infinite; }
+  .villager .frameB{ animation:walkFlip 0.5s steps(1) infinite reverse; }
+  @keyframes walkFlip{ 0%,49%{ opacity:1; } 50%,100%{ opacity:0; } }
+  @keyframes villagerBob{ from{ transform:translateY(0); } to{ transform:translateY(-1.6px); } }
+
+  /* Subtle grain over the whole map for a more natural, less flat-vector feel */
+  /* Day / night cycle: a tinted overlay that loops continuously over the whole map */
+  .daynight-overlay{
+    position:absolute; inset:8px;
+    border-radius:4px;
+    pointer-events:none;
+    z-index:6;
+    animation:dayNightCycle 48s linear infinite;
+  }
+  @keyframes dayNightCycle{
+    0%{   background:rgba(18,26,54,0.42); }
+    8%{   background:rgba(255,176,120,0.22); }
+    22%{  background:rgba(255,255,255,0); }
+    55%{  background:rgba(255,255,255,0); }
+    72%{  background:rgba(255,140,80,0.24); }
+    86%{  background:rgba(35,38,86,0.34); }
+    100%{ background:rgba(18,26,54,0.42); }
+  }
+  .dn-icon{ position:relative; width:15px; height:15px; display:inline-block; vertical-align:middle; margin-left:6px; top:-1px; }
+  .dn-icon svg{ position:absolute; top:0; left:0; width:100%; height:100%; }
+  .dn-icon .sun-ic{ animation:sunFade 48s linear infinite; }
+  .dn-icon .moon-ic{ animation:moonFade 48s linear infinite; }
+  @keyframes sunFade{ 0%{opacity:0;} 10%{opacity:1;} 55%{opacity:1;} 70%{opacity:0;} 100%{opacity:0;} }
+  @keyframes moonFade{ 0%{opacity:1;} 10%{opacity:0;} 70%{opacity:0;} 84%{opacity:1;} 100%{opacity:1;} }
+
+  .grid-wrap::after{
+    content:'';
+    position:absolute; inset:8px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity:0.05;
+    mix-blend-mode:multiply;
+    pointer-events:none;
+    z-index:4;
+    border-radius:4px;
+  }
+
+  /* Gentle wave drift on water */
+  .wave-path{ animation:waveDrift 3.4s ease-in-out infinite; transform-origin:center; }
+  .wave-path.w2{ animation-delay:0.4s; }
+  .wave-path.w3{ animation-delay:0.8s; }
+  @keyframes waveDrift{ 0%,100%{ transform:translateX(0); } 50%{ transform:translateX(1.5px); } }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(8, 1fr);
+    gap:0px;
+    background:var(--soil);
+    padding:8px;
+    border-radius:6px;
+    border:1px solid var(--line);
+    transition:gap 0.15s ease;
+  }
+  .grid.building-mode{ gap:4px; }
+  .tile{
+    aspect-ratio:1/1;
+    background-image:
+      radial-gradient(circle at 28% 24%, rgba(255,255,255,0.16), transparent 55%),
+      radial-gradient(circle at 76% 82%, rgba(0,0,0,0.14), transparent 62%),
+      linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%);
+    border-radius:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    position:relative;
+    transition:transform 0.08s ease, filter 0.15s ease;
+    border:1px solid rgba(0,0,0,0.15);
+  }
+  .tile svg{width:72%; height:72%; filter:drop-shadow(0 2px 1.5px rgba(0,0,0,0.22));}
+  .tile svg.road-icon{width:100%; height:100%; filter:none;}
+  .tile svg.doodad-icon{width:34%; height:34%; opacity:0.5; filter:none;}
+  .tile:hover{filter:brightness(1.12); transform:translateY(-1px);}
+  .tile.selected{outline:2px solid var(--gold); outline-offset:-2px;}
+  .tile.armed-hover:hover{outline:2px dashed var(--gold); outline-offset:-2px;}
+  .tile.tile-water{
+    background:radial-gradient(circle at 30% 25%, var(--water-1) 0%, var(--water-2) 45%, var(--water-3) 100%);
+    cursor:default;
+  }
+  .tile.tile-forest{
+    background:radial-gradient(circle at 32% 22%, var(--forest-1) 0%, var(--forest-2) 55%, var(--forest-3) 100%);
+    cursor:default;
+  }
+  .tile.tile-fire{
+    background:radial-gradient(circle at 40% 60%, #ffce6b 0%, #e8601c 45%, #8a2e0f 100%);
+    cursor:pointer;
+  }
+  .tile.tile-burnt{
+    background:radial-gradient(circle at 32% 22%, #3a352f 0%, #232019 55%, #17140f 100%);
+    cursor:default;
+  }
+  .fire-flame{ animation:fireFlicker 0.55s ease-in-out infinite alternate; }
+  @keyframes fireFlicker{
+    0%{ transform:scale(1) rotate(-2deg); }
+    100%{ transform:scale(1.08) rotate(2deg); }
+  }
+  .mill-blades{ animation:millSpin 3s linear infinite; }
+  @keyframes millSpin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+
+  .inspector{margin-top:0; font-size:13px;}
+  .inspector .empty{color:var(--ink-soft); font-style:italic; font-size:12.5px;}
+  .inspector .headrow{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+  .inspector .headrow svg{width:30px; height:30px;}
+  .inspector .headrow .nm{font-weight:700; font-family:'Fraunces',serif; font-size:15px;}
+  .inspector .row{display:flex; justify-content:space-between; margin-bottom:4px; font-family:'JetBrains Mono', monospace; font-size:12px;}
+  .demolish-btn{
+    margin-top:8px; width:100%;
+    background:var(--danger); color:var(--paper);
+    border:none; border-radius:4px; padding:7px;
+    font-family:'Inter'; font-size:12.5px; cursor:pointer;
+  }
+  .demolish-btn:hover{filter:brightness(1.1);}
+
+  .tile.unstaffed svg{ filter:grayscale(0.55) opacity(0.65) drop-shadow(0 2px 1.5px rgba(0,0,0,0.22)); }
+  .unstaffed-badge{
+    position:absolute; top:2px; right:2px;
+    width:14px; height:14px; border-radius:50%;
+    background:var(--danger); color:#fff;
+    font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 1px 2px rgba(0,0,0,0.4);
+  }
+
+  /* Gentle idle animation so building sites feel alive */
+  .tile svg:not(.road-icon):not(.doodad-icon):not(.static-icon):not(.anim-chop):not(.anim-flap):not(.anim-swing):not(.anim-glow):not(.anim-pulse):not(.anim-sway):not(.anim-wobble){
+    animation:siteBreathe 3s ease-in-out infinite;
+    transform-origin:center;
+  }
+  @keyframes siteBreathe{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.035); } }
+
+  /* Building-specific idle animations for extra life */
+  .tile svg.anim-chop{ animation:chopAnim 1.3s ease-in-out infinite; transform-origin:30% 55%; }
+  @keyframes chopAnim{ 0%,100%{ transform:rotate(0deg); } 18%{ transform:rotate(-11deg); } 36%{ transform:rotate(7deg); } 55%{ transform:rotate(0deg); } }
+
+  .tile svg.anim-flap{ animation:flapAnim 2.2s ease-in-out infinite; transform-origin:center; }
+  @keyframes flapAnim{ 0%,100%{ transform:skewX(0deg); } 50%{ transform:skewX(4deg); } }
+
+  .tile svg.anim-swing{ animation:swingAnim 2.1s ease-in-out infinite; transform-origin:50% 30%; }
+  @keyframes swingAnim{ 0%,100%{ transform:rotate(0deg); } 50%{ transform:rotate(9deg); } }
+
+  .tile svg.anim-glow{ animation:glowAnim 2.6s ease-in-out infinite; transform-origin:center; }
+  @keyframes glowAnim{
+    0%,100%{ transform:scale(1); filter:drop-shadow(0 2px 1.5px rgba(0,0,0,0.22)); }
+    50%{ transform:scale(1.02); filter:drop-shadow(0 0 7px rgba(197,167,60,0.6)); }
+  }
+
+  .tile svg.anim-pulse{ animation:pulseAnim 1.9s ease-in-out infinite; transform-origin:center; }
+  @keyframes pulseAnim{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.07); } }
+
+  .tile svg.anim-sway{ animation:swayAnim 2.7s ease-in-out infinite; transform-origin:50% 85%; }
+  @keyframes swayAnim{ 0%,100%{ transform:rotate(0deg); } 50%{ transform:rotate(3.2deg); } }
+
+  .tile svg.anim-wobble{ animation:wobbleAnim 2.3s ease-in-out infinite; transform-origin:center; }
+  @keyframes wobbleAnim{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-1.8px); } }
+
+  .smoke{ position:absolute; top:6%; left:56%; width:6px; height:6px; pointer-events:none; z-index:2; }
+  .smoke span{
+    position:absolute; bottom:0; left:0; width:5px; height:5px; border-radius:50%;
+    background:rgba(255,255,255,0.6);
+    animation:smokeRise 2.6s ease-in infinite;
+  }
+  .smoke span:nth-child(2){ animation-delay:0.9s; left:2px; }
+  .smoke span:nth-child(3){ animation-delay:1.8s; left:-2px; }
+  @keyframes smokeRise{
+    0%{ transform:translateY(0) scale(0.6); opacity:0.7; }
+    80%{ opacity:0.15; }
+    100%{ transform:translateY(-15px) scale(1.3); opacity:0; }
+  }
+
+  .sparkle{
+    position:absolute; top:36%; left:45%; width:5px; height:5px;
+    background:#fff; border-radius:50%; pointer-events:none; z-index:2;
+    box-shadow:0 0 4px 2px rgba(255,255,255,0.7);
+    animation:sparkleTwinkle 1.8s ease-in-out infinite;
+  }
+  @keyframes sparkleTwinkle{ 0%,100%{ opacity:0.15; transform:scale(0.6); } 50%{ opacity:1; transform:scale(1.15); } }
+
+  /* ===== Toast notifications (appear briefly, then vanish) ===== */
+  .toast-container{
+    position:fixed;
+    top:16px; right:18px;
+    z-index:150;
+    display:flex; flex-direction:column; gap:8px;
+    width:280px;
+    pointer-events:none;
+  }
+  .toast{
+    background:var(--paper-light);
+    border:1px solid var(--line);
+    border-left:4px solid var(--forest);
+    border-radius:6px;
+    padding:9px 12px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    color:var(--ink);
+    box-shadow:0 6px 18px rgba(0,0,0,0.25);
+    opacity:0;
+    transform:translateX(14px);
+    transition:opacity 0.25s ease, transform 0.25s ease;
+  }
+  .toast.show{ opacity:1; transform:translateX(0); }
+  .toast.bad{ border-left-color:var(--danger); }
+  .toast .d{ color:var(--ink-soft); font-weight:700; margin-right:5px; }
+
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px;}
+
+  /* ===== Configuración inicial: nombre del pueblo y bioma ===== */
+  .setup-field{ text-align:left; margin:14px 0; }
+  .setup-field label{
+    display:block; font-family:'JetBrains Mono', monospace; font-size:11px;
+    letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  #villageNameInput{
+    width:100%; box-sizing:border-box;
+    font-family:'Fraunces', serif; font-size:16px; color:var(--ink);
+    background:var(--paper-light); border:1.5px solid var(--line);
+    border-radius:6px; padding:9px 12px;
+  }
+  #villageNameInput:focus{ outline:none; border-color:var(--gold); }
+  .biome-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; }
+  .biome-opt{
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    padding:8px 4px; border-radius:8px; border:1.5px solid var(--line);
+    cursor:pointer; background:var(--paper-light);
+    transition:border-color 0.15s ease, transform 0.15s ease;
+  }
+  .biome-opt:hover{ transform:translateY(-1px); }
+  .biome-opt.active{ border-color:var(--gold); box-shadow:0 0 0 2px rgba(181,137,28,0.25); }
+  .biome-opt .bname{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-soft); }
+  .swatch{ width:100%; height:32px; border-radius:6px; }
+  .swatch-pradera{ background:radial-gradient(circle at 30% 30%, #8a8f42, #557a4d 70%); }
+  .swatch-nieve{ background:radial-gradient(circle at 30% 30%, #f0f7fb, #bcdcee 70%); }
+  .swatch-islas{ background:radial-gradient(circle at 30% 30%, #7fb583, #5a93ab 70%); }
+  .swatch-desierto{ background:radial-gradient(circle at 30% 30%, #ecd08c, #d9b871 70%); }
+
+  /* ===== Ciudades guardadas ===== */
+  .saved-cities{ margin-top:18px; padding-top:14px; border-top:1.5px dashed var(--line); text-align:left; }
+  .saved-title{
+    font-family:'JetBrains Mono', monospace; font-size:11px;
+    letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft);
+    margin-bottom:8px;
+  }
+  .saved-list{ display:flex; flex-direction:column; gap:6px; max-height:160px; overflow-y:auto; }
+  .saved-item{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:9px 12px; border-radius:6px; border:1.5px solid var(--line);
+    background:var(--paper-light); cursor:pointer;
+    transition:border-color 0.15s ease, transform 0.15s ease;
+  }
+  .saved-item:hover{ border-color:var(--gold); transform:translateY(-1px); }
+  .saved-item .snm{ font-family:'Fraunces', serif; font-weight:700; font-size:15px; color:var(--ink); }
+  .saved-item .smeta{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-soft); white-space:nowrap; }
+
+  /* ===== Alerta destacada de desastre natural ===== */
+  .disaster-alert-container{
+    position:fixed;
+    top:18px; left:50%;
+    transform:translateX(-50%);
+    z-index:300;
+    display:flex; flex-direction:column; gap:10px;
+    align-items:center;
+    pointer-events:none;
+    width:min(92vw, 420px);
+  }
+  .disaster-alert{
+    display:flex; align-items:center; gap:12px;
+    width:100%;
+    background:var(--danger);
+    color:var(--paper-light);
+    border:2px solid #5e2424;
+    border-radius:8px;
+    padding:14px 16px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.4);
+    opacity:0;
+    transform:translateY(-18px) scale(0.96);
+    transition:opacity 0.3s ease, transform 0.3s ease;
+    pointer-events:auto;
+    animation:alertPulse 1.1s ease-in-out 3;
+  }
+  .disaster-alert.show{ opacity:1; transform:translateY(0) scale(1); }
+  .disaster-alert .icon{width:28px; height:28px; flex-shrink:0;}
+  .disaster-alert .txt{ line-height:1.35; flex:1; }
+  .disaster-alert .txt .tag{
+    font-family:'JetBrains Mono', monospace; font-size:10.5px;
+    letter-spacing:1.4px; text-transform:uppercase; opacity:0.85;
+    margin-bottom:2px;
+  }
+  .disaster-alert .txt .msg{ font-family:'Fraunces', serif; font-weight:600; font-size:14px; }
+  .disaster-alert .close{
+    background:none; border:none; color:var(--paper-light);
+    font-size:16px; cursor:pointer; opacity:0.8; padding:0 2px; line-height:1;
+  }
+  .disaster-alert .close:hover{ opacity:1; }
+  @keyframes alertPulse{
+    0%,100%{ box-shadow:0 10px 30px rgba(0,0,0,0.4); }
+    50%{ box-shadow:0 10px 40px rgba(139,58,58,0.75); }
+  }
+  .disaster-alert.save-alert{
+    background:var(--forest);
+    border-color:#1c2c17;
+    animation:none;
+  }
+  .disaster-alert.save-alert .tag{ opacity:0.9; }
+
+  /* ===== Animaciones de desastres naturales sobre el mapa ===== */
+  .disaster-fx-layer{
+    position:absolute; inset:8px;
+    border-radius:4px;
+    pointer-events:none;
+    overflow:hidden;
+    z-index:9;
+  }
+
+  /* -- Tormenta: lluvia + oscurecimiento + relámpagos -- */
+  .storm-dark{
+    position:absolute; inset:0;
+    background:rgba(28,38,58,0.32);
+    animation:stormDarken 0.6s ease-out;
+  }
+  @keyframes stormDarken{ 0%{opacity:0;} 100%{opacity:1;} }
+  .storm-flash{
+    position:absolute; inset:0;
+    background:rgba(230,240,255,0.65);
+    opacity:0;
+    animation:stormFlash 3.6s ease-in-out infinite;
+  }
+  @keyframes stormFlash{
+    0%,88%,100%{opacity:0;}
+    89%{opacity:0.85;} 90.5%{opacity:0.05;} 92%{opacity:0.6;} 93.5%{opacity:0;}
+  }
+  .raindrop{
+    position:absolute; top:-8%;
+    width:2px; height:18px; border-radius:2px;
+    background:linear-gradient(to bottom, rgba(220,235,245,0) 0%, rgba(220,235,245,0.9) 100%);
+    animation-name:rainFall; animation-timing-function:linear; animation-iteration-count:infinite;
+  }
+  @keyframes rainFall{
+    0%{ transform:translateY(-8%) translateX(0); opacity:0.95; }
+    100%{ transform:translateY(720%) translateX(-14px); opacity:0.35; }
+  }
+  .puddle-ripple{
+    position:absolute; bottom:6%;
+    width:10px; height:4px; border-radius:50%;
+    border:1.4px solid rgba(220,235,245,0.6);
+    animation:rippleGrow 1.6s ease-out infinite;
+  }
+  @keyframes rippleGrow{
+    0%{ transform:scale(0.2); opacity:0.9; }
+    100%{ transform:scale(1.8); opacity:0; }
+  }
+
+  /* -- Incendio: rayo que cae del cielo -- */
+  .lightning-flash{
+    position:absolute; inset:0;
+    background:#fff;
+    opacity:0;
+    animation:lightningStrike 0.85s ease-out;
+  }
+  @keyframes lightningStrike{
+    0%{opacity:0;} 6%{opacity:0.95;} 14%{opacity:0.05;} 20%{opacity:0.75;} 30%{opacity:0;} 100%{opacity:0;}
+  }
+  .lightning-bolt{
+    position:absolute; top:-4%;
+    filter:drop-shadow(0 0 8px rgba(255,246,216,0.9));
+    animation:boltFlicker 0.85s ease-out;
+    transform-origin:top center;
+  }
+  @keyframes boltFlicker{
+    0%{ opacity:0; }
+    8%{ opacity:1; }
+    22%{ opacity:0.3; }
+    30%{ opacity:1; }
+    55%{ opacity:0; }
+    100%{ opacity:0; }
+  }
+  .ember{
+    position:absolute; bottom:20%;
+    width:4px; height:4px; border-radius:50%;
+    background:radial-gradient(circle, #ffce6b 0%, #e8601c 70%, transparent 100%);
+    animation:emberRise ease-out infinite;
+  }
+  @keyframes emberRise{
+    0%{ transform:translateY(0) translateX(0); opacity:0.9; }
+    100%{ transform:translateY(-160%) translateX(12px); opacity:0; }
+  }
+
+  /* -- Sequía: calima, sol intenso, polvo -- */
+  .drought-haze{
+    position:absolute; inset:0;
+    background:radial-gradient(circle at 50% 25%, rgba(255,190,90,0.4), rgba(200,140,40,0.16) 55%, transparent 100%);
+    animation:hazePulse 2.6s ease-in-out infinite;
+  }
+  @keyframes hazePulse{ 0%,100%{opacity:0.55;} 50%{opacity:1;} }
+  .heat-shimmer{
+    position:absolute; inset:0;
+    background:repeating-linear-gradient(0deg, rgba(255,220,150,0.05) 0px, rgba(255,220,150,0.05) 3px, transparent 3px, transparent 6px);
+    animation:shimmerDrift 0.4s linear infinite;
+  }
+  @keyframes shimmerDrift{ 0%{ transform:translateY(0); } 100%{ transform:translateY(6px); } }
+  .dust-particle{
+    position:absolute; bottom:0;
+    width:4px; height:4px; border-radius:50%;
+    background:rgba(230,200,140,0.75);
+    animation-name:dustDrift; animation-timing-function:ease-out; animation-iteration-count:infinite;
+  }
+  @keyframes dustDrift{
+    0%{ transform:translate(0,0); opacity:0; }
+    12%{ opacity:0.85; }
+    100%{ transform:translate(30px,-140%); opacity:0; }
+  }
+
+  /* -- Osos: viñeta roja pulsante + huellas -- */
+  .bear-vignette{
+    position:absolute; inset:0;
+    box-shadow:inset 0 0 55px 18px rgba(139,58,58,0.6);
+    animation:vignettePulse 1.3s ease-in-out infinite;
+  }
+  @keyframes vignettePulse{ 0%,100%{ opacity:0.45; } 50%{ opacity:1; } }
+  .paw-print{
+    position:absolute;
+    opacity:0;
+    animation:pawFade 2.2s ease-in-out forwards;
+  }
+  @keyframes pawFade{
+    0%{ opacity:0; transform:scale(0.5) rotate(var(--rot,0deg)); }
+    18%{ opacity:0.85; transform:scale(1) rotate(var(--rot,0deg)); }
+    82%{ opacity:0.6; transform:scale(1) rotate(var(--rot,0deg)); }
+    100%{ opacity:0; transform:scale(1.1) rotate(var(--rot,0deg)); }
+  }
+
+  /* ===== Start / Play menu ===== */
+  .start-menu{
+    position:fixed; inset:0; z-index:200;
+    background:rgba(43,42,34,0.88);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+  }
+  .start-card{
+    background:var(--paper-light);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:38px 44px;
+    text-align:center;
+    max-width:380px;
+    box-shadow:0 12px 40px rgba(0,0,0,0.4);
+  }
+  .start-card .seal2{width:56px; height:56px; margin:0 auto 10px;}
+  .start-card h1{
+    font-family:'Fraunces', serif; font-weight:700;
+    font-size:32px; margin:0 0 4px 0;
+  }
+  .start-card .tag{
+    font-family:'JetBrains Mono', monospace; font-size:11px;
+    letter-spacing:1.5px; text-transform:uppercase; color:var(--ink-soft);
+    margin-bottom:18px;
+  }
+  .start-card p{font-size:13px; color:var(--ink-soft); line-height:1.6; margin:0 0 22px 0;}
+  .play-btn{
+    background:var(--forest); color:var(--paper-light);
+    border:1px solid var(--forest-dark); border-radius:30px;
+    padding:13px 38px; font-family:'Fraunces', serif; font-weight:600;
+    font-size:16px; cursor:pointer; letter-spacing:0.5px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.25);
+  }
+  .play-btn:hover{filter:brightness(1.08);}
+
+  /* ===== Build toggle + overlay (bottom-left) ===== */
+  .build-toggle-btn{
+    position:fixed;
+    left:18px; bottom:18px;
+    z-index:50;
+    display:flex; align-items:center; gap:8px;
+    background:var(--forest);
+    color:var(--paper-light);
+    border:1px solid var(--forest-dark);
+    padding:12px 18px;
+    border-radius:30px;
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:15px;
+    cursor:pointer;
+    box-shadow:0 4px 10px rgba(0,0,0,0.25);
+  }
+  .build-toggle-btn:hover{filter:brightness(1.08);}
+  .build-toggle-btn svg{width:20px; height:20px;}
+
+  .build-overlay{
+    position:fixed;
+    left:18px; bottom:78px;
+    z-index:60;
+    width:290px;
+    max-height:400px;
+    background:var(--paper-light);
+    border:1px solid var(--line);
+    border-radius:10px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.3);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  .overlay-head{
+    display:flex; align-items:center; gap:6px;
+    padding:9px 10px;
+    background:var(--paper-dark);
+    border-bottom:1px solid var(--line);
+    cursor:grab;
+    touch-action:none;
+  }
+  .overlay-head:active{ cursor:grabbing; }
+  .overlay-head .drag-dots{ letter-spacing:-1px; color:var(--ink-soft); font-size:13px; }
+  .overlay-head .ov-back-btn{
+    border:1px solid var(--ink); background:var(--paper); color:var(--ink);
+    border-radius:4px; padding:3px 8px; font-size:11px; cursor:pointer;
+    font-family:'Inter', sans-serif;
+  }
+  .overlay-title{
+    flex:1; font-family:'Fraunces', serif; font-weight:600; font-size:13.5px;
+    color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .ov-close-btn{
+    border:none; background:transparent; color:var(--ink-soft);
+    font-size:15px; cursor:pointer; line-height:1; padding:2px 4px;
+  }
+  .ov-close-btn:hover{color:var(--danger);}
+  .overlay-body{padding:10px; overflow-y:auto;}
+  .overlay-hint{
+    font-size:11.5px; font-style:italic; color:var(--ink-soft);
+    margin-bottom:9px; text-align:center;
+  }
+
+  .menu-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:7px;
+  }
+  .menu-btn{
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    background:var(--paper); border:1px solid var(--line); border-radius:6px;
+    padding:9px 4px; cursor:pointer; font-family:'Inter', sans-serif;
+  }
+  .menu-btn:hover{border-color:var(--gold);}
+  .menu-btn svg{width:24px; height:24px;}
+  .menu-btn .mname{font-size:10px; text-align:center; line-height:1.2;}
+
+  .buildlist{display:flex; flex-direction:column; gap:6px;}
+  .bopt{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:7px 8px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:5px;
+    cursor:pointer;
+    text-align:left;
+    font-family:'Inter', sans-serif;
+    color:var(--ink);
+  }
+  .bopt:hover{border-color:var(--ink);}
+  .bopt.active{border-color:var(--gold); background:#F4E9C8; box-shadow:0 0 0 1px var(--gold) inset;}
+  .bopt.disabled{opacity:0.42; cursor:not-allowed;}
+  .bopt .ic{width:28px; height:28px; flex-shrink:0;}
+  .bopt .meta{flex:1; min-width:0;}
+  .bopt .meta .nm{font-weight:600; font-size:12.5px;}
+  .bopt .meta .cost{font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-soft);}
+  .bopt .meta .fx{font-size:10px; color:var(--ink-soft); font-style:italic;}
+</style>
+</head>
+<body>
+<div class="splash-screen" id="splashScreen">
+  <div class="splash-inner">
+    <div class="splash-mark">◆</div>
+    <div class="splash-name">GONJOR STUDIOS</div>
+    <div class="splash-sub">presenta</div>
+  </div>
+</div>
+<div class="wrap">
+
+  <header>
+    <div class="title-block">
+      <svg class="seal" viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="21" fill="#B5891C" opacity="0.15"/>
+        <circle cx="24" cy="24" r="21" stroke="#B5891C" stroke-width="1.5"/>
+        <path d="M24 12 L27 20 L35.5 20.5 L28.8 26 L31 34.5 L24 29.5 L17 34.5 L19.2 26 L12.5 20.5 L21 20 Z" fill="#B5891C" opacity="0.75"/>
+      </svg>
+      <h1 id="villageTitle">Vallesol</h1>
+      <div class="sub">Libro mayor del pueblo</div>
+    </div>
+    <div class="ledger" id="ledger"></div>
+    <a class="home-btn" href="/index.html" title="Volver al inicio">⌂ Inicio</a>
+  </header>
+
+  <div class="board">
+    <div class="panel">
+      <div class="map-toolbar">
+        <div class="daycount"><span id="daycount">Día 1</span><span class="dn-icon"><svg class="sun-ic" viewBox="0 0 20 20"><circle cx="10" cy="10" r="4.5" fill="#E8B84B"/><g stroke="#E8B84B" stroke-width="1.4" stroke-linecap="round"><path d="M10 1 L10 3.4 M10 16.6 L10 19 M1 10 L3.4 10 M16.6 10 L19 10 M4 4 L5.7 5.7 M14.3 14.3 L16 16 M4 16 L5.7 14.3 M14.3 5.7 L16 4"/></g></svg><svg class="moon-ic" viewBox="0 0 20 20"><path d="M14 3 A8 8 0 1 0 14 17 A6.2 6.2 0 0 1 14 3 Z" fill="#DCE6F2"/></svg></span></div>
+        <div class="speedbtns" id="speedbtns">
+          <button data-speed="0">Pausa</button>
+          <button data-speed="240000" class="active">Normal (4 min/día)</button>
+          <button data-speed="60000">Rápido (1 min/día)</button>
+        </div>
+      </div>
+      <div class="grid-wrap" id="gridWrap">
+        <div class="grid" id="grid"></div>
+        <div class="villager-layer" id="villagerLayer"></div>
+        <div class="daynight-overlay"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <h2>Parcela</h2>
+        <div class="inspector" id="inspector">
+          <div class="empty" id="inspector-body">Selecciona una parcela para ver sus detalles.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="log" style="display:none"></div>
+  <div class="toast-container" id="toastContainer"></div>
+  <div class="disaster-alert-container" id="disasterAlertContainer"></div>
+
+</div>
+
+<button class="build-toggle-btn" id="buildToggleBtn">
+  <svg viewBox="0 0 24 24" fill="none"><path d="M3 21h18M5 21V10l7-6 7 6v11M9 21v-6h6v6" stroke="#F6EFDB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  Construcciones
+</button>
+
+<div class="build-overlay" id="buildOverlay" style="display:none">
+  <div class="overlay-head" id="overlayHead">
+    <span class="drag-dots">⠿</span>
+    <button class="ov-back-btn" id="overlayBack" style="display:none">← Atrás</button>
+    <div class="overlay-title" id="overlayTitle">Menús de construcción</div>
+    <button class="ov-close-btn" id="overlayClose">✕</button>
+  </div>
+  <div class="overlay-body" id="overlayBody"></div>
+</div>
+
+<div class="start-menu" id="startMenu">
+  <div class="start-card">
+    <svg class="seal2" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="21" fill="#B5891C" opacity="0.15"/>
+      <circle cx="24" cy="24" r="21" stroke="#B5891C" stroke-width="1.5"/>
+      <path d="M24 12 L27 20 L35.5 20.5 L28.8 26 L31 34.5 L24 29.5 L17 34.5 L19.2 26 L12.5 20.5 L21 20 Z" fill="#B5891C" opacity="0.75"/>
+    </svg>
+    <h1>Vallesol</h1>
+    <div class="tag">Un pueblo por construir</div>
+    <p>Gestiona el oro, la madera, la comida y el ánimo de tu pueblo. Construye casas, granjas y caminos, y observa cómo crece tu pueblo día a día.</p>
+
+    <div class="setup-field">
+      <label for="villageNameInput">Nombre del pueblo</label>
+      <input type="text" id="villageNameInput" placeholder="Vallesol" maxlength="24">
+    </div>
+
+    <div class="setup-field">
+      <label>Bioma</label>
+      <div class="biome-grid" id="biomeGrid">
+        <div class="biome-opt active" data-biome="pradera">
+          <div class="swatch swatch-pradera"></div>
+          <div class="bname">Pradera</div>
+        </div>
+        <div class="biome-opt" data-biome="nieve">
+          <div class="swatch swatch-nieve"></div>
+          <div class="bname">Nieve</div>
+        </div>
+        <div class="biome-opt" data-biome="islas">
+          <div class="swatch swatch-islas"></div>
+          <div class="bname">Islas</div>
+        </div>
+        <div class="biome-opt" data-biome="desierto">
+          <div class="swatch swatch-desierto"></div>
+          <div class="bname">Desierto</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="play-btn" id="playBtn">▶ Jugar</button>
+
+    <div class="saved-cities" id="savedCities" style="display:none;">
+      <div class="saved-title">Tus ciudades</div>
+      <div class="saved-list" id="savedList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ ICONS (illustrated SVG art, no external images needed) ============
+const ICONS = {
+  house: `<svg viewBox="0 0 40 40"><rect x="9" y="19" width="22" height="15" fill="#8a6248"/><path d="M6 20 L20 7 L34 20 Z" fill="#A15C34"/><rect x="17" y="24" width="6" height="10" fill="#4E3526"/><rect x="23" y="22" width="4" height="4" fill="#F6EFDB" opacity="0.8"/></svg>`,
+  farm: `<svg viewBox="0 0 40 40"><rect x="6" y="18" width="20" height="15" fill="#A15C34"/><path d="M4 19 L16 9 L28 19 Z" fill="#8B3A3A"/><rect x="12" y="24" width="8" height="9" fill="#F6EFDB"/><circle cx="31" cy="27" r="6" fill="#8C8672"/><rect x="29.5" y="17" width="3" height="10" fill="#8C8672"/><circle cx="9" cy="35" r="1.6" fill="#B5891C"/><circle cx="15" cy="36" r="1.6" fill="#B5891C"/><circle cx="21" cy="35" r="1.6" fill="#B5891C"/></svg>`,
+  lumber: `<svg viewBox="0 0 40 40"><circle cx="12" cy="27" r="6" fill="#8a6248"/><circle cx="12" cy="27" r="2.4" fill="#6B4A34"/><circle cx="21" cy="27" r="6" fill="#7a5540"/><circle cx="21" cy="27" r="2.4" fill="#6B4A34"/><circle cx="30" cy="27" r="6" fill="#8a6248"/><circle cx="30" cy="27" r="2.4" fill="#6B4A34"/><rect x="10" y="7" width="3" height="16" fill="#4A4A48" transform="rotate(28 11 15)"/><path d="M18 8 L27 8 L24 15 L18 15 Z" fill="#8C8672" transform="rotate(28 22 11)"/></svg>`,
+  market: `<svg viewBox="0 0 40 40"><rect x="7" y="20" width="26" height="13" fill="#F6EFDB" stroke="#c9bb92"/><path d="M5 20 L11 9 L17 20 Z" fill="#A15C34"/><path d="M17 20 L23 9 L29 20 Z" fill="#F6EFDB" stroke="#c9bb92"/><path d="M23 20 L29 9 L35 20 Z" fill="#A15C34"/><rect x="12" y="24" width="5" height="9" fill="#6B4A34"/><rect x="22" y="24" width="6" height="6" fill="#B5891C" opacity="0.8"/></svg>`,
+  warehouse: `<svg viewBox="0 0 40 40"><rect x="7" y="10" width="26" height="24" fill="#8a6248"/><path d="M9 34 L9 10 M31 34 L31 10" stroke="#4E3526" stroke-width="1.5"/><path d="M7 22 L33 22" stroke="#4E3526" stroke-width="2"/><path d="M9 12 L31 32 M31 12 L9 32" stroke="#4E3526" stroke-width="1.2" opacity="0.5"/><circle cx="20" cy="22" r="3" fill="#B5891C"/></svg>`,
+  mansion: `<svg viewBox="0 0 40 40"><rect x="6" y="18" width="28" height="16" fill="#8a6248"/><path d="M4 19 L14 8 L24 19 Z" fill="#A15C34"/><path d="M16 19 L26 8 L36 19 Z" fill="#A15C34"/><rect x="9" y="23" width="3" height="11" fill="#F6EFDB"/><rect x="16" y="23" width="4" height="11" fill="#4E3526"/><rect x="23" y="23" width="3" height="11" fill="#F6EFDB"/><rect x="29" y="23" width="3" height="11" fill="#F6EFDB"/></svg>`,
+  fishery: `<svg viewBox="0 0 40 40"><rect x="4" y="24" width="32" height="4" fill="#8a6248"/><rect x="4" y="30" width="32" height="4" fill="#8a6248"/><path d="M6 18 Q13 14 20 18 T34 18" stroke="#5C82A6" stroke-width="2.5" fill="none"/><path d="M4 22 Q11 18 18 22 T32 22" stroke="#5C82A6" stroke-width="2" fill="none" opacity="0.7"/><path d="M23 10 L31 14 L23 18 Q26 14 23 10 Z" fill="#B5891C"/></svg>`,
+  orchard: `<svg viewBox="0 0 40 40"><circle cx="11" cy="15" r="7" fill="#3F5B3A"/><rect x="9.5" y="19" width="3" height="11" fill="#6B4A34"/><circle cx="24" cy="11" r="8" fill="#4a6b44"/><rect x="22.5" y="16" width="3" height="14" fill="#6B4A34"/><circle cx="33" cy="18" r="6" fill="#3F5B3A"/><rect x="31.5" y="22" width="3" height="8" fill="#6B4A34"/></svg>`,
+  mine: `<svg viewBox="0 0 40 40"><path d="M3 33 L14 10 L26 33 Z" fill="#8C8672"/><path d="M14 33 L24 14 L34 33 Z" fill="#726d5c"/><path d="M14 33 L18 24 L23 33 Z" fill="#2B2A22"/><path d="M17.5 30 L19 26.5 L20.5 30 L19 28.5 Z" fill="#B5891C"/></svg>`,
+  forge: `<svg viewBox="0 0 40 40"><rect x="12" y="15" width="16" height="6" fill="#4A4A48"/><path d="M10 21 L30 21 L27 25 L13 25 Z" fill="#4A4A48"/><rect x="17" y="25" width="6" height="8" fill="#333"/><rect x="12" y="33" width="16" height="2.5" fill="#2B2A22"/><rect x="6" y="9" width="3" height="14" fill="#B5891C" transform="rotate(-35 7.5 16)"/></svg>`,
+  tavern: `<svg viewBox="0 0 40 40"><rect x="10" y="14" width="16" height="19" rx="2" fill="#A15C34"/><path d="M26 18 Q34 18 32 26 Q30 30 26 28" stroke="#4E3526" stroke-width="2.5" fill="none"/><ellipse cx="18" cy="14" rx="8" ry="3" fill="#F6EFDB"/></svg>`,
+  well: `<svg viewBox="0 0 40 40"><ellipse cx="20" cy="28" rx="12" ry="5" fill="#726d5c"/><rect x="8" y="20" width="24" height="10" fill="#8C8672"/><ellipse cx="20" cy="20" rx="12" ry="4" fill="#5C82A6"/><rect x="7" y="8" width="3" height="14" fill="#6B4A34"/><rect x="30" y="8" width="3" height="14" fill="#6B4A34"/><path d="M5 9 L20 3 L35 9" stroke="#A15C34" stroke-width="3" fill="none"/></svg>`,
+  temple: `<svg viewBox="0 0 40 40"><path d="M4 15 L20 6 L36 15 Z" fill="#F6EFDB" stroke="#c9bb92"/><rect x="7" y="16" width="3" height="14" fill="#8C8672"/><rect x="14" y="16" width="3" height="14" fill="#8C8672"/><rect x="21" y="16" width="3" height="14" fill="#8C8672"/><rect x="28" y="16" width="3" height="14" fill="#8C8672"/><rect x="4" y="30" width="32" height="4" fill="#726d5c"/></svg>`,
+  plaza: `<svg viewBox="0 0 40 40"><ellipse cx="20" cy="30" rx="16" ry="5" fill="#8C8672"/><circle cx="20" cy="22" r="9" fill="#5C82A6" opacity="0.85"/><circle cx="20" cy="22" r="4" fill="#F6EFDB"/><path d="M20 13 L20 8 M12 16 L8 12 M28 16 L32 12" stroke="#5C82A6" stroke-width="2" stroke-linecap="round"/></svg>`,
+  tower: `<svg viewBox="0 0 40 40"><rect x="13" y="12" width="14" height="22" fill="#8C8672"/><rect x="11" y="8" width="4" height="5" fill="#726d5c"/><rect x="18" y="8" width="4" height="5" fill="#726d5c"/><rect x="25" y="8" width="4" height="5" fill="#726d5c"/><rect x="17" y="20" width="6" height="14" fill="#4E3526"/><path d="M30 12 L30 4 L36 8 Z" fill="#8B3A3A"/><rect x="29.3" y="4" width="1.4" height="16" fill="#4E3526"/></svg>`,
+  road: `<svg viewBox="0 0 40 40"><rect x="3" y="3" width="34" height="34" rx="3" fill="#726d5c"/><rect x="18" y="5" width="4" height="6" fill="#F6EFDB" opacity="0.9"/><rect x="18" y="17" width="4" height="6" fill="#F6EFDB" opacity="0.9"/><rect x="18" y="29" width="4" height="6" fill="#F6EFDB" opacity="0.9"/></svg>`,
+  bakery: `<svg viewBox="0 0 40 40"><rect x="8" y="16" width="24" height="16" rx="2" fill="#A15C34"/><rect x="11" y="9" width="18" height="8" rx="2" fill="#8a6248"/><ellipse cx="15" cy="24.5" rx="4" ry="2.6" fill="#D9A879"/><ellipse cx="24" cy="26" rx="4.6" ry="2.8" fill="#C68642"/><rect x="17" y="11" width="6" height="4" fill="#F6EFDB" opacity="0.7"/></svg>`,
+  tannery: `<svg viewBox="0 0 40 40"><rect x="6" y="7" width="4" height="26" fill="#6B4A34"/><rect x="30" y="7" width="4" height="26" fill="#6B4A34"/><path d="M10 9 Q20 5 30 9 L28 31 Q20 35 12 31 Z" fill="#C68642" opacity="0.85"/><path d="M14 12 L26 12 M13 18 L27 18 M13 24 L27 24" stroke="#6B4A34" stroke-width="1" opacity="0.4"/></svg>`,
+  port: `<svg viewBox="0 0 40 40"><rect x="4" y="27" width="32" height="4" fill="#8a6248"/><rect x="4" y="33" width="32" height="3" fill="#6B4A34"/><path d="M14 27 L14 12 L26 12 L26 27" stroke="#4A4A48" stroke-width="2" fill="none"/><path d="M14 12 L7 21 L26 21 Z" fill="#F6EFDB" opacity="0.9"/><rect x="20" y="21" width="6" height="6" fill="#B5891C"/></svg>`,
+  school: `<svg viewBox="0 0 40 40"><rect x="8" y="18" width="24" height="15" fill="#8a6248"/><path d="M6 19 L20 8 L34 19 Z" fill="#A15C34"/><rect x="17.3" y="10" width="3" height="9" fill="#F6EFDB"/><rect x="14" y="24" width="12" height="9" fill="#4E3526"/><rect x="17" y="26" width="6" height="4" fill="#F6EFDB" opacity="0.7"/></svg>`,
+  windmill: `<svg viewBox="0 0 40 40"><rect x="17" y="15" width="6" height="19" fill="#8C8672"/><path d="M12 30 L28 30 L26 34 L14 34 Z" fill="#726d5c"/><g class="mill-blades" style="transform-origin:20px 15px;"><rect x="19" y="-1" width="2" height="15" fill="#F6EFDB"/><rect x="19" y="-1" width="2" height="15" fill="#F6EFDB" transform="rotate(90 20 15)"/><rect x="19" y="-1" width="2" height="15" fill="#F6EFDB" transform="rotate(180 20 15)"/><rect x="19" y="-1" width="2" height="15" fill="#F6EFDB" transform="rotate(270 20 15)"/></g></svg>`,
+  biblioteca: `<svg viewBox="0 0 40 40"><rect x="8" y="14" width="24" height="19" fill="#8a6248"/><path d="M6 15 L20 5 L34 15 Z" fill="#4E3526"/><rect x="12" y="18" width="3" height="12" fill="#B5891C"/><rect x="17" y="18" width="3" height="12" fill="#8B3A3A"/><rect x="22" y="18" width="3" height="12" fill="#3F5B3A"/><rect x="27" y="18" width="3" height="12" fill="#5C82A6"/></svg>`,
+  acueducto: `<svg viewBox="0 0 40 40"><rect x="2" y="20" width="36" height="5" fill="#8C8672"/><path d="M6 32 L6 20 M14 32 L14 20 M22 32 L22 20 M30 32 L30 20" stroke="#726d5c" stroke-width="3"/><path d="M4 32 Q10 26 16 32" stroke="#726d5c" stroke-width="3" fill="none"/><path d="M18 32 Q24 26 30 32" stroke="#726d5c" stroke-width="3" fill="none"/><path d="M4 17 Q12 12 20 17 T36 17" stroke="#5C82A6" stroke-width="2.4" fill="none" opacity="0.8"/></svg>`,
+  establo: `<svg viewBox="0 0 40 40"><rect x="8" y="19" width="24" height="14" fill="#A15C34"/><path d="M6 20 L20 9 L34 20 Z" fill="#8B3A3A"/><rect x="16" y="24" width="8" height="9" fill="#4E3526"/><path d="M6 20 L20 9 L20 20 Z" fill="#F6EFDB" opacity="0.25"/><circle cx="30" cy="27" r="2.4" fill="#6B4A34"/></svg>`,
+  vinedo: `<svg viewBox="0 0 40 40"><path d="M4 33 L4 12 M14 33 L14 12 M24 33 L24 12 M34 33 L34 12" stroke="#6B4A34" stroke-width="2"/><path d="M2 15 L36 15 M2 24 L36 24" stroke="#6B4A34" stroke-width="1.6"/><circle cx="9" cy="18" r="2.2" fill="#5a3d6b"/><circle cx="9" cy="22" r="2.2" fill="#5a3d6b"/><circle cx="19" cy="18" r="2.2" fill="#5a3d6b"/><circle cx="19" cy="22" r="2.2" fill="#5a3d6b"/><circle cx="29" cy="18" r="2.2" fill="#5a3d6b"/><circle cx="29" cy="22" r="2.2" fill="#5a3d6b"/></svg>`,
+  ayuntamiento: `<svg viewBox="0 0 40 40"><rect x="6" y="18" width="28" height="16" fill="#8a6248"/><path d="M4 19 L20 6 L36 19 Z" fill="#A15C34"/><rect x="17" y="10" width="6" height="9" fill="#8C8672"/><circle cx="20" cy="12.5" r="2.2" fill="#F6EFDB"/><rect x="10" y="23" width="4" height="11" fill="#4E3526"/><rect x="26" y="23" width="4" height="11" fill="#4E3526"/><rect x="17" y="24" width="6" height="10" fill="#4E3526"/></svg>`,
+  faro: `<svg viewBox="0 0 40 40"><rect x="15" y="10" width="10" height="24" fill="#F6EFDB" stroke="#c9bb92"/><rect x="15" y="10" width="10" height="5" fill="#8B3A3A"/><rect x="15" y="19" width="10" height="5" fill="#8B3A3A"/><path d="M12 8 L20 2 L28 8 Z" fill="#4E3526"/><circle cx="20" cy="5.5" r="1.6" fill="#F5B23B"/><path d="M20 5 L30 2 M20 5 L30 8" stroke="#F5B23B" stroke-width="1.4" opacity="0.7"/><rect x="10" y="34" width="20" height="3" fill="#8C8672"/></svg>`,
+  cantera: `<svg viewBox="0 0 40 40"><path d="M3 34 L10 14 L20 34 Z" fill="#8C8672"/><path d="M18 34 L26 10 L34 34 Z" fill="#726d5c"/><path d="M9 34 L13 24 L17 34 Z" fill="#5a564a"/><rect x="24" y="6" width="3" height="12" fill="#4A4A48" transform="rotate(20 25.5 12)"/></svg>`,
+  aserradero: `<svg viewBox="0 0 40 40"><rect x="6" y="20" width="24" height="13" fill="#8a6248"/><path d="M4 21 L18 10 L32 21 Z" fill="#A15C34"/><circle cx="30" cy="16" r="7" fill="#8C8672"/><circle cx="30" cy="16" r="2.4" fill="#4A4A48"/><path d="M30 9 L30 23 M23 16 L37 16" stroke="#4A4A48" stroke-width="1.2"/><rect x="14" y="24" width="8" height="9" fill="#4E3526"/></svg>`,
+  posada: `<svg viewBox="0 0 40 40"><rect x="8" y="16" width="24" height="17" fill="#A15C34"/><path d="M6 17 L20 6 L34 17 Z" fill="#8B3A3A"/><rect x="12" y="21" width="5" height="6" fill="#F6EFDB" opacity="0.85"/><rect x="23" y="21" width="5" height="6" fill="#F6EFDB" opacity="0.85"/><rect x="17" y="26" width="6" height="7" fill="#4E3526"/><path d="M28 8 L34 8 L34 12" stroke="#B5891C" stroke-width="1.4" fill="none"/></svg>`
+};
+
+const FIRE_ICON = `<svg class="static-icon fire-flame" viewBox="0 0 40 40">
+  <path d="M20 6 Q28 16 24 22 Q30 22 27 30 Q24 36 16 34 Q8 32 9 24 Q10 28 13 27 Q10 20 15 14 Q15 20 18 20 Q15 12 20 6 Z" fill="#E8601C"/>
+  <path d="M20 16 Q24 22 21 27 Q25 27 22 32 Q19 35 15 32 Q12 29 14 25 Q15 27 16 26 Q13 21 17 17 Q16 21 18 21 Q16 16 20 16 Z" fill="#F5B23B"/>
+</svg>`;
+const BURNT_ICON = `<svg class="static-icon" viewBox="0 0 40 40">
+  <circle cx="12" cy="17" r="7.5" fill="#2a2622"/><rect x="10.3" y="22" width="3.4" height="9" fill="#1c1815"/>
+  <circle cx="24" cy="11" r="8.5" fill="#22201d"/><rect x="22.2" y="17" width="3.6" height="14" fill="#1c1815"/>
+  <circle cx="31" cy="19" r="6" fill="#2a2622"/><rect x="29.4" y="23" width="3.2" height="8" fill="#1c1815"/>
+</svg>`;
+ICONS.fire = FIRE_ICON;
+ICONS.police = `<svg viewBox="0 0 40 40"><rect x="7" y="17" width="26" height="17" fill="#8C8672"/><path d="M5 18 L20 6 L35 18 Z" fill="#2255aa"/><rect x="17" y="22" width="6" height="12" fill="#4E3526"/><circle cx="30" cy="12" r="3" fill="#5C82A6"/><rect x="10" y="24" width="4" height="4" fill="#F6EFDB" opacity="0.85"/><rect x="26" y="24" width="4" height="4" fill="#F6EFDB" opacity="0.85"/></svg>`;
+ICONS.bear = `<svg viewBox="0 0 40 40"><circle cx="20" cy="23" r="12" fill="#5a3d28"/><circle cx="10.5" cy="10" r="5.2" fill="#5a3d28"/><circle cx="29.5" cy="10" r="5.2" fill="#5a3d28"/><circle cx="10.5" cy="10" r="2.3" fill="#3d2a1c"/><circle cx="29.5" cy="10" r="2.3" fill="#3d2a1c"/><circle cx="16" cy="20" r="1.8" fill="#1a1310"/><circle cx="24" cy="20" r="1.8" fill="#1a1310"/><ellipse cx="20" cy="27" rx="4.2" ry="3" fill="#7a5c42"/></svg>`;
+
+const BEAR_SVG = `<svg viewBox="0 0 20 20">
+  <ellipse cx="10" cy="18.3" rx="4.4" ry="1.2" fill="#000" opacity="0.25"/>
+  <path d="M6.3 17 L6.3 14.3 M13.7 17 L13.7 14.3" stroke="#5a3d28" stroke-width="2.4" stroke-linecap="round"/>
+  <ellipse cx="10" cy="12.4" rx="6.3" ry="4.4" fill="#5a3d28"/>
+  <circle cx="5.1" cy="6.3" r="2.7" fill="#5a3d28"/>
+  <circle cx="14.9" cy="6.3" r="2.7" fill="#5a3d28"/>
+  <circle cx="5.1" cy="6.3" r="1.1" fill="#3d2a1c"/>
+  <circle cx="14.9" cy="6.3" r="1.1" fill="#3d2a1c"/>
+  <circle cx="10" cy="9.1" r="3.6" fill="#6b4a32"/>
+  <circle cx="8.4" cy="8.7" r="0.7" fill="#1a1310"/>
+  <circle cx="11.6" cy="8.7" r="0.7" fill="#1a1310"/>
+  <ellipse cx="10" cy="10.5" rx="1.2" ry="0.8" fill="#2b1d14"/>
+</svg>`;
+
+// Small wave icon shown decoratively on water tiles (not a building, purely visual)
+const WATER_ICON = `<svg class="static-icon" viewBox="0 0 40 40"><path class="wave-path w1" d="M2 14 Q10 9 18 14 T34 14" stroke="#DCEBF3" stroke-width="2.4" fill="none" opacity="0.85"/><path class="wave-path w2" d="M2 22 Q10 17 18 22 T34 22" stroke="#DCEBF3" stroke-width="2.2" fill="none" opacity="0.65"/><path class="wave-path w3" d="M2 30 Q10 25 18 30 T34 30" stroke="#DCEBF3" stroke-width="2" fill="none" opacity="0.5"/></svg>`;
+
+// ============ CONFIG ============
+const COLS = 8, ROWS = 6, TOTAL = COLS*ROWS;
+const BASE_WOOD_CAP = 50, BASE_FOOD_CAP = 50;
+const BASE_POP_CAP = 4;
+
+// Harmonious green → yellow-green palette for tiles (muted, earthy meadow tones); overwritten per bioma
+let TILE_PALETTE = ['#557a4d','#647d43','#71833c','#8a8f42','#7c8a3f','#5f8451','#6e8a4a','#9c9646'];
+
+function idx(row,col){ return row*COLS + col; }
+
+// Cluster tile colors around a handful of random "seed" points (Voronoi-style) so
+// similar tones form natural patches instead of a random speckle — and it's different every game.
+function generateTileColors(){
+  const numSeeds = 7 + Math.floor(Math.random()*3);
+  const seeds = [];
+  for(let s=0; s<numSeeds; s++){
+    seeds.push({ row:Math.random()*ROWS, col:Math.random()*COLS, color:TILE_PALETTE[Math.floor(Math.random()*TILE_PALETTE.length)] });
+  }
+  const colors = new Array(TOTAL);
+  for(let i=0; i<TOTAL; i++){
+    const r = Math.floor(i/COLS), c = i%COLS;
+    let best=null, bestDist=Infinity;
+    seeds.forEach(s=>{
+      const d = (s.row-r)*(s.row-r) + (s.col-c)*(s.col-c);
+      if(d < bestDist){ bestDist=d; best=s; }
+    });
+    colors[i] = best.color;
+  }
+  return colors;
+}
+let TILE_COLORS = generateTileColors();
+function tileColor(i){ return TILE_COLORS[i]; }
+
+// Grows an irregular blob of tiles from a random point via random walk (used for the lake and the forest),
+// optionally avoiding tiles already claimed by another feature so they never overlap.
+function generateBlob(minSize, maxSize, avoid){
+  avoid = avoid || new Set();
+  let startRow, startCol, start, guard0=0;
+  do{
+    startRow = 1 + Math.floor(Math.random()*(ROWS-2));
+    startCol = 1 + Math.floor(Math.random()*(COLS-2));
+    start = idx(startRow,startCol);
+    guard0++;
+  } while(avoid.has(start) && guard0<50);
+  const targetSize = minSize + Math.floor(Math.random()*(maxSize-minSize+1));
+  const blob = new Set([start]);
+  let frontier = [start];
+  let guard = 0;
+  while(blob.size < targetSize && frontier.length && guard < 200){
+    guard++;
+    const cur = frontier[Math.floor(Math.random()*frontier.length)];
+    const r = Math.floor(cur/COLS), c = cur%COLS;
+    const options = [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].filter(([rr,cc])=> rr>=1 && rr<=ROWS-2 && cc>=1 && cc<=COLS-2);
+    if(options.length===0){ frontier = frontier.filter(x=>x!==cur); continue; }
+    const [nr,nc] = options[Math.floor(Math.random()*options.length)];
+    const ni = idx(nr,nc);
+    if(!blob.has(ni) && !avoid.has(ni)){ blob.add(ni); frontier.push(ni); }
+    else if(Math.random()<0.4){ frontier = frontier.filter(x=>x!==cur); }
+  }
+  return blob;
+}
+let WATER_TILES = generateBlob(5,9);
+function isWater(i){ return WATER_TILES.has(i); }
+
+// A patch of wild forest — decorative nature, can't be built on either
+let FOREST_TILES = generateBlob(5,8, WATER_TILES);
+function isForest(i){ return FOREST_TILES.has(i); }
+function isBlocked(i){ return isWater(i) || isForest(i); }
+function isBurnt(i){ return state.burnt.has(i); }
+
+// Genera varios blobs separados (para biomas como Islas, con archipiélagos de agua)
+function generateMultiBlob(count, minSize, maxSize, avoid){
+  const avoidSet = avoid ? new Set(avoid) : new Set();
+  const result = new Set();
+  for(let k=0; k<count; k++){
+    const blob = generateBlob(minSize, maxSize, new Set([...avoidSet, ...result]));
+    blob.forEach(t => result.add(t));
+  }
+  return result;
+}
+
+function igniteFire(i){
+  state.fires[i] = {
+    timeoutId: setTimeout(() => {
+      if(state.fires[i]){
+        delete state.fires[i];
+        state.burnt.add(i);
+        log('El fuego se consumió solo y dejó árboles quemados.', 'bad');
+        renderAll();
+      }
+    }, 32 * 60 * 1000) // 32 minutes
+  };
+  log('¡Un árbol ha prendido fuego!', 'bad');
+}
+function extinguishFire(i){
+  if(state.fires[i]){
+    clearTimeout(state.fires[i].timeoutId);
+    delete state.fires[i];
+    log('Los bomberos apagaron un incendio a tiempo.', 'good');
+    renderAll();
+  }
+}
+function nearestFireTile(fromTile){
+  const keys = Object.keys(state.fires).map(Number);
+  if(keys.length===0) return null;
+  const fr = Math.floor(fromTile/COLS), fc = fromTile%COLS;
+  keys.sort((a,b)=>{
+    const ar=Math.floor(a/COLS), ac=a%COLS, br=Math.floor(b/COLS), bc=b%COLS;
+    return (Math.abs(ar-fr)+Math.abs(ac-fc)) - (Math.abs(br-fr)+Math.abs(bc-fc));
+  });
+  return keys[0];
+}
+
+function hasAdjacentWater(i){
+  const row = Math.floor(i/COLS), col = i%COLS;
+  for(let dr=-1; dr<=1; dr++){
+    for(let dc=-1; dc<=1; dc++){
+      if(dr===0 && dc===0) continue;
+      const r=row+dr, c=col+dc;
+      if(r>=0 && r<ROWS && c>=0 && c<COLS && isWater(idx(r,c))) return true;
+    }
+  }
+  return false;
+}
+
+let FOREST_ICON_PRADERA = `<svg viewBox="0 0 40 40">
+  <circle cx="12" cy="16" r="8.5" fill="#33502e"/><rect x="10.3" y="21" width="3.4" height="10" fill="#4E3526"/>
+  <circle cx="24" cy="10" r="9.5" fill="#2c4728"/><rect x="22.2" y="16" width="3.6" height="15" fill="#4E3526"/>
+  <circle cx="31" cy="19" r="7" fill="#39592f"/><rect x="29.4" y="24" width="3.2" height="8" fill="#4E3526"/>
+</svg>`;
+const FOREST_ICON_NIEVE = `<svg viewBox="0 0 40 40">
+  <circle cx="12" cy="16" r="8.5" fill="#2e4a3d"/><rect x="10.3" y="21" width="3.4" height="10" fill="#5c4a3a"/>
+  <circle cx="24" cy="10" r="9.5" fill="#243d30"/><rect x="22.2" y="16" width="3.6" height="15" fill="#5c4a3a"/>
+  <circle cx="31" cy="19" r="7" fill="#2a4636"/><rect x="29.4" y="24" width="3.2" height="8" fill="#5c4a3a"/>
+  <path d="M6 13 Q12 8 18 13 Q12 11 6 13Z" fill="#F2F8FC" opacity="0.9"/>
+  <path d="M17 8 Q24 3 31 8 Q24 6 17 8Z" fill="#F2F8FC" opacity="0.9"/>
+  <path d="M25 15 Q31 12 37 15 Q31 14 25 15Z" fill="#F2F8FC" opacity="0.9"/>
+</svg>`;
+const FOREST_ICON_ISLAS = `<svg viewBox="0 0 40 40">
+  <path d="M20 34 L20 15" stroke="#6b4a2e" stroke-width="3" stroke-linecap="round"/>
+  <path d="M20 16 Q8 10 4 16 Q13 15 20 18Z" fill="#2f7a45"/>
+  <path d="M20 16 Q32 8 37 15 Q27 14 20 18Z" fill="#38914f"/>
+  <path d="M20 15 Q14 4 8 6 Q16 10 20 17Z" fill="#2f7a45"/>
+  <path d="M20 15 Q26 3 33 6 Q24 9 20 17Z" fill="#38914f"/>
+  <circle cx="18" cy="16" r="2" fill="#7a5230"/>
+</svg>`;
+const FOREST_ICON_DESIERTO = `<svg viewBox="0 0 40 40">
+  <rect x="15" y="10" width="7" height="24" rx="3.5" fill="#4d7a3e"/>
+  <rect x="6" y="18" width="6" height="14" rx="3" fill="#3f6633"/>
+  <rect x="6" y="18" width="9" height="5" rx="2.5" fill="#3f6633"/>
+  <rect x="26" y="15" width="6" height="17" rx="3" fill="#456f38"/>
+  <rect x="23" y="15" width="9" height="5" rx="2.5" fill="#456f38"/>
+  <ellipse cx="18.5" cy="34" rx="10" ry="2.4" fill="#c9a45f" opacity="0.6"/>
+</svg>`;
+let FOREST_ICON = FOREST_ICON_PRADERA;
+
+// ============ BIOMAS ============
+const BIOMES = {
+  pradera: {
+    name:'Pradera',
+    palette:['#557a4d','#647d43','#71833c','#8a8f42','#7c8a3f','#5f8451','#6e8a4a','#9c9646'],
+    water:['#6f9cbb','#5C82A6','#4C7797'],
+    forest:['#3f5c39','#2d4527','#23361e'],
+    forestIcon:FOREST_ICON_PRADERA,
+    soil:'#6B4A34',
+    paper:['#EDE3C8','#E2D5B0','#F6EFDB'],
+    waterBlobs:1, waterSize:[5,9],
+    forestBlobs:1, forestSize:[5,8]
+  },
+  nieve: {
+    name:'Nieve',
+    palette:['#dfe9f0','#e8f1f7','#cfe0ea','#b8d3e2','#eef5f9','#d3e4ee','#c3d9e6','#f0f7fb'],
+    water:['#bcdcee','#8fbfe0','#6ea3c9'],
+    forest:['#2e4a3d','#24392f','#1c2c24'],
+    forestIcon:FOREST_ICON_NIEVE,
+    soil:'#8a959b',
+    paper:['#E9EEF2','#DCE4EA','#F5F9FB'],
+    waterBlobs:1, waterSize:[4,7],
+    forestBlobs:1, forestSize:[4,7]
+  },
+  islas: {
+    name:'Islas',
+    palette:['#4f8f5e','#5a9c68','#6aa874','#7fb583','#3f7a4d','#8bc396','#579462','#a2d1a8'],
+    water:['#6f9cbb','#5C82A6','#3d6a8c'],
+    forest:['#2f5c39','#204527','#17361e'],
+    forestIcon:FOREST_ICON_ISLAS,
+    soil:'#5a7a52',
+    paper:['#E7EFE4','#DAE6D6','#F2F8EF'],
+    waterBlobs:3, waterSize:[6,10],
+    forestBlobs:2, forestSize:[3,6]
+  },
+  desierto: {
+    name:'Desierto',
+    palette:['#d9b871','#e0c17e','#c9a45f','#ecd08c','#d1a862','#e4c489','#c39a55','#f0d79a'],
+    water:['#7fb3c9','#5a93ab','#3f7183'],
+    forest:['#5c7a3d','#48632e','#3a4f24'],
+    forestIcon:FOREST_ICON_DESIERTO,
+    soil:'#a67b4a',
+    paper:['#F1E4C2','#E7D5A6','#FAF1D9'],
+    waterBlobs:1, waterSize:[2,4],
+    forestBlobs:1, forestSize:[2,4]
+  }
+};
+
+function applyBiomeTheme(biomeId){
+  const biome = BIOMES[biomeId] || BIOMES.pradera;
+  state.biome = biomeId;
+  TILE_PALETTE = biome.palette;
+  FOREST_ICON = biome.forestIcon;
+
+  const root = document.documentElement.style;
+  root.setProperty('--water-1', biome.water[0]);
+  root.setProperty('--water-2', biome.water[1]);
+  root.setProperty('--water-3', biome.water[2]);
+  root.setProperty('--forest-1', biome.forest[0]);
+  root.setProperty('--forest-2', biome.forest[1]);
+  root.setProperty('--forest-3', biome.forest[2]);
+  root.setProperty('--soil', biome.soil);
+  root.setProperty('--paper', biome.paper[0]);
+  root.setProperty('--paper-dark', biome.paper[1]);
+  root.setProperty('--paper-light', biome.paper[2]);
+}
+
+function generateWorld(biomeId){
+  const biome = BIOMES[biomeId] || BIOMES.pradera;
+  applyBiomeTheme(biomeId);
+
+  TILE_COLORS = generateTileColors();
+  WATER_TILES = generateMultiBlob(biome.waterBlobs, biome.waterSize[0], biome.waterSize[1]);
+  FOREST_TILES = generateMultiBlob(biome.forestBlobs, biome.forestSize[0], biome.forestSize[1], WATER_TILES);
+  DOODADS = generateDoodads();
+}
+
+// Small decorative doodads (tufts of grass, pebbles) scattered on empty land tiles for a lived-in look
+const DOODAD_ICONS = [
+  `<svg class="doodad-icon" viewBox="0 0 40 40"><path d="M12 32 Q14 20 12 12 M20 32 Q20 18 20 8 M28 32 Q26 20 28 14" stroke="#2f4a2a" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.8"/></svg>`,
+  `<svg class="doodad-icon" viewBox="0 0 40 40"><ellipse cx="15" cy="27" rx="7" ry="4.5" fill="#8C8672"/><ellipse cx="25" cy="24" rx="5" ry="3.5" fill="#726d5c"/></svg>`,
+  `<svg class="doodad-icon" viewBox="0 0 40 40"><circle cx="14" cy="16" r="4" fill="#F6EFDB" opacity="0.85"/><circle cx="22" cy="14" r="3" fill="#B5891C" opacity="0.85"/><circle cx="18" cy="22" r="3.4" fill="#F6EFDB" opacity="0.7"/></svg>`,
+  `<svg class="doodad-icon" viewBox="0 0 40 40"><circle cx="18" cy="18" r="7.5" fill="#3d5c37"/><rect x="16.5" y="23" width="3" height="8" fill="#5a3f2c"/></svg>`
+];
+function generateDoodads(){
+  const arr = new Array(TOTAL).fill(null);
+  for(let i=0;i<TOTAL;i++){
+    if(isBlocked(i)) continue;
+    if(Math.random() < 0.14){ arr[i] = DOODAD_ICONS[Math.floor(Math.random()*DOODAD_ICONS.length)]; }
+  }
+  return arr;
+}
+let DOODADS = generateDoodads();
+
+
+// A small pond carved into the map. Water tiles can't be built on.
+
+// Roads visually connect to neighboring road tiles (like a real path network)
+function roadConnections(i){
+  const row = Math.floor(i/COLS), col = i%COLS;
+  return {
+    top:    row>0        && state.tiles[idx(row-1,col)]==='road',
+    bottom: row<ROWS-1    && state.tiles[idx(row+1,col)]==='road',
+    left:   col>0        && state.tiles[idx(row,col-1)]==='road',
+    right:  col<COLS-1    && state.tiles[idx(row,col+1)]==='road'
+  };
+}
+function roadSVG(conn){
+  let extra = '';
+  if(conn.top)    extra += `<rect x="14" y="0" width="12" height="6" fill="#726d5c"/>`;
+  if(conn.bottom) extra += `<rect x="14" y="34" width="12" height="6" fill="#726d5c"/>`;
+  if(conn.left)   extra += `<rect x="0" y="14" width="6" height="12" fill="#726d5c"/>`;
+  if(conn.right)  extra += `<rect x="34" y="14" width="6" height="12" fill="#726d5c"/>`;
+  let lines = '';
+  if(conn.top)    lines += `<rect x="18.5" y="0" width="3" height="10" fill="#F6EFDB" opacity="0.85"/>`;
+  if(conn.bottom) lines += `<rect x="18.5" y="30" width="3" height="10" fill="#F6EFDB" opacity="0.85"/>`;
+  if(conn.left)   lines += `<rect x="0" y="18.5" width="10" height="3" fill="#F6EFDB" opacity="0.85"/>`;
+  if(conn.right)  lines += `<rect x="30" y="18.5" width="10" height="3" fill="#F6EFDB" opacity="0.85"/>`;
+  if(!conn.top && !conn.bottom && !conn.left && !conn.right){
+    lines = `<rect x="18" y="5" width="4" height="6" fill="#F6EFDB" opacity="0.9"/><rect x="18" y="17" width="4" height="6" fill="#F6EFDB" opacity="0.9"/><rect x="18" y="29" width="4" height="6" fill="#F6EFDB" opacity="0.9"/>`;
+  }
+  return `<svg class="road-icon" viewBox="0 0 40 40"><rect x="3" y="3" width="34" height="34" rx="3" fill="#726d5c"/>${extra}${lines}</svg>`;
+}
+
+const BUILDINGS = {
+  house:     { name:'Casa',            cost:{wood:18, gold:10}, desc:'+4 capacidad de población', popCap:4 },
+  farm:      { name:'Granja',          cost:{wood:15, gold:5},  desc:'+4 comida / turno (necesita trabajador)', foodRate:4, needsWorker:true, wage:1 },
+  lumber:    { name:'Leñería',         cost:{gold:14},          desc:'+3 madera / turno (necesita trabajador)', woodRate:3, needsWorker:true, wage:1 },
+  market:    { name:'Mercado',         cost:{wood:22, gold:18}, desc:'Convierte 3 comida → 7 oro / turno (necesita trabajador)', marketConv:{food:3, gold:7}, needsWorker:true, wage:2 },
+  warehouse: { name:'Almacén',         cost:{wood:20, gold:12}, desc:'+40 madera y comida de reserva', woodCap:40, foodCap:40 },
+
+  mansion:   { name:'Mansión',         cost:{wood:45, gold:40}, desc:'+8 capacidad de población',  popCap:8 },
+  fishery:   { name:'Pesquería',       cost:{wood:14, gold:6},  desc:'+3 comida / turno (junto al agua, necesita trabajador)', foodRate:3, requiresWater:true, needsWorker:true, wage:1 },
+  orchard:   { name:'Huerto',          cost:{wood:8,  gold:2},  desc:'+2 comida / turno (necesita trabajador)', foodRate:2, needsWorker:true, wage:1 },
+  mine:      { name:'Mina',            cost:{wood:20, gold:15}, desc:'+5 oro / turno (necesita trabajador)', goldRate:5, needsWorker:true, wage:2 },
+  forge:     { name:'Herrería',        cost:{wood:18, gold:14}, desc:'Convierte 4 madera → 6 oro / turno (necesita trabajador)', forgeConv:{wood:4, gold:6}, needsWorker:true, wage:2 },
+  tavern:    { name:'Taberna',         cost:{wood:20, gold:16}, desc:'+4 ánimo / turno (necesita trabajador)', happyRate:4, needsWorker:true, wage:2 },
+  well:      { name:'Pozo',            cost:{wood:6,  gold:3},  desc:'+2 ánimo / turno (junto al agua, necesita trabajador)', happyRate:2, requiresWater:true, needsWorker:true, wage:1 },
+  temple:    { name:'Templo',          cost:{wood:35, gold:35}, desc:'+8 ánimo / turno (necesita trabajador)', happyRate:8, needsWorker:true, wage:2 },
+  plaza:     { name:'Plaza',           cost:{wood:16, gold:12}, desc:'+3 ánimo / turno (necesita trabajador)', happyRate:3, needsWorker:true, wage:2 },
+  tower:     { name:'Torre de Vigía',  cost:{wood:16, gold:10}, desc:'Evita la pérdida de población en hambrunas', famineShield:true },
+  road:      { name:'Carretera',       cost:{wood:3},           desc:'+1 ánimo / turno', happyRate:1 },
+
+  bakery:    { name:'Panadería',       cost:{wood:12, gold:10}, desc:'+5 comida / turno (necesita trabajador)', foodRate:5, needsWorker:true, wage:1 },
+  tannery:   { name:'Curtiduría',      cost:{wood:16, gold:14}, desc:'+4 oro / turno (necesita trabajador)', goldRate:4, needsWorker:true, wage:2 },
+  port:      { name:'Puerto',          cost:{wood:26, gold:22}, desc:'+6 oro / turno (junto al agua, necesita trabajador)', goldRate:6, requiresWater:true, needsWorker:true, wage:2 },
+  school:    { name:'Escuela',         cost:{wood:24, gold:20}, desc:'+5 ánimo / turno (necesita trabajador)', happyRate:5, needsWorker:true, wage:2 },
+  windmill:  { name:'Molino',          cost:{wood:18, gold:8},  desc:'+4 madera / turno (necesita trabajador)', woodRate:4, needsWorker:true, wage:1 },
+  biblioteca:{ name:'Biblioteca',      cost:{wood:26, gold:22}, desc:'+6 ánimo / turno (necesita trabajador)', happyRate:6, needsWorker:true, wage:2 },
+  acueducto: { name:'Acueducto',       cost:{wood:22, gold:14}, desc:'+3 comida / turno (junto al agua, no necesita trabajador)', foodRate:3, requiresWater:true },
+  establo:   { name:'Establo',         cost:{wood:14, gold:6},  desc:'+3 capacidad de población', popCap:3 },
+  vinedo:    { name:'Viñedo',          cost:{wood:18, gold:16}, desc:'Convierte 2 comida → 5 oro / turno (necesita trabajador)', marketConv:{food:2, gold:5}, needsWorker:true, wage:2 },
+  ayuntamiento: { name:'Ayuntamiento', cost:{wood:40, gold:36}, desc:'+5 ánimo / turno y +5 capacidad de población (necesita trabajador)', happyRate:5, popCap:5, needsWorker:true, wage:2 },
+  faro:      { name:'Faro',            cost:{wood:18, gold:14}, desc:'+4 ánimo / turno (junto al agua, no necesita trabajador)', happyRate:4, requiresWater:true },
+  cantera:   { name:'Cantera',         cost:{wood:12, gold:8},  desc:'+4 oro / turno (necesita trabajador)', goldRate:4, needsWorker:true, wage:1 },
+  aserradero:{ name:'Aserradero',      cost:{wood:10, gold:16}, desc:'+5 madera / turno (necesita trabajador)', woodRate:5, needsWorker:true, wage:2 },
+  posada:    { name:'Posada',          cost:{wood:30, gold:24}, desc:'+6 capacidad de población', popCap:6 },
+
+  fire:      { name:'Fuego',           cost:{gold:2}, desc:'Prende fuego a un árbol. Solo se puede colocar sobre parcelas de bosque.', requiresForest:true },
+  bear:      { name:'Osos',            cost:{}, desc:'Suelta osos salvajes que atacarán a cualquiera que encuentren por el pueblo.', instant:true },
+  police:    { name:'Comisaría',       cost:{wood:24, gold:20}, desc:'Cuando aparezcan osos, la policía saldrá a cazarlos.' }
+};
+
+const BUILDING_ANIM = {
+  lumber: 'anim-chop',
+  forge: 'anim-chop',
+  market: 'anim-flap',
+  tower: 'anim-flap',
+  well: 'anim-swing',
+  temple: 'anim-glow',
+  plaza: 'anim-pulse',
+  farm: 'anim-sway',
+  orchard: 'anim-sway',
+  fishery: 'anim-sway',
+  warehouse: 'anim-wobble',
+  bakery: 'anim-wobble',
+  tannery: 'anim-sway',
+  port: 'anim-sway',
+  school: 'anim-glow'
+};
+
+const CATEGORIES = [
+  { id:'basicos',  name:'Básicos',        buildings:['house','farm','lumber','market','warehouse'] },
+  { id:'vivienda', name:'Viviendas',      buildings:['mansion'] },
+  { id:'pesca',    name:'Pesca',          buildings:['fishery'] },
+  { id:'huertos',  name:'Huertos',        buildings:['orchard'] },
+  { id:'mineria',  name:'Minería',        buildings:['mine'] },
+  { id:'herreria', name:'Herrería',       buildings:['forge'] },
+  { id:'taberna',  name:'Taberna',        buildings:['tavern'] },
+  { id:'fuentes',  name:'Fuentes',        buildings:['well'] },
+  { id:'templos',  name:'Templos',        buildings:['temple'] },
+  { id:'plazas',   name:'Plazas',         buildings:['plaza'] },
+  { id:'defensas', name:'Defensas',       buildings:['tower'] },
+  { id:'caminos',  name:'Caminos',        buildings:['road'] },
+  { id:'panaderias', name:'Panaderías',   buildings:['bakery'] },
+  { id:'curtidurias', name:'Curtidurías', buildings:['tannery'] },
+  { id:'puertos',  name:'Puertos',        buildings:['port'] },
+  { id:'escuelas', name:'Escuelas',       buildings:['school'] },
+  { id:'molinos',  name:'Molinos',        buildings:['windmill'] },
+  { id:'bibliotecas', name:'Bibliotecas', buildings:['biblioteca'] },
+  { id:'acueductos', name:'Acueductos',   buildings:['acueducto'] },
+  { id:'establos', name:'Establos',       buildings:['establo'] },
+  { id:'vinedos',  name:'Viñedos',        buildings:['vinedo'] },
+  { id:'ayuntamientos', name:'Ayuntamientos', buildings:['ayuntamiento'] },
+  { id:'faros',    name:'Faros',          buildings:['faro'] },
+  { id:'canteras', name:'Canteras',       buildings:['cantera'] },
+  { id:'aserraderos', name:'Aserraderos', buildings:['aserradero'] },
+  { id:'posadas',  name:'Posadas',        buildings:['posada'] },
+  { id:'desastres', name:'Desastres Naturales', buildings:['fire','bear'] },
+  { id:'comisarias', name:'Comisarías',  buildings:['police'] }
+];
+
+// ============ STATE ============
+let state = {
+  gold:60, wood:35, food:25,
+  population:3,
+  happiness:70,
+  day:1,
+  tiles:new Array(TOTAL).fill(null),
+  selectedBuilding:null,
+  selectedTile:null,
+  speed:240000,
+  timer:null,
+  overlayOpen:false,
+  overlayLevel:'menus',
+  overlayCategory:null,
+  villagers:[],
+  jobs:{},
+  fires:{},
+  burnt:new Set(),
+  wellExtensions:new Set(),
+  firefighters:[],
+  bears:[],
+  policemen:[]
+};
+
+const WORKER_NAMES = ['Mateo','Lucía','Diego','Sofía','Pablo','Elena','Martín','Valentina','Hugo','Carmen','Álvaro','Noa','Bruno','Aitana','Leo','Vega','Marco','Inés','Rubén','Paula','Nora','Iker','Marta','Adrián'];
+function randomWorkerName(){ return WORKER_NAMES[Math.floor(Math.random()*WORKER_NAMES.length)]; }
+
+// Assigns available population to job slots (in build order); jobs beyond population stay unstaffed and produce nothing.
+function recalcWorkforce(){
+  let available = state.population;
+  Object.keys(state.jobs).map(Number).sort((a,b)=>a-b).forEach(tileIdx=>{
+    const job = state.jobs[tileIdx];
+    if(available > 0){ job.assigned = true; available--; }
+    else job.assigned = false;
+  });
+}
+
+function caps(){
+  let wood = BASE_WOOD_CAP, food = BASE_FOOD_CAP;
+  state.tiles.forEach(t=>{
+    if(t && BUILDINGS[t].woodCap) wood += BUILDINGS[t].woodCap;
+    if(t && BUILDINGS[t].foodCap) food += BUILDINGS[t].foodCap;
+  });
+  return {wood, food};
+}
+function popCap(){
+  let p = BASE_POP_CAP;
+  state.tiles.forEach(t=>{ if(t && BUILDINGS[t].popCap) p += BUILDINGS[t].popCap; });
+  return p;
+}
+function counts(){
+  const c = {};
+  state.tiles.forEach(t=>{ if(t) c[t] = (c[t]||0)+1; });
+  return c;
+}
+function canAfford(cost){
+  return Object.entries(cost).every(([k,v]) => state[k] >= v);
+}
+function costLabel(cost){
+  return Object.entries(cost).map(([k,v])=>`${v} ${k==='gold'?'oro':'madera'}`).join(' · ');
+}
+
+// ============ LOG ============
+function log(msg, cls){
+  const el = document.getElementById('log');
+  const div = document.createElement('div');
+  div.className = 'entry' + (cls? ' '+cls : '');
+  div.innerHTML = `<span class="d">Día ${state.day}:</span>${msg}`;
+  el.prepend(div);
+  while(el.children.length > 60) el.removeChild(el.lastChild);
+  showToast(msg, cls);
+}
+
+// ---- Animaciones vistosas de desastres naturales sobre el mapa ----
+function spawnDisasterFX(type){
+  const wrap = document.getElementById('gridWrap');
+  if(!wrap) return;
+  const layer = document.createElement('div');
+  layer.className = 'disaster-fx-layer';
+  let duration = 6000;
+
+  if(type === 'storm'){
+    duration = 10000;
+    layer.innerHTML = `<div class="storm-dark"></div><div class="storm-flash"></div>`;
+    for(let i=0;i<45;i++){
+      const d = document.createElement('div');
+      d.className = 'raindrop';
+      d.style.left = Math.random()*100 + '%';
+      d.style.animationDuration = (0.45 + Math.random()*0.45).toFixed(2) + 's';
+      d.style.animationDelay = (Math.random()*1.6).toFixed(2) + 's';
+      d.style.opacity = (0.4 + Math.random()*0.5).toFixed(2);
+      layer.appendChild(d);
+    }
+    for(let i=0;i<8;i++){
+      const r = document.createElement('div');
+      r.className = 'puddle-ripple';
+      r.style.left = Math.random()*95 + '%';
+      r.style.animationDelay = (Math.random()*1.6).toFixed(2) + 's';
+      layer.appendChild(r);
+    }
+  } else if(type === 'fire'){
+    duration = 2400;
+    layer.innerHTML = `<div class="lightning-flash"></div>`;
+    const bolt = document.createElement('div');
+    bolt.style.left = (18 + Math.random()*60) + '%';
+    bolt.style.width = '10%';
+    bolt.style.height = '75%';
+    bolt.innerHTML = `<svg class="lightning-bolt" viewBox="0 0 100 140" style="width:100%; height:100%;">
+      <path d="M55 0 L28 62 L48 62 L18 140 L82 55 L52 55 Z" fill="#FFF6D8"/>
+    </svg>`;
+    layer.appendChild(bolt);
+    for(let i=0;i<10;i++){
+      const e = document.createElement('div');
+      e.className = 'ember';
+      e.style.left = (30 + Math.random()*40) + '%';
+      e.style.animationDuration = (1.2 + Math.random()*1) + 's';
+      e.style.animationDelay = (Math.random()*1.5) + 's';
+      layer.appendChild(e);
+    }
+  } else if(type === 'drought'){
+    duration = 9000;
+    layer.innerHTML = `<div class="drought-haze"></div><div class="heat-shimmer"></div>`;
+    for(let i=0;i<20;i++){
+      const d = document.createElement('div');
+      d.className = 'dust-particle';
+      d.style.left = Math.random()*100 + '%';
+      d.style.animationDuration = (2.6 + Math.random()*2.4) + 's';
+      d.style.animationDelay = (Math.random()*3) + 's';
+      layer.appendChild(d);
+    }
+  } else if(type === 'bear'){
+    duration = 6500;
+    layer.innerHTML = `<div class="bear-vignette"></div>`;
+    for(let i=0;i<7;i++){
+      const p = document.createElement('div');
+      p.className = 'paw-print';
+      p.style.left = (8 + Math.random()*82) + '%';
+      p.style.top = (8 + Math.random()*82) + '%';
+      p.style.setProperty('--rot', (Math.random()*40-20) + 'deg');
+      p.style.animationDelay = (i*0.28) + 's';
+      p.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="16" r="5" fill="#3d2a1c"/><circle cx="5" cy="7" r="2.2" fill="#3d2a1c"/><circle cx="10" cy="4" r="2.2" fill="#3d2a1c"/><circle cx="15" cy="4" r="2.2" fill="#3d2a1c"/><circle cx="19" cy="8" r="2.2" fill="#3d2a1c"/></svg>`;
+      layer.appendChild(p);
+    }
+  }
+
+  wrap.appendChild(layer);
+  setTimeout(() => layer.remove(), duration);
+}
+
+// ---- Alerta destacada de desastre natural (más visible que el toast normal) ----
+const DISASTER_WARNING_ICON = `<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 3 L22 20 H2 Z" fill="#F6EFDB" opacity="0.92"/><rect x="11" y="9" width="2" height="6" fill="#8B3A3A"/><circle cx="12" cy="17" r="1.3" fill="#8B3A3A"/></svg>`;
+function showDisasterAlert(msg){
+  const container = document.getElementById('disasterAlertContainer');
+  const el = document.createElement('div');
+  el.className = 'disaster-alert';
+  el.innerHTML = `
+    ${DISASTER_WARNING_ICON}
+    <div class="txt"><div class="tag">Desastre natural — Día ${state.day}</div><div class="msg">${msg}</div></div>
+    <button class="close">✕</button>
+  `;
+  container.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  const remove = () => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 300);
+  };
+  el.querySelector('.close').onclick = remove;
+  setTimeout(remove, 6500);
+}
+
+function showSaveAlert(msg){
+  const container = document.getElementById('disasterAlertContainer');
+  const el = document.createElement('div');
+  el.className = 'disaster-alert save-alert';
+  el.innerHTML = `
+    <svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#F6EFDB" opacity="0.92"/><path d="M7 12.5 L10.5 16 L17 8.5" stroke="#3F5B3A" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="txt"><div class="tag">Guardado automático</div><div class="msg">${msg}</div></div>
+    <button class="close">✕</button>
+  `;
+  container.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  const remove = () => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 300);
+  };
+  el.querySelector('.close').onclick = remove;
+  setTimeout(remove, 3500);
+}
+
+function showToast(msg, cls){
+  const container = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast' + (cls==='bad' ? ' bad' : '');
+  t.innerHTML = `<span class="d">Día ${state.day}:</span>${msg}`;
+  container.appendChild(t);
+  requestAnimationFrame(() => t.classList.add('show'));
+  setTimeout(() => {
+    t.classList.remove('show');
+    setTimeout(() => t.remove(), 300);
+  }, 5000);
+}
+
+// ============ RENDER ============
+function renderLedger(){
+  const c = caps();
+  const pc = popCap();
+  const foodWarn = state.food <= state.population;
+  document.getElementById('ledger').innerHTML = `
+    <div class="cell"><div class="lbl">Oro</div><div class="val">${state.gold}</div></div>
+    <div class="cell"><div class="lbl">Madera</div><div class="val">${state.wood}</div><div class="cap">/ ${c.wood}</div></div>
+    <div class="cell ${foodWarn?'warn':''}"><div class="lbl">Comida</div><div class="val">${state.food}</div><div class="cap">/ ${c.food}</div></div>
+    <div class="cell"><div class="lbl">Población</div><div class="val">${state.population}</div><div class="cap">/ ${pc}</div></div>
+    <div class="cell"><div class="lbl">Ánimo</div><div class="val">${state.happiness}%</div></div>
+  `;
+  document.getElementById('daycount').textContent = `Día ${state.day}`;
+}
+
+function renderGrid(){
+  const grid = document.getElementById('grid');
+  grid.classList.toggle('building-mode', !!state.selectedBuilding);
+  grid.innerHTML = '';
+  const armedNeedsWater = state.selectedBuilding && state.selectedBuilding!=='fire' && BUILDINGS[state.selectedBuilding].requiresWater;
+  const armedIsFire = state.selectedBuilding === 'fire';
+  state.tiles.forEach((t, i) => {
+    const water = isWater(i);
+    const forest = isForest(i);
+    const burning = !!state.fires[i];
+    const burnt = isBurnt(i);
+    let eligible;
+    if(armedIsFire){
+      eligible = forest && !burning && !burnt;
+    } else {
+      eligible = state.selectedBuilding && !t && !water && !forest && (!armedNeedsWater || hasAdjacentWater(i));
+    }
+    const div = document.createElement('div');
+    div.className = 'tile' + (water ? ' tile-water' : '') + (burning ? ' tile-fire' : (burnt ? ' tile-burnt' : (forest ? ' tile-forest' : ''))) + (eligible ? ' armed-hover':'') + (state.selectedTile===i ? ' selected':'');
+    if(water){
+      div.innerHTML = WATER_ICON;
+    } else if(burning){
+      div.innerHTML = FIRE_ICON;
+    } else if(burnt){
+      div.innerHTML = BURNT_ICON;
+    } else if(forest){
+      div.innerHTML = FOREST_ICON;
+    } else {
+      div.style.backgroundColor = tileColor(i);
+      if(t === 'road'){
+        div.innerHTML = roadSVG(roadConnections(i));
+      }
+      else if(t){
+        div.innerHTML = ICONS[t];
+        const bd = BUILDINGS[t];
+        if(bd.needsWorker && (!state.jobs[i] || !state.jobs[i].assigned)){
+          div.classList.add('unstaffed');
+          div.innerHTML += `<div class="unstaffed-badge" title="Sin trabajador">!</div>`;
+        }
+        if(t==='house' || t==='mansion' || t==='tavern'){
+          div.innerHTML += `<div class="smoke"><span></span><span></span><span></span></div>`;
+        }
+        if(t==='mine'){
+          div.innerHTML += `<div class="sparkle"></div>`;
+        }
+        const svgEl = div.querySelector('svg');
+        if(svgEl){
+          const animClass = BUILDING_ANIM[t];
+          if(animClass) svgEl.classList.add(animClass);
+          svgEl.style.animationDelay = (-(Math.random()*3)).toFixed(2) + 's';
+        }
+      }
+      else if(DOODADS[i]) div.innerHTML = DOODADS[i];
+    }
+    div.onclick = () => onTileClick(i);
+    grid.appendChild(div);
+  });
+}
+
+function renderInspector(){
+  const body = document.getElementById('inspector-body');
+  if(state.selectedTile===null){
+    body.innerHTML = `<div class="empty">Selecciona una parcela para ver sus detalles.</div>`;
+    return;
+  }
+  if(isWater(state.selectedTile)){
+    body.innerHTML = `<div class="headrow">${WATER_ICON}<div class="nm">Agua</div></div><div class="empty">Aquí no se puede construir. El agua rodea y da vida a Vallesol.</div>`;
+    return;
+  }
+  if(state.fires[state.selectedTile]){
+    body.innerHTML = `<div class="headrow">${FIRE_ICON}<div class="nm">Incendio</div></div><div class="empty">Este árbol está ardiendo. Si nadie lo apaga, quedará quemado.</div>`;
+    return;
+  }
+  if(isBurnt(state.selectedTile)){
+    body.innerHTML = `<div class="headrow">${BURNT_ICON}<div class="nm">Bosque quemado</div></div><div class="empty">Aquí no se puede construir. Los árboles quedaron carbonizados.</div>`;
+    return;
+  }
+  if(isForest(state.selectedTile)){
+    body.innerHTML = `<div class="headrow">${FOREST_ICON}<div class="nm">Bosque</div></div><div class="empty">Aquí no se puede construir. El bosque protege la fauna de la zona.</div>`;
+    return;
+  }
+  const t = state.tiles[state.selectedTile];
+  if(!t){
+    body.innerHTML = `<div class="empty">Parcela vacía. Abre «Construcciones» y elige qué levantar aquí.</div>`;
+    return;
+  }
+  const b = BUILDINGS[t];
+  const refund = {};
+  Object.entries(b.cost).forEach(([k,v])=> refund[k] = Math.floor(v/2));
+
+  let workerBlock = '';
+  if(b.needsWorker){
+    const job = state.jobs[state.selectedTile];
+    if(job){
+      workerBlock = job.assigned
+        ? `<div class="row"><span>Trabajador</span><span>${job.name}</span></div>
+           <div class="row"><span>Sueldo</span><span>${job.wage} oro/turno</span></div>
+           <div class="row"><span>Estado</span><span style="color:var(--forest-dark);">Trabajando</span></div>`
+        : `<div class="row"><span>Trabajador</span><span>${job.name}</span></div>
+           <div class="row"><span>Sueldo</span><span>${job.wage} oro/turno</span></div>
+           <div class="row"><span>Estado</span><span style="color:var(--danger);">Sin cubrir</span></div>`;
+    }
+  }
+
+  let wellBlock = '';
+  if(t === 'well'){
+    const hasExt = state.wellExtensions.has(state.selectedTile);
+    wellBlock = hasExt
+      ? `<div class="row" style="margin-top:8px;"><span>Pozo Abajo</span><span style="color:var(--forest-dark);">Activo — 5 bomberos vigilan</span></div>`
+      : `<button class="demolish-btn" id="buyWellExt" style="background:var(--gold); margin-top:8px;">Comprar «Pozo Abajo» (30 oro)</button>
+         <div class="empty" style="margin-top:4px;">Trae a 5 habitantes que vivirán aquí y correrán a apagar cualquier incendio.</div>`;
+  }
+
+  body.innerHTML = `
+    <div class="headrow">${ICONS[t]}<div class="nm">${b.name}</div></div>
+    <div class="row"><span>Efecto</span><span style="text-align:right; max-width:170px;">${b.desc}</span></div>
+    ${workerBlock}
+    ${wellBlock}
+    <button class="demolish-btn" id="demolish">Demoler (recupera ${costLabel(refund)})</button>
+  `;
+  document.getElementById('demolish').onclick = () => {
+    Object.entries(refund).forEach(([k,v])=> state[k]+=v);
+    state.tiles[state.selectedTile] = null;
+    delete state.jobs[state.selectedTile];
+    state.wellExtensions.delete(state.selectedTile);
+    recalcWorkforce();
+    log(`Se demolió una ${b.name.toLowerCase()}.`);
+    renderAll();
+  };
+  const buyBtn = document.getElementById('buyWellExt');
+  if(buyBtn){
+    buyBtn.onclick = () => {
+      if(state.gold < 30){
+        log('No tienes suficiente oro para «Pozo Abajo».', 'bad');
+        return;
+      }
+      state.gold -= 30;
+      state.wellExtensions.add(state.selectedTile);
+      for(let k=0;k<5;k++) spawnFirefighter(state.selectedTile);
+      log('¡Pozo Abajo construido! 5 bomberos vigilan Vallesol.', 'good');
+      renderAll();
+    };
+  }
+}
+
+// ---- Build overlay ----
+function renderOverlay(){
+  const ov = document.getElementById('buildOverlay');
+  const title = document.getElementById('overlayTitle');
+  const back = document.getElementById('overlayBack');
+  const body = document.getElementById('overlayBody');
+
+  ov.style.display = state.overlayOpen ? 'flex' : 'none';
+  if(!state.overlayOpen) return;
+
+  if(state.overlayLevel === 'menus'){
+    back.style.display = 'none';
+    title.textContent = 'Menús de construcción';
+    const grid = document.createElement('div');
+    grid.className = 'menu-grid';
+    CATEGORIES.forEach(cat=>{
+      const first = BUILDINGS[cat.buildings[0]];
+      const btn = document.createElement('div');
+      btn.className = 'menu-btn';
+      btn.innerHTML = `${ICONS[cat.buildings[0]]}<div class="mname">${cat.name}</div>`;
+      btn.onclick = () => {
+        state.overlayLevel = 'buildings';
+        state.overlayCategory = cat.id;
+        renderOverlay();
+      };
+      grid.appendChild(btn);
+    });
+    body.innerHTML = '';
+    body.appendChild(grid);
+  } else {
+    const cat = CATEGORIES.find(c=>c.id===state.overlayCategory);
+    back.style.display = 'inline-block';
+    title.textContent = cat.name;
+    const hint = document.createElement('div');
+    hint.className = 'overlay-hint';
+    hint.textContent = state.selectedBuilding
+      ? 'Toca una parcela del mapa para construir ahí.'
+      : 'Elige qué construir en esta categoría.';
+    const list = document.createElement('div');
+    list.className = 'buildlist';
+    cat.buildings.forEach(id=>{
+      const b = BUILDINGS[id];
+      const affordable = canAfford(b.cost);
+      const div = document.createElement('div');
+      div.className = 'bopt' + (state.selectedBuilding===id?' active':'') + (!affordable?' disabled':'');
+      div.innerHTML = `
+        <div class="ic">${ICONS[id]}</div>
+        <div class="meta">
+          <div class="nm">${b.name}</div>
+          <div class="cost">${b.instant ? 'Acción instantánea' : costLabel(b.cost)}</div>
+          <div class="fx">${b.desc}</div>
+        </div>`;
+      div.onclick = () => {
+        if(!affordable) return;
+        if(b.instant){
+          if(id === 'bear') spawnBears();
+          return;
+        }
+        state.selectedBuilding = state.selectedBuilding===id ? null : id;
+        state.selectedTile = null;
+        renderAll();
+      };
+      list.appendChild(div);
+    });
+    body.innerHTML = '';
+    body.appendChild(hint);
+    body.appendChild(list);
+  }
+}
+
+// ============ VILLAGERS (walking around the map) ============
+const VILLAGER_COLORS = ['#8B3A3A','#3F5B3A','#B5891C','#5C82A6','#4E3526','#726d5c','#A15C34'];
+const MAX_VISIBLE_VILLAGERS = 12;
+
+function walkableNeighbors(i){
+  const row = Math.floor(i/COLS), col = i%COLS;
+  return [[row-1,col],[row+1,col],[row,col-1],[row,col+1]]
+    .filter(([r,c]) => r>=0 && r<ROWS && c>=0 && c<COLS)
+    .map(([r,c]) => idx(r,c))
+    .filter(ni => !isBlocked(ni));
+}
+function randomWalkableTile(){
+  let t;
+  do{ t = Math.floor(Math.random()*TOTAL); } while(isBlocked(t));
+  return t;
+}
+function positionVillagerDom(v){
+  const row = Math.floor(v.tile/COLS), col = v.tile%COLS;
+  v.dom.style.left = ((col+0.5)/COLS*100) + '%';
+  v.dom.style.top = ((row+0.5)/ROWS*100) + '%';
+}
+function scheduleWalk(v){
+  const delay = 1100 + Math.random()*1900;
+  v.timer = setTimeout(() => {
+    if(!state.villagers.includes(v)) return;
+    if(Math.random() < 0.85){
+      const options = walkableNeighbors(v.tile);
+      if(options.length){
+        const next = options[Math.floor(Math.random()*options.length)];
+        const prevCol = v.tile % COLS, nextCol = next % COLS;
+        if(nextCol < prevCol) v.facing = -1;
+        else if(nextCol > prevCol) v.facing = 1;
+        v.flipEl.style.transform = `translate(-50%,-50%) scaleX(${v.facing})`;
+        v.tile = next;
+        positionVillagerDom(v);
+      }
+    }
+    scheduleWalk(v);
+  }, delay);
+}
+const SKIN_TONES = ['#D9A879','#8D5524','#F1C27D','#C68642','#EFC9A0','#7A4B2E'];
+function spawnVillager(){
+  const size = 14 + Math.floor(Math.random()*5); // 14-18px, subtle height variety
+  const v = { tile:randomWalkableTile(), color:VILLAGER_COLORS[Math.floor(Math.random()*VILLAGER_COLORS.length)], dom:null, flipEl:null, facing:1, timer:null };
+  const skin = SKIN_TONES[Math.floor(Math.random()*SKIN_TONES.length)];
+  const el = document.createElement('div');
+  el.className = 'villager';
+  el.style.width = size+'px';
+  el.style.height = size+'px';
+  el.innerHTML = `<div class="villager-flip"><div class="villager-bob"><svg viewBox="0 0 20 20">
+    <ellipse cx="10" cy="18.3" rx="3.6" ry="1.1" fill="#000" opacity="0.25"/>
+    <g class="frameA">
+      <path d="M10 12 L6.5 15.5 M10 12 L13.5 15.5" stroke="${v.color}" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="7.4" y="8" width="5.2" height="5" rx="1.4" fill="${v.color}"/>
+      <circle cx="10" cy="5.4" r="2.7" fill="${skin}"/>
+    </g>
+    <g class="frameB">
+      <path d="M10 12 L8.5 16 M10 12 L11.5 16" stroke="${v.color}" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="7.4" y="8" width="5.2" height="5" rx="1.4" fill="${v.color}"/>
+      <circle cx="10" cy="5.4" r="2.7" fill="${skin}"/>
+    </g>
+  </svg></div></div>`;
+  document.getElementById('villagerLayer').appendChild(el);
+  v.dom = el;
+  v.flipEl = el.querySelector('.villager-flip');
+  positionVillagerDom(v);
+  scheduleWalk(v);
+  state.villagers.push(v);
+}
+function syncVillagers(){
+  const target = state.population;
+  while(state.villagers.length < target) spawnVillager();
+  while(state.villagers.length > target){
+    const v = state.villagers.pop();
+    if(v.timer) clearTimeout(v.timer);
+    if(v.dom) v.dom.remove();
+  }
+}
+
+// ---- Firefighters (from the "Pozo Abajo" well extension) ----
+function spawnFirefighter(originTile){
+  const size = 15;
+  const v = { tile:originTile, color:'#c62828', dom:null, flipEl:null, facing:1, timer:null };
+  const skin = SKIN_TONES[Math.floor(Math.random()*SKIN_TONES.length)];
+  const el = document.createElement('div');
+  el.className = 'villager firefighter';
+  el.style.width = size+'px';
+  el.style.height = size+'px';
+  el.innerHTML = `<div class="villager-flip"><div class="villager-bob"><svg viewBox="0 0 20 20">
+    <ellipse cx="10" cy="18.3" rx="3.6" ry="1.1" fill="#000" opacity="0.25"/>
+    <g class="frameA">
+      <path d="M10 12 L6.5 15.5 M10 12 L13.5 15.5" stroke="${v.color}" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="6.6" y="7.6" width="6.8" height="5.6" rx="1.2" fill="${v.color}"/>
+      <circle cx="10" cy="5.2" r="2.7" fill="${skin}"/>
+      <rect x="9.2" y="3.4" width="1.6" height="1.6" fill="${v.color}"/>
+      <rect x="4.3" y="11.5" width="2.6" height="2.2" fill="#5C82A6"/>
+    </g>
+    <g class="frameB">
+      <path d="M10 12 L8.5 16 M10 12 L11.5 16" stroke="${v.color}" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="6.6" y="7.6" width="6.8" height="5.6" rx="1.2" fill="${v.color}"/>
+      <circle cx="10" cy="5.2" r="2.7" fill="${skin}"/>
+      <rect x="9.2" y="3.4" width="1.6" height="1.6" fill="${v.color}"/>
+      <rect x="4.3" y="11.5" width="2.6" height="2.2" fill="#5C82A6"/>
+    </g>
+  </svg></div></div>`;
+  document.getElementById('villagerLayer').appendChild(el);
+  v.dom = el;
+  v.flipEl = el.querySelector('.villager-flip');
+  positionVillagerDom(v);
+  scheduleFirefighterWalk(v);
+  state.firefighters.push(v);
+}
+function firefighterStep(v){
+  const target = nearestFireTile(v.tile);
+  if(target === null){
+    const options = walkableNeighbors(v.tile);
+    return options.length ? options[Math.floor(Math.random()*options.length)] : v.tile;
+  }
+  if(v.tile === target){
+    extinguishFire(target);
+    return v.tile;
+  }
+  const row=Math.floor(v.tile/COLS), col=v.tile%COLS;
+  const trow=Math.floor(target/COLS), tcol=target%COLS;
+  const candidates = [[row-1,col],[row+1,col],[row,col-1],[row,col+1]]
+    .filter(([r,c]) => r>=0 && r<ROWS && c>=0 && c<COLS)
+    .map(([r,c]) => idx(r,c))
+    .filter(ni => ni===target || !isBlocked(ni));
+  if(candidates.length===0) return v.tile;
+  candidates.sort((a,b)=>{
+    const ar=Math.floor(a/COLS), ac=a%COLS, br=Math.floor(b/COLS), bc=b%COLS;
+    const da = Math.abs(ar-trow)+Math.abs(ac-tcol);
+    const db = Math.abs(br-trow)+Math.abs(bc-tcol);
+    return da-db;
+  });
+  return candidates[0];
+}
+function scheduleFirefighterWalk(v){
+  const delay = 700 + Math.random()*500; // move with urgency
+  v.timer = setTimeout(() => {
+    if(!state.firefighters.includes(v)) return;
+    const next = firefighterStep(v);
+    if(next !== v.tile){
+      const prevCol = v.tile % COLS, nextCol = next % COLS;
+      if(nextCol < prevCol) v.facing = -1;
+      else if(nextCol > prevCol) v.facing = 1;
+      v.flipEl.style.transform = `translate(-50%,-50%) scaleX(${v.facing})`;
+      v.tile = next;
+      positionVillagerDom(v);
+    }
+    scheduleFirefighterWalk(v);
+  }, delay);
+}
+
+// ---- Shared helpers for hunting AI (bears / police) ----
+function stepToward(fromTile, targetTile){
+  const row = Math.floor(fromTile/COLS), col = fromTile%COLS;
+  const trow = Math.floor(targetTile/COLS), tcol = targetTile%COLS;
+  const candidates = [[row-1,col],[row+1,col],[row,col-1],[row,col+1]]
+    .filter(([r,c]) => r>=0 && r<ROWS && c>=0 && c<COLS)
+    .map(([r,c]) => idx(r,c))
+    .filter(ni => !isBlocked(ni));
+  if(candidates.length===0) return fromTile;
+  candidates.sort((a,b)=>{
+    const ar=Math.floor(a/COLS), ac=a%COLS, br=Math.floor(b/COLS), bc=b%COLS;
+    const da = Math.abs(ar-trow)+Math.abs(ac-tcol);
+    const db = Math.abs(br-trow)+Math.abs(bc-tcol);
+    return da-db;
+  });
+  return candidates[0];
+}
+function updateFacing(v, next){
+  const prevCol = v.tile % COLS, nextCol = next % COLS;
+  if(nextCol < prevCol) v.facing = -1;
+  else if(nextCol > prevCol) v.facing = 1;
+  v.flipEl.style.transform = `translate(-50%,-50%) scaleX(${v.facing})`;
+}
+function tileDist(a, b){
+  const ar=Math.floor(a/COLS), ac=a%COLS, br=Math.floor(b/COLS), bc=b%COLS;
+  return Math.abs(ar-br)+Math.abs(ac-bc);
+}
+function killBear(b){
+  const i = state.bears.indexOf(b);
+  if(i>-1) state.bears.splice(i,1);
+  if(b.timer) clearTimeout(b.timer);
+  if(b.dom) b.dom.remove();
+}
+function killPoliceman(p){
+  const i = state.policemen.indexOf(p);
+  if(i>-1) state.policemen.splice(i,1);
+  if(p.timer) clearTimeout(p.timer);
+  if(p.dom) p.dom.remove();
+}
+function killVillager(v){
+  const i = state.villagers.indexOf(v);
+  if(i>-1) state.villagers.splice(i,1);
+  if(v.timer) clearTimeout(v.timer);
+  if(v.dom) v.dom.remove();
+  state.population = Math.max(0, state.population - 1);
+}
+function resolveBearEncounter(bear, target, isPolice){
+  if(!state.bears.includes(bear)) return;
+  if(isPolice){
+    if(!state.policemen.includes(target)) return;
+    if(Math.random() < 0.55){
+      killBear(bear);
+      log('La policía abatió a un oso.', 'good');
+    } else {
+      killPoliceman(target);
+      log('Un oso mató a un policía.', 'bad');
+    }
+  } else {
+    if(!state.villagers.includes(target)) return;
+    killVillager(target);
+    log('Un oso atacó a un aldeano indefenso.', 'bad');
+  }
+  renderAll();
+}
+
+// ---- Bears (Desastres Naturales → Osos) ----
+function spawnBears(){
+  for(let k=0; k<2; k++){
+    const tile = randomWalkableTile();
+    const b = { tile, dom:null, flipEl:null, facing:1, timer:null };
+    const el = document.createElement('div');
+    el.className = 'villager bear-sprite';
+    el.style.width = '21px';
+    el.style.height = '21px';
+    el.innerHTML = `<div class="villager-flip"><div class="villager-bob">${BEAR_SVG}</div></div>`;
+    document.getElementById('villagerLayer').appendChild(el);
+    b.dom = el;
+    b.flipEl = el.querySelector('.villager-flip');
+    positionVillagerDom(b);
+    scheduleBearWalk(b);
+    state.bears.push(b);
+  }
+  log('¡Han aparecido osos salvajes! Atacarán a quien encuentren fuera de casa.', 'bad');
+  renderAll();
+}
+function scheduleBearWalk(b){
+  const delay = 900 + Math.random()*700;
+  b.timer = setTimeout(() => {
+    if(!state.bears.includes(b)) return;
+    const targets = [...state.villagers, ...state.policemen];
+    if(targets.length){
+      let nearest=null, nd=Infinity;
+      targets.forEach(t=>{
+        const d = tileDist(b.tile, t.tile);
+        if(d<nd){ nd=d; nearest=t; }
+      });
+      if(nd<=1){
+        resolveBearEncounter(b, nearest, state.policemen.includes(nearest));
+      } else {
+        const next = stepToward(b.tile, nearest.tile);
+        if(next !== b.tile){ updateFacing(b,next); b.tile = next; positionVillagerDom(b); }
+      }
+    } else {
+      const options = walkableNeighbors(b.tile);
+      if(options.length){
+        const next = options[Math.floor(Math.random()*options.length)];
+        updateFacing(b,next); b.tile = next; positionVillagerDom(b);
+      }
+    }
+    scheduleBearWalk(b);
+  }, delay);
+}
+
+// ---- Police (Comisaría) ----
+function spawnPoliceman(originTile){
+  const size = 15;
+  const v = { tile:originTile, color:'#2255aa', dom:null, flipEl:null, facing:1, timer:null };
+  const skin = SKIN_TONES[Math.floor(Math.random()*SKIN_TONES.length)];
+  const el = document.createElement('div');
+  el.className = 'villager policeman';
+  el.style.width = size+'px';
+  el.style.height = size+'px';
+  el.innerHTML = `<div class="villager-flip"><div class="villager-bob"><svg viewBox="0 0 20 20">
+    <ellipse cx="10" cy="18.3" rx="3.6" ry="1.1" fill="#000" opacity="0.25"/>
+    <g class="frameA">
+      <path d="M10 12 L6.5 15.5 M10 12 L13.5 15.5" stroke="${v.color}" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="7.4" y="8" width="5.2" height="5" rx="1.4" fill="${v.color}"/>
+      <circle cx="10" cy="5.4" r="2.7" fill="${skin}"/>
+      <rect x="8.6" y="3.2" width="2.8" height="1.6" fill="#1c2b45"/>
+      <circle cx="9.4" cy="9.6" r="0.6" fill="#E8B84B"/>
+    </g>
+    <g class="frameB">
+      <path d="M10 12 L8.5 16 M10 12 L11.5 16" stroke="${v.color}" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="7.4" y="8" width="5.2" height="5" rx="1.4" fill="${v.color}"/>
+      <circle cx="10" cy="5.4" r="2.7" fill="${skin}"/>
+      <rect x="8.6" y="3.2" width="2.8" height="1.6" fill="#1c2b45"/>
+      <circle cx="9.4" cy="9.6" r="0.6" fill="#E8B84B"/>
+    </g>
+  </svg></div></div>`;
+  document.getElementById('villagerLayer').appendChild(el);
+  v.dom = el;
+  v.flipEl = el.querySelector('.villager-flip');
+  positionVillagerDom(v);
+  schedulePoliceWalk(v);
+  state.policemen.push(v);
+}
+function schedulePoliceWalk(p){
+  const delay = 450 + Math.random()*350;
+  p.timer = setTimeout(() => {
+    if(!state.policemen.includes(p)) return;
+    if(state.bears.length){
+      let nearest=null, nd=Infinity;
+      state.bears.forEach(b=>{
+        const d = tileDist(p.tile, b.tile);
+        if(d<nd){ nd=d; nearest=b; }
+      });
+      if(nd<=1){
+        resolveBearEncounter(nearest, p, true);
+      } else {
+        const next = stepToward(p.tile, nearest.tile);
+        if(next !== p.tile){ updateFacing(p,next); p.tile = next; positionVillagerDom(p); }
+      }
+    } else {
+      const options = walkableNeighbors(p.tile);
+      if(options.length){
+        const next = options[Math.floor(Math.random()*options.length)];
+        updateFacing(p,next); p.tile = next; positionVillagerDom(p);
+      }
+    }
+    schedulePoliceWalk(p);
+  }, delay);
+}
+
+function renderAll(){
+  recalcWorkforce();
+  renderLedger();
+  renderGrid();
+  renderInspector();
+  renderOverlay();
+  syncVillagers();
+}
+
+// ============ INTERACTION ============
+function onTileClick(i){
+  if(state.selectedBuilding === 'fire'){
+    if(!isForest(i)){
+      log('El fuego solo se puede poner en parcelas con árboles.', 'bad');
+      return;
+    }
+    if(state.fires[i]){
+      log('Esa parcela ya está ardiendo.', 'bad');
+      return;
+    }
+    if(isBurnt(i)){
+      log('Esa parcela ya está quemada.', 'bad');
+      return;
+    }
+    const fb = BUILDINGS.fire;
+    if(!canAfford(fb.cost)) return;
+    Object.entries(fb.cost).forEach(([k,v]) => state[k] -= v);
+    igniteFire(i);
+    state.selectedBuilding = null;
+    renderAll();
+    return;
+  }
+  if(state.selectedBuilding){
+    if(isWater(i)){
+      log('No se puede construir sobre el agua.', 'bad');
+      return;
+    }
+    if(isForest(i)){
+      log('No se puede construir sobre el bosque.', 'bad');
+      return;
+    }
+    if(state.tiles[i]){
+      state.selectedTile = i;
+      state.selectedBuilding = null;
+      renderAll();
+      return;
+    }
+    const b = BUILDINGS[state.selectedBuilding];
+    if(b.requiresWater && !hasAdjacentWater(i)){
+      log(`${b.name} debe construirse junto al agua.`, 'bad');
+      return;
+    }
+    if(!canAfford(b.cost)) return;
+    Object.entries(b.cost).forEach(([k,v]) => state[k] -= v);
+    state.tiles[i] = state.selectedBuilding;
+    if(b.needsWorker){
+      state.jobs[i] = { name:randomWorkerName(), wage:b.wage, assigned:false };
+      recalcWorkforce();
+    }
+    if(state.selectedBuilding === 'police'){
+      for(let k=0;k<20;k++) spawnPoliceman(i);
+      log('20 policías patrullan Vallesol y cazarán cualquier oso que aparezca.', 'good');
+    }
+    log(`Se construyó ${b.name.toLowerCase()}.`, 'good');
+    state.selectedBuilding = null;
+    renderAll();
+  } else {
+    state.selectedTile = state.selectedTile===i ? null : i;
+    renderAll();
+  }
+}
+
+document.getElementById('speedbtns').addEventListener('click', e=>{
+  if(e.target.tagName !== 'BUTTON') return;
+  [...e.target.parentElement.children].forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  state.speed = parseInt(e.target.dataset.speed);
+  restartTimer();
+});
+
+document.getElementById('buildToggleBtn').onclick = () => {
+  state.overlayOpen = !state.overlayOpen;
+  if(state.overlayOpen){ state.overlayLevel = 'menus'; state.overlayCategory = null; }
+  renderOverlay();
+};
+document.getElementById('overlayClose').onclick = () => {
+  state.overlayOpen = false;
+  renderOverlay();
+};
+document.getElementById('overlayBack').onclick = () => {
+  state.overlayLevel = 'menus';
+  state.overlayCategory = null;
+  state.selectedBuilding = null;
+  renderAll();
+};
+
+// ============ DRAGGABLE BUILD OVERLAY ============
+(function(){
+  const panel = document.getElementById('buildOverlay');
+  const handle = document.getElementById('overlayHead');
+  let dragging = false, offX = 0, offY = 0;
+
+  handle.addEventListener('pointerdown', (e) => {
+    if(e.target.closest('button')) return; // don't drag when clicking Atrás/✕
+    dragging = true;
+    const rect = panel.getBoundingClientRect();
+    offX = e.clientX - rect.left;
+    offY = e.clientY - rect.top;
+    panel.style.left = rect.left + 'px';
+    panel.style.top = rect.top + 'px';
+    panel.style.bottom = 'auto';
+    handle.setPointerCapture(e.pointerId);
+  });
+  handle.addEventListener('pointermove', (e) => {
+    if(!dragging) return;
+    let x = e.clientX - offX;
+    let y = e.clientY - offY;
+    x = Math.max(4, Math.min(window.innerWidth - panel.offsetWidth - 4, x));
+    y = Math.max(4, Math.min(window.innerHeight - 40, y));
+    panel.style.left = x + 'px';
+    panel.style.top = y + 'px';
+  });
+  const stopDrag = () => { dragging = false; };
+  handle.addEventListener('pointerup', stopDrag);
+  handle.addEventListener('pointercancel', stopDrag);
+})();
+
+// ============ DESASTRES NATURALES ALEATORIOS ============
+// Cada minuto (tiempo real), independientemente de la velocidad de partida, ocurre un desastre.
+function triggerNaturalDisaster(){
+  const availableForest = [...FOREST_TILES].filter(i => !state.fires[i] && !isBurnt(i));
+  const options = ['drought', 'storm'];
+  if(availableForest.length) options.push('fire');
+  if(state.population > 0) options.push('bear');
+
+  const choice = options[Math.floor(Math.random()*options.length)];
+
+  if(choice === 'fire'){
+    const tile = availableForest[Math.floor(Math.random()*availableForest.length)];
+    const msg = 'Un rayo cayó sobre el bosque de Vallesol.';
+    log(msg, 'bad');
+    showDisasterAlert(msg);
+    spawnDisasterFX('fire');
+    igniteFire(tile);
+  } else if(choice === 'bear'){
+    const msg = 'Una manada de osos hambrientos bajó de las montañas.';
+    log(msg, 'bad');
+    showDisasterAlert(msg);
+    spawnDisasterFX('bear');
+    spawnBears();
+  } else if(choice === 'drought'){
+    const lost = Math.min(state.food, 5 + Math.floor(Math.random()*10));
+    state.food -= lost;
+    state.happiness = Math.max(0, state.happiness - 4);
+    const msg = `Una sequía azotó los campos de Vallesol. Se perdieron ${lost} de comida.`;
+    log(msg, 'bad');
+    showDisasterAlert(msg);
+    spawnDisasterFX('drought');
+  } else if(choice === 'storm'){
+    const lost = Math.min(state.wood, 5 + Math.floor(Math.random()*10));
+    state.wood -= lost;
+    state.happiness = Math.max(0, state.happiness - 6);
+    const msg = `Una tormenta arrasó Vallesol y arruinó ${lost} de madera almacenada.`;
+    log(msg, 'bad');
+    showDisasterAlert(msg);
+    spawnDisasterFX('storm');
+  }
+  renderAll();
+}
+
+// ============ SIMULATION TICK ============
+function tick(){
+  recalcWorkforce();
+  const c = counts();
+  const cp = caps();
+
+  let wood = state.wood;
+  let food = state.food;
+  let gold = state.gold;
+  let happinessGain = 0;
+
+  state.tiles.forEach((id, i) => {
+    if(!id) return;
+    const b = BUILDINGS[id];
+    if(b.needsWorker){
+      const job = state.jobs[i];
+      if(!job || !job.assigned) return; // no worker on site: nothing happens here this turn
+      gold = Math.max(0, gold - job.wage);
+    }
+    if(b.woodRate) wood += b.woodRate;
+    if(b.foodRate) food += b.foodRate;
+    if(b.goldRate) gold += b.goldRate;
+    if(b.happyRate) happinessGain += b.happyRate;
+    if(b.forgeConv && wood >= b.forgeConv.wood){ wood -= b.forgeConv.wood; gold += b.forgeConv.gold; }
+    if(b.marketConv && food >= b.marketConv.food){ food -= b.marketConv.food; gold += b.marketConv.gold; }
+  });
+
+  wood = Math.min(wood, cp.wood);
+  food = Math.min(food, cp.food);
+
+  const hasTower = (c.tower||0) > 0;
+  const needed = Math.ceil(state.population * 0.5);
+  let happiness = state.happiness;
+  let population = state.population;
+
+  if(food < needed){
+    food = 0;
+    if(hasTower){
+      happiness = Math.max(0, happiness - 5);
+      log(`Escasez de alimentos, pero la Torre de Vigía protegió a la población.`, 'bad');
+    } else if(population > 0){
+      population -= 1;
+      happiness = Math.max(0, happiness - 15);
+      log(`No hubo comida suficiente. La población descendió a ${population}.`, 'bad');
+    }
+  } else {
+    food -= needed;
+    happiness = Math.min(100, happiness + 1 + happinessGain);
+  }
+
+  const pc = popCap();
+  if(population < pc && food > population && happiness >= 55 && state.day % 3 === 0){
+    population += 1;
+    log(`¡Un nuevo habitante se unió a ${state.villageName}! Población: ${population}.`, 'good');
+  }
+
+  state.wood = wood;
+  state.food = food;
+  state.gold = gold;
+  state.population = population;
+  state.happiness = happiness;
+  state.day += 1;
+
+  renderAll();
+}
+
+function restartTimer(){
+  if(state.timer) clearInterval(state.timer);
+  if(state.speed > 0){
+    state.timer = setInterval(tick, state.speed);
+  }
+  updateDayNightDuration();
+}
+
+function updateDayNightDuration(){
+  const dur = state.speed > 0 ? (state.speed/1000) + 's' : '0s';
+  const paused = state.speed === 0;
+  [document.querySelector('.daynight-overlay'), document.querySelector('.sun-ic'), document.querySelector('.moon-ic')].forEach(el=>{
+    if(!el) return;
+    el.style.animationDuration = dur;
+    el.style.animationPlayState = paused ? 'paused' : 'running';
+  });
+}
+
+
+// ---- Guardado automático de la ciudad en localStorage ----
+const SAVE_KEY = 'vallesol_saves';
+function saveCityToLocalStorage(){
+  try{
+    const snapshot = {
+      villageName: state.villageName,
+      biome: state.biome,
+      gold: state.gold,
+      wood: state.wood,
+      food: state.food,
+      population: state.population,
+      happiness: state.happiness,
+      day: state.day,
+      tiles: state.tiles,
+      jobs: state.jobs,
+      fires: state.fires,
+      burnt: [...state.burnt],
+      wellExtensions: [...state.wellExtensions],
+      waterTiles: [...WATER_TILES],
+      forestTiles: [...FOREST_TILES],
+      tileColors: TILE_COLORS,
+      doodads: DOODADS,
+      savedAt: Date.now()
+    };
+    const all = JSON.parse(localStorage.getItem(SAVE_KEY) || '{}');
+    all[state.villageName] = snapshot;
+    localStorage.setItem(SAVE_KEY, JSON.stringify(all));
+    showSaveAlert(`${state.villageName} — Autoguardado con éxito`);
+  }catch(e){
+    console.warn('No se pudo guardar la ciudad en localStorage:', e);
+  }
+}
+
+function loadSavedCities(){
+  try{
+    return JSON.parse(localStorage.getItem(SAVE_KEY) || '{}');
+  }catch(e){
+    return {};
+  }
+}
+
+// Aplica una ciudad guardada al estado del juego y arranca la partida con ella
+function loadCity(snapshot){
+  applyBiomeTheme(snapshot.biome);
+  WATER_TILES = new Set(snapshot.waterTiles || []);
+  FOREST_TILES = new Set(snapshot.forestTiles || []);
+  TILE_COLORS = snapshot.tileColors || generateTileColors();
+  DOODADS = snapshot.doodads || generateDoodads();
+
+  state.villageName = snapshot.villageName;
+  state.biome = snapshot.biome;
+  state.gold = snapshot.gold;
+  state.wood = snapshot.wood;
+  state.food = snapshot.food;
+  state.population = snapshot.population;
+  state.happiness = snapshot.happiness;
+  state.day = snapshot.day;
+  state.tiles = snapshot.tiles;
+  state.jobs = snapshot.jobs || {};
+  state.fires = snapshot.fires || {};
+  state.burnt = new Set(snapshot.burnt || []);
+  state.wellExtensions = new Set(snapshot.wellExtensions || []);
+  state.villagers = [];
+  state.firefighters = [];
+  state.bears = [];
+  state.policemen = [];
+
+  recalcWorkforce();
+
+  document.getElementById('villageTitle').textContent = state.villageName;
+  document.title = state.villageName + ' — Libro Mayor del Pueblo';
+  renderAll();
+  log(`Continuando en ${state.villageName}. Han pasado ${state.day} días desde la fundación.`, 'good');
+
+  document.getElementById('startMenu').style.display = 'none';
+  restartTimer();
+  setInterval(triggerNaturalDisaster, 20*60000);
+  setInterval(saveCityToLocalStorage, 60000);
+}
+
+// ============ INIT ============
+renderAll();
+
+setTimeout(() => {
+  const splash = document.getElementById('splashScreen');
+  splash.classList.add('fade-out');
+  setTimeout(() => splash.remove(), 850);
+}, 2600);
+
+(function renderSavedCitiesList(){
+  const saves = loadSavedCities();
+  const names = Object.keys(saves);
+  if(names.length === 0) return;
+
+  const container = document.getElementById('savedCities');
+  const list = document.getElementById('savedList');
+  container.style.display = 'block';
+
+  names
+    .sort((a,b) => (saves[b].savedAt||0) - (saves[a].savedAt||0))
+    .forEach(name => {
+      const snap = saves[name];
+      const biomeName = (BIOMES[snap.biome] && BIOMES[snap.biome].name) || 'Pradera';
+      const item = document.createElement('div');
+      item.className = 'saved-item';
+      item.innerHTML = `<span class="snm">${name}</span><span class="smeta">Día ${snap.day} · ${biomeName}</span>`;
+      item.onclick = () => loadCity(snap);
+      list.appendChild(item);
+    });
+})();
+
+let selectedBiomeChoice = 'pradera';
+document.querySelectorAll('.biome-opt').forEach(opt => {
+  opt.onclick = () => {
+    document.querySelectorAll('.biome-opt').forEach(o => o.classList.remove('active'));
+    opt.classList.add('active');
+    selectedBiomeChoice = opt.dataset.biome;
+  };
+});
+
+document.getElementById('playBtn').onclick = () => {
+  const nameInput = document.getElementById('villageNameInput').value.trim();
+  state.villageName = nameInput || 'Vallesol';
+  document.getElementById('villageTitle').textContent = state.villageName;
+  document.title = state.villageName + ' — Libro Mayor del Pueblo';
+
+  generateWorld(selectedBiomeChoice);
+  renderAll();
+  log(`Bienvenido a ${state.villageName}. Construye con sabiduría: cada parcela cuenta.`, 'good');
+
+  document.getElementById('startMenu').style.display = 'none';
+  restartTimer();
+  setInterval(triggerNaturalDisaster, 20*60000); // un desastre natural cada 20 minutos, en tiempo real
+  setInterval(saveCityToLocalStorage, 60000);  // guarda la ciudad cada minuto
+};
+</script>
+</body>
+</html>

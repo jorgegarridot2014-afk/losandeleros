@@ -19,26 +19,20 @@ body{
 #bg{
   position:fixed;
   inset:0;
-  background:
-    radial-gradient(circle at 20% 20%, #00ffcc33, transparent 40%),
-    radial-gradient(circle at 80% 80%, #ff00ff33, transparent 40%),
-    #050505;
-  animation:pulse 6s infinite alternate;
+  background: url('../playa.png') no-repeat center center fixed;
+  background-size: cover;
   z-index:-2;
-}
-
-@keyframes pulse{
-  100%{filter:brightness(1.3);}
 }
 
 #menu,#box,#lobby,#create-screen,#join-screen{
   width:420px;
   padding:18px;
-  background:rgba(255,255,255,0.06);
+  background:rgba(255,255,255,0.08);
   border-radius:14px;
   text-align:center;
   backdrop-filter:blur(10px);
-  box-shadow:0 0 20px rgba(0,255,150,0.25);
+  box-shadow:0 0 20px rgba(249, 115, 22, 0.25);
+  border: 1px solid rgba(249, 115, 22, 0.3);
 }
 
 button{
@@ -48,22 +42,24 @@ button{
   border:none;
   border-radius:10px;
   cursor:pointer;
-  background:linear-gradient(90deg,#00ff99,#00ccff);
+  background:linear-gradient(90deg,#f59e0b,#f97316,#fb923c);
   font-weight:bold;
+  color:white;
 }
 
 button:hover{
   transform:scale(1.05);
+  box-shadow:0 0 20px rgba(251, 146, 60, 0.5);
 }
 
 #timer{
   font-size:20px;
-  color:yellow;
+  color:#fbbf24;
 }
 
 #hint{
   font-size:12px;
-  color:#00d9ff;
+  color:#fdba74;
 }
 
 #points{
@@ -73,7 +69,7 @@ button:hover{
   background:rgba(0,0,0,0.5);
   padding:8px 10px;
   border-radius:8px;
-  border:1px solid #00ffcc;
+  border:1px solid #f97316;
 }
 
 #user-badge {
@@ -86,7 +82,7 @@ button:hover{
   background: rgba(0, 0, 0, 0.6);
   padding: 5px 15px;
   border-radius: 25px;
-  border: 1px solid #00ffcc;
+  border: 1px solid #f97316;
   z-index: 10;
 }
 
@@ -94,7 +90,7 @@ button:hover{
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 1px solid #00ffcc;
+  border: 1px solid #f97316;
 }
 
 #popup{
@@ -110,17 +106,18 @@ button:hover{
 #popupBox{
   width:200px;
   padding:15px;
-  background:#111;
+  background: rgba(17, 17, 17, 0.95);
   border-radius:10px;
   text-align:center;
-  border:1px solid #00ffcc;
+  border:1px solid #f97316;
+  box-shadow: 0 0 30px rgba(249, 115, 22, 0.4);
 }
 
 .spinner{
   width:40px;
   height:40px;
   border:4px solid rgba(255,255,255,0.2);
-  border-top:4px solid #00ffcc;
+  border-top:4px solid #f97316;
   border-radius:50%;
   animation:spin 1s linear infinite;
   margin:auto;
@@ -140,23 +137,23 @@ button:hover{
   align-items: center;
   flex-direction: column;
   font-family: 'Courier New', Courier, monospace;
-  color: #00ffcc;
+  color: #fbbf24;
   text-align: center;
 }
 
 .typewriter {
   overflow: hidden;
   white-space: nowrap;
-  border-right: .15em solid #00ffcc;
+  border-right: .15em solid #f97316;
   animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
 }
 
 @keyframes typing { from { width: 0 } to { width: 100% } }
-@keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: #00ffcc } }
+@keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: #f97316 } }
 
 .btn-correct {
-  background: #00ff99 !important;
-  box-shadow: 0 0 15px #00ff99;
+  background: #f59e0b !important;
+  box-shadow: 0 0 15px #f59e0b;
   transform: scale(1.05);
 }
 
@@ -171,7 +168,7 @@ button:hover{
   padding: 10px;
   margin: 5px 0;
   border-radius: 8px;
-  border: 1px solid #00ffcc;
+  border: 1px solid #f97316;
   cursor: pointer;
 }
 
@@ -199,7 +196,7 @@ button:hover{
   padding: 15px;
   border-radius: 10px;
   margin: 10px 0;
-  border: 1px solid #00ffcc;
+  border: 1px solid #f97316;
 }
 </style>
 </head>
@@ -246,12 +243,12 @@ button:hover{
 
 <div id="lobby" style="display:none;">
   <h2>🎮 Sala de Espera</h2>
-  <p style="font-size:14px;">Partida: <span id="game-id" style="color:#00ffcc;"></span></p>
-  <p style="font-size:14px;">Temática: <span id="lobby-topic" style="color:#00ffcc;">Cultura General</span></p>
+  <p style="font-size:14px;">Partida: <span id="game-id" style="color:#f97316;"></span></p>
+  <p style="font-size:14px;">Temática: <span id="lobby-topic" style="color:#f97316;">Cultura General</span></p>
   <p id="waiting-msg" style="font-size:11px; color:#aaa; opacity:0; margin-top:5px;">Esperando que los demás jugadores terminen...</p>
   <h4 style="margin-top:15px;">👥 Jugadores (<span id="player-count">1</span>/4):</h4>
   <div id="players-list"></div>
-  <button id="btn-start" style="display:none; background:#00ff99; color:#000; margin-top:15px;">▶ Comenzar Partida</button>
+  <button id="btn-start" style="display:none; background:#f59e0b; color:#000; margin-top:15px;">▶ Comenzar Partida</button>
   <button onclick="leaveLobby()" style="background: #333; margin-top: 10px;">⬅️ Salir de la sala</button>
 </div>
 
@@ -856,8 +853,8 @@ function showFinalResults(results, winner) {
      return `
        <div style="background: ${isWinner ? 'rgba(0,255,204,0.15)' : 'rgba(0,0,0,0.3)'};
                    padding:8px; border-radius:6px; margin:4px 0;
-                   border: ${isWinner ? '1px solid #00ffcc' : '1px solid #333'};">
-         <span style="${isWinner ? 'color:#00ffcc; font-size:16px;' : ''}">${isWinner ? '👑 ' : ''}${r.playerName}</span>
+                   border: ${isWinner ? '1px solid #f97316' : '1px solid #333'};">
+         <span style="${isWinner ? 'color:#f97316; font-size:16px;' : ''}">${isWinner ? '👑 ' : ''}${r.playerName}</span>
          <span style="float:right; font-size:14px;">${r.score} aciertos</span>
        </div>
      `;

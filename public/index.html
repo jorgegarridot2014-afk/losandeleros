@@ -6,13 +6,13 @@
 <title>Los Andeleros</title>
 
 <!-- ✅ CSS separado -->
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=2">
 
 </head>
 
 <body>
 
-<h1>LOS ANDELEROS</h1>
+<h1>Gonjor presents Los Andeleros</h1>
 <h2 id="estado">No logueado</h2>
 
 <!-- ================= MENU ================= -->
@@ -129,17 +129,22 @@
 <div id="menuJugar" class="hidden">
 
   <button onclick="closePopup(); irTrivialPlayers()">Quiz Multiplayer</button>
+  <button onclick="closePopup(); irQuiz()">Quiz</button>
+  <button onclick="closePopup(); irQuizIndividual()">Quiz Individual</button>
+  <button onclick="closePopup(); irMundo()">Quiz Mundo</button>
   <button onclick="closePopup(); irMinijuegos()">Minijuegos</button>
   <button onclick="closePopup(); irPensamiento()">Pensamiento Computacional</button>
   <button onclick="closePopup(); irEscape()">Escape Room</button>
-  <button onclick="closePopup(); irQuiz()">Quiz</button>
   <button onclick="closePopup(); irLab()">Laboratorio</button>
   <button onclick="closePopup(); irMisterio()">Carl Briss</button>
   <button onclick="closePopup(); irAndebrawl()">ANDEBRAWL</button>
-  <button onclick="closePopup(); irAdmin()">Admin</button>
+  <button onclick="closePopup(); irAjedrez()">Ajedrez</button>
+  <button onclick="closePopup(); irCristales()">Jugo de los cristales</button>
+  <button onclick="closePopup(); irConecta10()">Conecta 10</button>
+  <button onclick="closePopup(); irVallesol()">Vallesol Tycoon</button>
 
   <br><br>
-  <button onclick="cerrarJugar()">Volver</button>
+  <button onclick="go()">Volver</button>
 
 </div>
 
@@ -151,30 +156,83 @@
   </div>
 </div>
 
+<!-- ================= MUSICA NO DISPONIBLE ================= -->
+<div id="overlayMusica" class="overlay hidden" style="z-index: 10000;">
+  <div class="card">
+    <p>Esta función no está disponible temporalmente.</p>
+    <button onclick="cerrarOverlayMusica()">Cerrar</button>
+  </div>
+</div>
+
+<!-- ================= VOXELCRAFT ================= -->
+<div id="overlayVoxelcraft" class="overlay hidden">
+  <div class="card" style="text-align: center;">
+    <p style="font-size: 48px;">🧱</p>
+    <p><strong>VoxelVortex</strong> no está disponible.<br>Disponible a partir del 14 de agosto.</p>
+    <button onclick="cerrarOverlayVoxelcraft()">Cerrar</button>
+  </div>
+</div>
+
+<!-- ================= MODO NO DISPONIBLE ================= -->
+<div id="overlayModo" class="overlay hidden" style="z-index: 10000;">
+  <div class="card">
+    <p>Esta función no funciona temporalmente.</p>
+    <button onclick="cerrarOverlayModo()">Cerrar</button>
+  </div>
+</div>
+
+<!-- ================= RANKING ================= -->
+<div id="overlayRanking" class="overlay hidden" style="z-index: 10000;">
+  <div class="card">
+    <h3 style="color: #fb923c; margin-bottom: 15px;">🏆 Top 7 Ranking</h3>
+    <div id="rankingList" style="text-align: left; max-height: 60vh; overflow-y: auto;"></div>
+    <button onclick="cerrarOverlayRanking()" style="margin-top: 15px;">Cerrar</button>
+  </div>
+</div>
+
+
 <!-- ================= BARRA ================= -->
 <div id="barra">
   <button id="btnModo" onclick="toggleModo()">Modo</button>
-  <button id="btnMusica" onclick="toggleMusica()">Música</button>
+  <button id="btnMusica" onclick="toggleMusica()">🎵</button>
 
-  <button id="btnJugar" style="display:none" onclick="abrirJugar()">Jugar</button>
+  <button id="btnJugar" style="display:none" onclick="abrirEntrar()">🎮 Jugar</button>
+
   <button id="btnPerfil" style="display:none" onclick="verPerfil()">Perfil</button>
   <button id="btnNoti" style="display:none" onclick="abrirNoti()">Noti</button>
+  <button id="btnDiscord" style="display:none" onclick="window.open('https://discord.gg/pzGBtKbWw','_blank')">Discord</button>
   <button id="btnTienda" style="display:none" onclick="shop()">🏪 Tienda</button>
+  <button id="btnRanking" style="display:none" onclick="abrirRanking()">Ranking</button>
+  <button id="btnAmigos" style="display:none" onclick="irAmigos()">Amigos</button>
 </div>
 
 <!-- SHOP POPUP -->
-<div id="popup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:5000; justify-content:center; align-items:center;">
-  <div id="popupBox" style="width:300px; padding:20px; background:#111; border-radius:10px; text-align:center; border:1px solid #00ffcc;">
+<div id="popup" style="display:none;">
+  <div id="popupBox">
     <div id="popupText"></div>
   </div>
 </div>
 
 <!-- ================= AUDIO ================= -->
-<audio id="musica" loop></audio>
+<audio id="musica" src="/playa.mp3" loop preload="auto"></audio>
+<script>
+  (function(){
+    const audio = document.getElementById("musica");
+    if(!audio) return;
+    const tryPlay = () => {
+      audio.volume = 0.35;
+      audio.play().catch(() => {});
+    };
+    tryPlay();
+    document.addEventListener("click", tryPlay, { once: true });
+    document.addEventListener("touchstart", tryPlay, { once: true });
+    document.addEventListener("keydown", tryPlay, { once: true });
+  })();
+</script>
 
 <!-- ================= JS ================= -->
 <script src="/socket.io/socket.io.js"></script>
-<script src="login.js"></script>
+<script src="login.js?v=12"></script>
 
 </body>
 </html>

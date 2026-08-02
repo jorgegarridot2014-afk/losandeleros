@@ -5,9 +5,11 @@ const API_BASE = "";
 const LOCAL_ACCOUNT_KEY = "andeleros_account_";
 const LAST_ACTIVE_KEY = "andeleros_last_active";
 const PALABRAS_PROHIBIDAS = ["tonto", "feo", "malo", "joder", "idiota"];
-const socket = io();
-socket.on("admin-broadcast", (data) => { alert(data.user + ": " + data.message); });
-socket.on("go-hacker", () => { window.location.href = "/hacker.html"; });
+const socket = typeof io !== "undefined" ? io() : null;
+if (socket) {
+  socket.on("admin-broadcast", (data) => { alert(data.user + ": " + data.message); });
+  socket.on("go-hacker", () => { window.location.href = "/hacker.html"; });
+}
 function esMalsonante(texto) {
   const low = texto.toLowerCase();
   return PALABRAS_PROHIBIDAS.some(p => low.includes(p));
@@ -63,16 +65,28 @@ window.addEventListener("DOMContentLoaded", async () => {
   if (!user && lastIde) { await loginSavedAccount(lastIde, true); if (user) return; }
   go();
 });
-function hideAll(){ [ "menu","crear","login","setup","privacidad", "panel","perfil","menuJugar","overlayNoti" ].forEach(id=>{ document.getElementById(id)?.classList.add("hidden"); }); }
+function hideAll(){ [ "menu","crear","login","setup","privacidad", "panel","perfil","juegosGrid","overlayNoti","menuJugar","overlayMusica","overlayVoxelcraft","overlayModo","overlayRanking","popup" ].forEach(id=>{ document.getElementById(id)?.classList.add("hidden"); }); }
 function show(id){ document.getElementById(id)?.classList.remove("hidden"); }
 function updateBar(){
   const logged = user && user.ide && user.aceptado;
-  document.getElementById("btnModo").style.display = "inline-block";
-  document.getElementById("btnMusica").style.display = "inline-block";
-  document.getElementById("btnJugar").style.display = logged ? "inline-block":"none";
-  document.getElementById("btnPerfil").style.display = logged ? "inline-block":"none";
-  document.getElementById("btnNoti").style.display = logged ? "inline-block":"none";
-  document.getElementById("btnTienda").style.display = logged ? "inline-block":"none";
+  const btnModo = document.getElementById("btnModo");
+  const btnMusica = document.getElementById("btnMusica");
+  const btnJugar = document.getElementById("btnJugar");
+  const btnPerfil = document.getElementById("btnPerfil");
+  const btnNoti = document.getElementById("btnNoti");
+  const btnDiscord = document.getElementById("btnDiscord");
+  const btnTienda = document.getElementById("btnTienda");
+  const btnRanking = document.getElementById("btnRanking");
+  const btnAmigos = document.getElementById("btnAmigos");
+  if(btnModo) btnModo.style.display = "inline-block";
+  if(btnMusica) btnMusica.style.display = "inline-block";
+  if(btnJugar) btnJugar.style.display = logged ? "inline-block":"none";
+  if(btnPerfil) btnPerfil.style.display = logged ? "inline-block":"none";
+  if(btnNoti) btnNoti.style.display = logged ? "inline-block":"none";
+  if(btnDiscord) btnDiscord.style.display = logged ? "inline-block":"none";
+  if(btnTienda) btnTienda.style.display = logged ? "inline-block":"none";
+  if(btnRanking) btnRanking.style.display = logged ? "inline-block":"none";
+  if(btnAmigos) btnAmigos.style.display = logged ? "inline-block":"none";
 }
 function go(){
   document.body.className = modo;
@@ -80,22 +94,19 @@ function go(){
   updateBar();
   renderCuentas();
   const estado = document.getElementById("estado");
-  if(!user || !user.ide){ estado.innerText = "No logueado"; show("menu"); return; }
+  if(!user || !user.ide){ if(estado) estado.innerText = "No logueado"; show("menu"); return; }
   user = mergeLocalAccountData(user);
   if (user.aceptado) { saveCurrentUserLocalData(); }
-  estado.innerText = "Logueado como " + user.apodo + " (" + user.ide + ")";
+  if(estado) estado.innerText = "Logueado como " + user.apodo + " (" + user.ide + ")";
   abrirPanel();
 }
-async function crearCuenta(){
+  async function crearCuenta(){
   const apodo = document.getElementById("apodo").value.trim();
   if(!apodo) return alert("Escribe apodo");
   if(esMalsonante(apodo)){ return alert("El apodo contiene palabras no permitidas"); }
   try {
-    const resCuentas = await fetch(`${API_BASE}/cuentas`);
-    let cuentasActuales = [];
-    if(resCuentas.ok) cuentasActuales = await resCuentas.json(); else throw new Error("Servidor no responde");
-    if(cuentasActuales.length >= 50) { return alert("El servidor está lleno. Contacta con el admin."); }
     user = { apodo: apodo, foto: "pfp/p1.svg", aceptado: false };
+    user._isNew = true;
     updateBar();
     abrirSetup();
   } catch(err) { console.error("Fallo en crearCuenta:", err); alert("No se pudo conectar con el servidor."); }
@@ -120,12 +131,18 @@ function abrirPrivacidad(){ if(!user) return go(); hideAll(); show("privacidad")
 async function aceptarPrivacidad(){
   if(!user) return go();
   try {
-    const res = await fetch(`${API_BASE}/crear`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ apodo: user.apodo, foto: user.foto, aceptado: true, noMostrar: true }) });
+    let res;
+    if (user._isNew) {
+      res = await fetch(`${API_BASE}/crear`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ apodo: user.apodo, foto: user.foto, aceptado: true, noMostrar: true }) });
+    } else {
+      res = await fetch(`${API_BASE}/aceptar/${encodeURIComponent(user.ide)}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ foto: user.foto, noMostrar: true }) });
+    }
     const data = await res.json();
     if(!res.ok) throw new Error(data.error || "Error en el servidor al crear cuenta");
+    delete user._isNew;
     user = data;
     saveCurrentUserLocalData();
-    if (socket && socket.connected) socket.emit("auth-user", user.ide); 
+    if (socket && socket.connected) socket.emit("auth-user", user.ide);
     go();
   } catch(err){ console.error("Error en aceptación:", err); alert("Fallo al confirmar la cuenta: " + err.message); go(); }
 }
@@ -138,6 +155,7 @@ async function loginCuenta(){
     const data = await res.json();
     if(!res.ok){ return alert(data.error || "No existe esta cuenta"); }
     user = mergeLocalAccountData(data);
+    user._isNew = false;
     if (user.aceptado) { 
       saveCurrentUserLocalData();
       if (socket && socket.connected) socket.emit("auth-user", user.ide); 
@@ -171,9 +189,9 @@ function renderCuentas(){
     row.appendChild(img); row.appendChild(info); row.appendChild(btnOlvidar); div.appendChild(row);
   });
 }
-function abrirPanel(){ hideAll(); show("panel"); document.getElementById("pApodo").innerText = user.apodo; }
+function abrirPanel(){ hideAll(); show("panel"); show("juegosGrid"); document.getElementById("pApodo").innerText = user.apodo; }
 function verPerfil(){
-  hideAll(); show("perfil");
+  hideAll(); show("perfil"); show("juegosGrid");
   document.getElementById("pfApodo").innerText = user.apodo; document.getElementById("pfId").innerText = user.ide;
   const contenedorFotos = document.querySelector("#perfil .fotos");
   if(contenedorFotos){ contenedorFotos.innerHTML = ""; for(let i=1; i<=6; i++){ const img = document.createElement("img"); img.src = `pfp/p${i}.svg`; img.onclick = () => setFoto(img.src); contenedorFotos.appendChild(img); } }
@@ -207,8 +225,8 @@ async function loginSavedAccount(ide, silent = false) {
 }
 function logout(){ localStorage.removeItem(LAST_ACTIVE_KEY); user = null; go(); }
 function irMision2() { if (!user || !user.ide) return alert("Carl Briss: '¿Quién eres? Identifícate antes de intentar acceder al núcleo.'"); if (!user.missionCarlBriss1) { return alert("Carl Briss: 'Acceso denegado. Debes completar el Protocolo de Iniciación (Misión 1) antes de acceder al nivel 2.'"); } window.location.href = `mario%20bross/2.html?ide=${encodeURIComponent(user.ide)}&apodo=${encodeURIComponent(user.apodo)}&points=${user.points || 0}&m2=${user.missionCarlBriss2 || false}`; }
-function abrirJugar(){ hideAll(); show("menuJugar"); }
-function cerrarJugar(){ go(); }
+
+
 function irPensamiento(){ window.location.href = "scratch.html"; }
 function irMinijuegos(){ window.location.href = "mantenimiento.html"; }
 function irEscape(){ window.location.href = "scaperoom.html"; }
@@ -218,18 +236,23 @@ function irQuizIndividual(){ window.location.href = "/quizzes/quiz.html"; }
 function irMisterio(){ if (!user || !user.ide) return alert("Carl Briss: 'Identifícate antes de entrar al Protocolo Origen.'"); window.location.href = `/mario%20bross/game.html?ide=${encodeURIComponent(user.ide)}&apodo=${encodeURIComponent(user.apodo)}&points=${user.points || 0}&m1=${user.missionCarlBriss1 || false}&m2=${user.missionCarlBriss2 || false}`; }
 function irLab(){ window.location.href = "https://elementlab.onrender.com/"; }
 function irMundo(){ window.location.href = "/quizzes/quizmundo.html"; }
+function irEventos(){ window.location.href = "admin.html"; }
 function irAdmin(){ window.location.href = "/admin.html"; }
-function irAndebrawl(){ 
-  if (user && !user.setup) {
-    window.location.href = "/andebrawl/seleccion-personajes.html";
-    return;
-  }
-  window.location.href = "/andebrawl/juego.html"; 
-}
-function abrirNoti(){ hideAll(); show("overlayNoti"); document.getElementById("notiText").innerText = "🔔 ya hay nuevos minijuegos disponibles"; }
+function irAjedrez(){ window.location.href = "ajedrez.html"; }
+function irCristales(){ window.location.href = "calamar.html"; }
+function irConecta10(){ window.location.href = "conecta10.html"; }
+function irVallesol(){ window.location.href = "/vallesol.html"; }
+function irAndebrawl(){ window.location.href = "/andebrawl/juego.html"; }
+function abrirNoti(){ hideAll(); show("overlayNoti"); document.getElementById("notiText").innerText = "No hay notificaciones"; }
 function cerrarNoti(){ go(); }
+function abrirEntrar(){ if(!user) return; hideAll(); show("menuJugar"); }
+function cerrarEntrar(){ go(); }
+function cerrarJugar(){ go(); }
 function checkMision2() { if (!user) return; if (user.missionCarlBriss2) { alert("Carl Briss dice: 'Buen trabajo con el Protocolo Sombra, el sistema está estable.'"); } else if (user.missionCarlBriss1) { irMision2(); } else { alert("Carl Briss: 'Necesitas completar la Misión 1 primero.'"); } }
-function toggleModo(){ modo = modo === "oscuro" ? "claro" : modo === "claro" ? "neon" : "oscuro"; localStorage.setItem("modo", modo); go(); }
+function toggleModo(){
+  hideAll();
+  show("overlayModo");
+}
 function mostrarCrear(){ hideAll(); show("crear"); document.getElementById("apodo").value = ""; document.getElementById("apodo").focus(); }
 function mostrarLogin(){ hideAll(); show("login"); document.getElementById("ide").value = ""; document.getElementById("ide").focus(); }
 function volver(){ go(); }
@@ -277,6 +300,7 @@ function shop(){
   else { content += `<button onclick="buyGeographyQuiz()" style="width: 100%; letter-spacing: 1px;">COMPRAR Geografía (700⭐)</button>`; }
   content += `<button onclick="closePopup()" style="width: 100%; background: #222; color: #666; letter-spacing: 1px;">Cerrar</button></div>`;
   popupText.innerHTML = content;
+  document.getElementById("popup").classList.remove("hidden");
   popup.style.display = "flex";
 }
 async function buyEnglishQuiz(){
@@ -304,8 +328,76 @@ async function buyGeographyQuiz(){
   setTimeout(() => { window.location.href = "/quizzes/quizmundo.html"; }, 1500);
 }
 function toggleMusica(){
-  if(!audio) audio = document.getElementById("musica");
-  if(!musicaActiva){ audio.src = playlist[Math.floor(Math.random()*playlist.length)]; audio.volume = 0.5; audio.play(); musicaActiva = true; } else { audio.pause(); musicaActiva = false; }
+  const m = document.getElementById("overlayMusica");
+  const o = document.getElementById("overlayModo");
+  if(m){ m.classList.remove("hidden"); m.style.display = ""; }
+  if(o){ o.classList.add("hidden"); o.style.display = "none"; }
 }
-function showPopup(text){ document.getElementById("popupText").innerHTML = text + '<br><br><button onclick="closePopup()" style="margin-top: 10px; background: #222; color: #666;">Cerrar</button>'; document.getElementById("popup").style.display = "flex"; }
-function closePopup(){ document.getElementById("popup").style.display = "none"; }
+function toggleModo(){
+  const o = document.getElementById("overlayModo");
+  if(o){ o.classList.remove("hidden"); o.style.display = ""; }
+}
+function cerrarOverlayModo(){
+  const o = document.getElementById("overlayModo");
+  if(o){ o.classList.add("hidden"); o.style.display = "none"; }
+}
+function cerrarOverlayMusica(){
+  const m = document.getElementById("overlayMusica");
+  if(m){ m.classList.add("hidden"); m.style.display = "none"; }
+}
+function irVoxelcraft(){
+  document.getElementById("overlayVoxelcraft").classList.remove("hidden");
+}
+function cerrarOverlayVoxelcraft(){
+  document.getElementById("overlayVoxelcraft").classList.add("hidden");
+}
+function irEpicTower(){
+  document.getElementById("overlayVoxelcraft").classList.remove("hidden");
+}
+function irAeronautica(){
+  document.getElementById("overlayVoxelcraft").classList.remove("hidden");
+}
+document.addEventListener("DOMContentLoaded", () => {
+  const audio = document.getElementById("musica");
+  if(audio){
+    const playOnce = () => {
+      audio.volume = 0.35;
+      audio.play().catch(() => {});
+      document.removeEventListener("click", playOnce);
+      document.removeEventListener("touchstart", playOnce);
+      document.removeEventListener("keydown", playOnce);
+    };
+    document.addEventListener("click", playOnce);
+    document.addEventListener("touchstart", playOnce);
+    document.addEventListener("keydown", playOnce);
+  }
+});
+function closePopup(){ document.getElementById("popup").classList.add("hidden"); }
+
+/* ================= RANKING ================= */
+async function abrirRanking(){
+  try {
+    const res = await fetch("/ranking");
+    if(!res.ok) throw new Error("Error ranking");
+    const top = await res.json();
+    const list = document.getElementById("rankingList");
+    list.innerHTML = "";
+    if(top.length === 0){
+      list.innerHTML = "<p>No hay jugadores todavía.</p>";
+    } else {
+      top.forEach((u, i) => {
+        const div = document.createElement("div");
+        div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);";
+        div.innerHTML = `<div><span style="color: #fbbf24; margin-right: 8px;">${i + 1}.</span><b>${u.apodo}</b></div><div style="color: #fb923c; font-weight:bold;">${u.points} ⭐</div>`;
+        list.appendChild(div);
+      });
+    }
+    document.getElementById("overlayRanking").classList.remove("hidden");
+  } catch(err){
+    console.error("Error cargando ranking:", err);
+  }
+}
+function cerrarOverlayRanking(){
+  document.getElementById("overlayRanking").classList.add("hidden");
+}
+function irAmigos(){ window.location.href = "amigos.html"; }

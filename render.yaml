@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: andebrawl
+    region: oregon
+    plan: free
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /
+    envVars:
+      - key: MONGO_URI
+        value: mongodb+srv://6767:20141981@cluster0.cqeusrr.mongodb.net/andeleros?appName=Cluster0
+      - key: NODE_VERSION
+        value: "18"

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conecta 10 vs IA</title>
+  <style>
+    :root { color-scheme: dark; --bg:#07111f; --accent:#4f8cff; --text:#f8fafc; --muted:#8da0bb; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:Inter, Arial, sans-serif; background:radial-gradient(circle at top, #16304b 0%, var(--bg) 60%); color:var(--text); min-height:100vh; display:grid; place-items:center; padding:20px; }
+    .card { width:min(92vw, 900px); background:linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03)); border:1px solid rgba(255,255,255,0.1); border-radius:24px; box-shadow:0 24px 80px rgba(0,0,0,0.35); padding:24px; backdrop-filter:blur(8px); }
+    h1 { margin:0 0 6px; font-size:clamp(1.5rem, 4vw, 2.2rem); }
+    p { color:var(--muted); margin-top:0; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+    .badge { padding:8px 12px; border-radius:999px; background:rgba(79,140,255,0.16); border:1px solid rgba(79,140,255,0.25); color:#dce7ff; font-weight:600; }
+    .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px; }
+    button { border:none; cursor:pointer; border-radius:999px; padding:10px 14px; font-size:0.95rem; font-weight:700; transition:transform .15s ease, box-shadow .15s ease; }
+    button:hover { transform:translateY(-1px); }
+    button:active { transform:translateY(0); }
+    .primary { background:var(--accent); color:white; box-shadow:0 10px 24px rgba(79,140,255,0.25); }
+    .secondary { background:rgba(255,255,255,0.12); color:white; }
+    .game-area { display:grid; gap:20px; grid-template-columns:1fr auto; align-items:start; }
+    .board-shell { background:linear-gradient(180deg, #17304f, #11263d); border:2px solid rgba(255,255,255,0.08); border-radius:18px; padding:12px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.05); width:min(100%, 680px); position:relative; overflow:hidden; }
+    .column-row { display:grid; grid-template-columns:repeat(10, 1fr); gap:8px; margin-bottom:8px; }
+    .column-btn { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); color:#e8f0ff; padding:10px 0; border-radius:12px; min-height:46px; font-size:1rem; }
+    .column-btn:hover { background:rgba(255,255,255,0.12); }
+    .board-grid { display:grid; grid-template-columns:repeat(10, 1fr); gap:8px; }
+    .cell { aspect-ratio:1; border-radius:50%; border:1px solid rgba(255,255,255,0.08); background:radial-gradient(circle at 30% 30%, #244466 0%, #0f1726 70%); box-shadow:inset 0 2px 6px rgba(255,255,255,0.06); transition:transform .15s ease, box-shadow .15s ease; }
+    .cell:hover { transform:scale(1.04); }
+    .cell.player1 { background:radial-gradient(circle at 30% 30%, #ff7b7b 0%, #d62828 70%); box-shadow:0 0 20px rgba(214,40,40,0.25); }
+    .cell.player2 { background:radial-gradient(circle at 30% 30%, #ffe36b 0%, #f59e0b 70%); box-shadow:0 0 20px rgba(245,158,11,0.3); }
+    .falling-token { position:absolute; width:38px; height:38px; border-radius:50%; z-index:5; pointer-events:none; box-shadow:0 10px 22px rgba(0,0,0,0.28); }
+    .falling-token.player1 { background:radial-gradient(circle at 30% 30%, #ff8d8d 0%, #d62828 70%); }
+    .falling-token.player2 { background:radial-gradient(circle at 30% 30%, #ffe692 0%, #f59e0b 70%); }
+    .sidebar { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:16px; min-width:220px; }
+    .sidebar h2 { margin-top:0; font-size:1.05rem; }
+    .sidebar ul { padding-left:18px; color:var(--muted); line-height:1.6; }
+    .status { font-weight:700; margin-top:10px; font-size:1rem; }
+    .status.player1 { color:#ff8f8f; }
+    .status.player2 { color:#ffe36b; }
+    @media (max-width:780px) { .game-area { grid-template-columns:1fr; } .sidebar { order:-1; } .board-shell { width:100%; } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div style="position: absolute; top: 12px; right: 12px; z-index: 10;">
+      <button onclick="window.location.href='index.html'" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">Inicio</button>
+    </div>
+    <div class="topbar">
+      <div>
+        <h1>Conecta 10</h1>
+        <p>Gana haciendo 10 en línea: horizontal, vertical o diagonal.</p>
+      </div>
+      <div class="badge" id="turnBadge">Tu turno</div>
+    </div>
+    <div class="controls">
+      <button class="primary" id="restartBtn">Nueva partida</button>
+      <button class="secondary" id="resetBtn">Reiniciar tablero</button>
+    </div>
+    <div class="game-area">
+      <div id="board" class="board-shell"></div>
+      <aside class="sidebar">
+        <h2>Cómo jugar</h2>
+        <ul>
+          <li>Tu ficha es roja.</li>
+          <li>La IA juega con amarillo.</li>
+          <li>Haz clic en una columna para soltar tu ficha.</li>
+          <li>El primero en formar 10 seguidas gana.</li>
+        </ul>
+        <div class="status player1" id="statusText">Tu turno</div>
+      </aside>
+    </div>
+  </div>
+  <script>
+    const ROWS = 10;
+    const COLS = 10;
+    const CONNECT = 10;
+    const HUMAN = 1;
+    const AI = 2;
+    const EMPTY = 0;
+    let board = Array.from({ length: ROWS }, () => Array(COLS).fill(EMPTY));
+    let currentPlayer = HUMAN;
+    let gameOver = false;
+    let thinking = false;
+    let moveInProgress = false;
+    let activeAnimationFrame = null;
+    const boardEl = document.getElementById('board');
+    const statusText = document.getElementById('statusText');
+    const turnBadge = document.getElementById('turnBadge');
+    const restartBtn = document.getElementById('restartBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    function resetBoard() {
+      if (activeAnimationFrame) cancelAnimationFrame(activeAnimationFrame);
+      board = Array.from({ length: ROWS }, () => Array(COLS).fill(EMPTY));
+      currentPlayer = HUMAN;
+      gameOver = false;
+      thinking = false;
+      moveInProgress = false;
+      activeAnimationFrame = null;
+      render();
+      updateStatus('Tu turno', 'player1');
+    }
+    function render() {
+      boardEl.innerHTML = '';
+      const columnRow = document.createElement('div');
+      columnRow.className = 'column-row';
+      for (let col=0; col<COLS; col++) {
+        const button = document.createElement('button');
+        button.className = 'column-btn';
+        button.textContent = `${col + 1}`;
+        button.addEventListener('click', () => handleColumnClick(col));
+        columnRow.appendChild(button);
+      }
+      boardEl.appendChild(columnRow);
+      const grid = document.createElement('div');
+      grid.className = 'board-grid';
+      for (let row=0; row<ROWS; row++) {
+        for (let col=0; col<COLS; col++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          if (board[row][col] === HUMAN) cell.classList.add('player1');
+          if (board[row][col] === AI) cell.classList.add('player2');
+          grid.appendChild(cell);
+        }
+      }
+      boardEl.appendChild(grid);
+    }
+    function getAvailableRow(col) { for (let row = ROWS - 1; row >= 0; row--) { if (board[row][col] === EMPTY) return row; } return -1; }
+    function placeDisk(row, col, player) { board[row][col] = player; return { row, col }; }
+    function animateFallingToken(row, col, player, onComplete) {
+      moveInProgress = true;
+      const token = document.createElement('div');
+      token.className = `falling-token ${player === HUMAN ? 'player1' : 'player2'}`;
+      boardEl.appendChild(token);
+
+      const cells = boardEl.querySelectorAll('.board-grid .cell');
+      const targetCell = cells[row * COLS + col];
+      const boardRect = boardEl.getBoundingClientRect();
+      const cellRect = targetCell.getBoundingClientRect();
+      const tokenSize = 38;
+      const startX = (cellRect.left - boardRect.left) + (cellRect.width / 2) - (tokenSize / 2);
+      const startY = -70;
+      const endX = startX;
+      const endY = (cellRect.top - boardRect.top) + (cellRect.height / 2) - (tokenSize / 2);
+
+      token.style.left = `${startX}px`;
+      token.style.top = `${startY}px`;
+
+      const duration = 650;
+      const startTime = performance.now();
+      const tick = (now) => {
+        const progress = Math.min((now - startTime) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        token.style.left = `${endX}px`;
+        token.style.top = `${startY + (endY - startY) * eased}px`;
+        if (progress < 1) {
+          activeAnimationFrame = requestAnimationFrame(tick);
+          return;
+        }
+        token.remove();
+        moveInProgress = false;
+        activeAnimationFrame = null;
+        onComplete();
+      };
+
+      activeAnimationFrame = requestAnimationFrame(tick);
+    }
+    function checkWinner(row, col, player) { const directions=[[1,0],[0,1],[1,1],[1,-1]]; for (const [dr,dc] of directions) { let count=1; count+=countDirection(row,col,dr,dc,player); count+=countDirection(row,col,-dr,-dc,player); if (count >= CONNECT) return true; } return false; }
+    function countDirection(row,col,dr,dc,player) { let count=0; let r=row+dr; let c=col+dc; while (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === player) { count++; r+=dr; c+=dc; } return count; }
+    function isBoardFull() { return board[0].every(cell => cell !== EMPTY); }
+    function updateStatus(text, cls) { statusText.textContent=text; statusText.className=`status ${cls}`; turnBadge.textContent=text; turnBadge.style.background = cls === 'player2' ? 'rgba(245,158,11,0.16)' : 'rgba(79,140,255,0.16)'; }
+    function endGame(text) { gameOver=true; updateStatus(text, currentPlayer === HUMAN ? 'player2' : 'player1'); setTimeout(() => alert(text), 80); }
+    function handleColumnClick(col) { if (gameOver || thinking || moveInProgress || currentPlayer !== HUMAN) return; const landingRow = getAvailableRow(col); if (landingRow === -1) return; render(); animateFallingToken(landingRow, col, HUMAN, () => { placeDisk(landingRow, col, HUMAN); render(); if (checkWinner(landingRow, col, HUMAN)) { endGame('¡Has ganado!'); return; } if (isBoardFull()) { endGame('Empate'); return; } currentPlayer=AI; updateStatus('Turno de la IA', 'player2'); thinking=true; setTimeout(() => makeAIMove(), 650); }); }
+    function makeAIMove() { if (gameOver || moveInProgress) return; const move=chooseBestMove(); if (!move) { endGame('Empate'); return; } const landingRow = getAvailableRow(move); if (landingRow === -1) { endGame('Empate'); return; } render(); animateFallingToken(landingRow, move, AI, () => { placeDisk(landingRow, move, AI); render(); if (checkWinner(landingRow, move, AI)) { endGame('Ha ganado la IA'); thinking=false; return; } if (isBoardFull()) { endGame('Empate'); thinking=false; return; } currentPlayer=HUMAN; updateStatus('Tu turno', 'player1'); thinking=false; }); }
+    function chooseBestMove() { const legalCols=[]; for (let col=0; col<COLS; col++) { if (getAvailableRow(col) !== -1) legalCols.push(col); } const winning = legalCols.find(col => isWinningMove(col, AI)); if (winning !== undefined) return winning; const blocking = legalCols.find(col => isWinningMove(col, HUMAN)); if (blocking !== undefined) return blocking; const centerCol=Math.floor(COLS/2); legalCols.sort((a,b)=>Math.abs(a-centerCol)-Math.abs(b-centerCol)); return legalCols[0]; }
+    function isWinningMove(col, player) { const row=getAvailableRow(col); if (row===-1) return false; const tempBoard=board.map(r=>[...r]); tempBoard[row][col]=player; return checkWinnerOnBoard(tempBoard,row,col,player); }
+    function checkWinnerOnBoard(tempBoard,row,col,player) { const directions=[[1,0],[0,1],[1,1],[1,-1]]; for (const [dr,dc] of directions) { let count=1; count+=countDirectionOnBoard(tempBoard,row,col,dr,dc,player); count+=countDirectionOnBoard(tempBoard,row,col,-dr,-dc,player); if (count >= CONNECT) return true; } return false; }
+    function countDirectionOnBoard(tempBoard,row,col,dr,dc,player) { let count=0; let r=row+dr; let c=col+dc; while (r >= 0 && r < ROWS && c >= 0 && c < COLS && tempBoard[r][c] === player) { count++; r+=dr; c+=dc; } return count; }
+    restartBtn.addEventListener('click', resetBoard); resetBtn.addEventListener('click', resetBoard); render();
+  </script>
+
+  <script src="bonus.js"></script>
+</body>
+</html>

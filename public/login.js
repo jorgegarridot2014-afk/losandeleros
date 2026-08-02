@@ -38,12 +38,12 @@ function mergeLocalAccountData(account){
   if(!account || !account.ide) return account;
   const local = getLocalAccountData(account.ide);
   const foto = normalizeFoto(local.foto || account.foto || "pfp/p1.svg");
-  return { ...account, ...local, foto, aceptado: local.aceptado === true || account.aceptado === true, noMostrar: local.noMostrar === true || account.noMostrar === true };
+  return { ...account, ...local, foto, points: account.points || 0, aceptado: local.aceptado === true || account.aceptado === true, noMostrar: local.noMostrar === true || account.noMostrar === true };
 }
 function saveCurrentUserLocalData(){
   if(!user || !user.ide) return;
   localStorage.setItem(LAST_ACTIVE_KEY, user.ide);
-  saveLocalAccountData(user.ide, { ide: user.ide, apodo: user.apodo, foto: normalizeFoto(user.foto), aceptado: user.aceptado === true, noMostrar: user.noMostrar === true, points: user.points || 0, voxelcraftPurchased: user.voxelcraftPurchased === true });
+  saveLocalAccountData(user.ide, { ide: user.ide, apodo: user.apodo, foto: normalizeFoto(user.foto), aceptado: user.aceptado === true, noMostrar: user.noMostrar === true, voxelcraftPurchased: user.voxelcraftPurchased === true });
 }
 let audio = null;
 let musicaActiva = false;

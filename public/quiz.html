@@ -238,7 +238,8 @@ button:hover{
   <button onclick="startGame()">▶ Empezar Quiz General</button>
   <button onclick="showRanking()">🏆 Ranking Global</button>
   <button onclick="weekly()">📅 Quiz semanal</button>
-  <button onclick="shop()">🏪 Tienda</button>
+    <button onclick="shop()">🏪 Tienda</button>
+    <button onclick="window.location.href='/quizzes/avion.html'" style="background: linear-gradient(90deg,#3b82f6,#1e40af);">✈️ Quiz de Aviones</button>
   
   <!-- Botones de quizzes comprados -->
   <div id="quizIndividualButtons" style="margin-top: 15px; display: none;">
@@ -327,8 +328,8 @@ async function updatePointsUI(save = true) {
             englishQuizPurchased: currentUser.englishQuizPurchased,
             historyQuizPurchased: currentUser.historyQuizPurchased,
             geographyQuizPurchased: currentUser.geographyQuizPurchased,
-          genialQuizPurchased: currentUser.genialQuizPurchased
-         })
+          genialQuizPurchased: currentUser.genialQuizPurchased,
+          voxelcraftPurchased: currentUser.voxelcraftPurchased
       });
 
       if (res.ok) {

@@ -71,6 +71,13 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--g);font-family
 
 @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
 @keyframes flicker{0%,95%,100%{opacity:1}96%{opacity:.3}98%{opacity:.1}}
+@keyframes glitch{
+  0%,100%{transform:translate(0);text-shadow:0 0 20px var(--g)}
+  20%{transform:translate(-2px,1px);text-shadow:2px 0 var(--r),-2px 0 var(--g)}
+  40%{transform:translate(2px,-1px);text-shadow:-2px 0 var(--r),2px 0 var(--g)}
+  60%{transform:translate(-1px,2px);text-shadow:1px 0 var(--g),-1px 0 var(--r)}
+  80%{transform:translate(1px,-2px);text-shadow:-1px 0 var(--g),1px 0 var(--r)}
+}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 @keyframes hackfade{0%{opacity:0;transform:scale(.8)}10%{opacity:1}80%{opacity:1}100%{opacity:0;transform:scale(1.05)}}
 @keyframes overlayIn{from{opacity:0;transform:scale(0.85)}to{opacity:1;transform:scale(1)}}
@@ -89,12 +96,15 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--g);font-family
 <!-- FASE 2: INTRO -->
 <div id="ph-intro" class="phase">
   <div class="centered" style="gap:20px;padding:24px;text-align:center;">
-    <div style="font-size:.52rem;letter-spacing:6px;color:var(--gdim);">// GONJOR DESTRUIDO // SIGUIENTE PASO //</div>
-    <div style="font-size:clamp(1rem,3.5vw,1.6rem);letter-spacing:6px;color:var(--g);text-shadow:0 0 20px var(--g);animation:flicker 3s infinite;">HAY QUE DESENCRIPTAR<br>LOS ARCHIVOS</div>
+    <div style="font-size:.52rem;letter-spacing:6px;color:var(--gdim);">// GONJOR NEUTRALIZADO // SIGUIENTE FASE //</div>
+    <div style="font-size:clamp(1rem,3.5vw,1.6rem);letter-spacing:6px;color:var(--g);text-shadow:0 0 20px var(--g);animation:flicker 3s infinite, glitch 0.5s infinite;">HAY QUE DESENCRIPTAR<br>LOS ARCHIVOS</div>
     <div style="border-left:2px solid var(--g);padding-left:20px;text-align:left;max-width:480px;font-size:clamp(0.72rem,1.8vw,0.88rem);line-height:2.4;color:rgba(0,255,65,0.85);">
       Gonjor cifro todos sus archivos con <span style="color:#ffbd2e;">AES-256-GNJ nivel 7.</span><br><br>
       Necesitamos <span style="color:#ffbd2e;">la clave maestra</span> para descifrarlos.<br><br>
-      <span style="color:var(--r);">Sin la clave los archivos son ilegibles.</span>
+      <span style="color:var(--r);">Sin la clave los archivos son ilegibles.</span><br><br>
+      La clave esta oculta en los archivos virtuales.<br>
+      Busca el hash en los archivos de codigo.<br>
+      <span style="color:#ffbd2e;">No la encuentras? Usa recuperacion de clave.</span>
     </div>
     <button class="gbtn" onclick="SP('ph-cipher')">CONTINUAR → CIFRAR ARCHIVOS</button>
   </div>
@@ -417,23 +427,23 @@ var MK='UXBACQRYDPKTE5FFGPOS99';
 
 // TERMINAL
 var TLINES=[
-  {d:0,s:0,t:'EN LA MISION ANTERIOR...',c:'di',p:'[SYS]'},
-  {d:400,s:0,t:'──────────────────────────────────',c:'di',p:''},
-  {d:700,s:55,t:'Iniciando protocolo de cierre...',c:'',p:'>'},
-  {d:0,s:40,t:'Verificando nodos activos...',c:'',p:'>'},
-  {d:300,s:30,t:'[OK]  Canal de transmision cortado.',c:'',p:'✓'},
-  {d:0,s:30,t:'[OK]  Payload detenido en 3.000.000 nodos.',c:'',p:'✓'},
-  {d:0,s:30,t:'[OK]  Cifrado AES-256-GNJ estable.',c:'',p:'✓'},
-  {d:400,s:60,t:'Bloqueando historial de transmision...',c:'wa',p:'>'},
-  {d:0,s:45,t:'Historial de datos: SELLADO.',c:'wa',p:'!'},
-  {d:0,s:45,t:'Gonjor ya NO recibira mas historial.',c:'hi',p:'!'},
-  {d:500,s:50,t:'Verificando estado del sistema...',c:'',p:'>'},
-  {d:300,s:35,t:'[RESULTADO]  GONJOR HA SIDO PARADO.',c:'hi',p:'■'},
-  {d:600,s:55,t:'Ya no puede hacer dano.',c:'',p:'>'},
-  {d:0,s:55,t:'No puede propagarse.',c:'',p:'>'},
-  {d:0,s:55,t:'No puede transmitir.',c:'',p:'>'},
-  {d:700,s:50,t:'Pero el dano que ya ha hecho...',c:'wa',p:'!'},
-  {d:0,s:50,t:'...ese dano ya esta hecho.',c:'er',p:'!'},
+  {d:0,s:0,t:'SISTEMA GONJOR DETECTADO',c:'er',p:'[ALERTA]'},
+  {d:300,s:0,t:'──────────────────────────────────',c:'di',p:''},
+  {d:500,s:55,t:'Iniciando secuencia de contención...',c:'',p:'>'},
+  {d:0,s:40,t:'Escaneando nodos activos...',c:'',p:'>'},
+  {d:300,s:30,t:'[OK]  3.000.000 nodos identificados.',c:'',p:'✓'},
+  {d:0,s:30,t:'[OK]  Protocolo de cifrado AES-256-GNJ.',c:'',p:'✓'},
+  {d:0,s:30,t:'[OK]  Historial de transmisiones sellado.',c:'',p:'✓'},
+  {d:400,s:60,t:'Bloqueando acceso externo...',c:'wa',p:'>'},
+  {d:0,s:45,t:'Historial de datos: ASEGURADO.',c:'wa',p:'!'},
+  {d:0,s:45,t:'Gonjor ya NO recibirá más información.',c:'hi',p:'!'},
+  {d:500,s:50,t:'Verificando integridad del sistema...',c:'',p:'>'},
+  {d:300,s:35,t:'[RESULTADO]  GONJOR HA SIDO NEUTRALIZADO.',c:'hi',p:'■'},
+  {d:600,s:55,t:'El sistema ya no puede propagarse.',c:'',p:'>'},
+  {d:0,s:55,t:'El sistema ya no puede transmitir.',c:'',p:'>'},
+  {d:0,s:55,t:'El sistema ya no puede rastrear.',c:'',p:'>'},
+  {d:700,s:50,t:'Pero el daño que ya ha hecho...',c:'wa',p:'!'},
+  {d:0,s:50,t:'...ese daño ya esta hecho.',c:'er',p:'!'},
   {d:800,s:40,t:'Los datos robados no se recuperan.',c:'di',p:'#'},
   {d:0,s:40,t:'Los nodos infectados siguen marcados.',c:'di',p:'#'},
   {d:0,s:40,t:'El rastro permanece.',c:'di',p:'#'},

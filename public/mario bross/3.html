@@ -125,6 +125,13 @@ tr:hover td { background:rgba(0,255,65,0.04); }
 @keyframes btnPulse { from{box-shadow:0 0 10px rgba(0,255,65,0.2)} to{box-shadow:0 0 40px rgba(0,255,65,0.8)} }
 @keyframes dotPulse { 0%,80%,100%{opacity:0.2;transform:scale(0.8)} 40%{opacity:1;transform:scale(1.2);background:#00ff41;box-shadow:0 0 8px #00ff41;} }
 @keyframes flicker { 0%,95%,100%{opacity:1}96%{opacity:0.3}98%{opacity:0.1} }
+@keyframes glitch {
+  0%,100%{transform:translate(0);text-shadow:0 0 20px var(--g)}
+  20%{transform:translate(-2px,1px);text-shadow:2px 0 var(--r),-2px 0 var(--g)}
+  40%{transform:translate(2px,-1px);text-shadow:-2px 0 var(--r),2px 0 var(--g)}
+  60%{transform:translate(-1px,2px);text-shadow:1px 0 var(--g),-1px 0 var(--r)}
+  80%{transform:translate(1px,-2px);text-shadow:-1px 0 var(--g),1px 0 var(--r)}
+}
 @keyframes cardGlitch {
   0%,90%,100% { transform:translate(0,0); }
   92% { transform:translate(-2px,1px); filter:hue-rotate(90deg); }
@@ -138,7 +145,7 @@ tr:hover td { background:rgba(0,255,65,0.04); }
 <!-- FASE 1: CINEMÁTICA -->
 <div id="phase-cinematic" class="phase active">
   <div class="cin-label">// ANTERIORMENTE EN GONJOR //</div>
-  <div class="cin-title">MISIÓN 3 — PROTOCOLO FUGA</div>
+  <div class="cin-title" style="animation:flicker 2s infinite, glitch 0.3s infinite;">MISIÓN 3 — PROTOCOLO FUGA</div>
   <div class="cin-box">
     <div id="cin-text"></div>
   </div>
@@ -251,7 +258,22 @@ const apodo  = params.get('apodo') || 'Agente';
 const points = parseInt(params.get('points')) || 0;
 
 // ── CINEMÁTICA ──
-const CIN_TEXT = `En misiones anteriores logramos infiltrarnos\nen los sistemas de Gonjor.\n\nAccedimos a su base de datos central\ny conseguimos ver la cámara de la Sala Criogénica.\n\nPero acabo de darme cuenta de algo.\n\nLa tarjeta de acceso está debajo de la laptop.\nY hay criaturas en la sala.\n\nCreo que va siendo hora... de marcharse.`;
+const CIN_TEXT = `Misiones anteriores...
+
+Logramos infiltrarnos en los sistemas de Gonjor.
+Accedimos a su base de datos central.
+Vimos la cámara de la Sala Criogénica.
+
+Pero algo no cuadra.
+
+La tarjeta de acceso está debajo de la laptop.
+Y hay criaturas en la sala.
+
+Gonjor nos está esperando.
+
+No hay vuelta atrás.
+
+Hay que salir de aquí.`;
 
 let cinIndex = 0;
 let cinChars = [];

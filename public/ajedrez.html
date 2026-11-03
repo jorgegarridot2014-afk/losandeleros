@@ -23,34 +23,24 @@
       place-items: center;
       padding: 28px;
       box-sizing: border-box;
-      background:
-        radial-gradient(900px 500px at 15% 8%, rgba(129,140,248,0.28), transparent 60%),
-        radial-gradient(800px 500px at 85% 15%, rgba(56,189,248,0.22), transparent 60%),
-        radial-gradient(900px 600px at 80% 95%, rgba(52,211,153,0.16), transparent 60%),
-        radial-gradient(700px 500px at 10% 95%, rgba(244,114,182,0.12), transparent 60%),
-        linear-gradient(160deg,#1e1b4b 0%, #0f172a 45%, #050914 100%);
-      background-size: 200% 200%;
-      animation: gradientShift 18s ease-in-out infinite;
-      overflow: hidden;
+      background: #000000;
+      background-size: cover;
     }
 
-    @keyframes gradientShift {
-      0% { background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%; }
-      50% { background-position: 10% 15%, 90% 10%, 85% 90%, 10% 90%, 0% 100%; }
-      100% { background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%; }
-    }
+    #stars { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; overflow:hidden; }
+    #stars::before,#stars::after { content:""; position:absolute; top:0; left:0; width:100%; height:100%; background-repeat:repeat; background-size:200px 200px; animation:twinkle 5s ease-in-out infinite, starsMove 80s linear infinite; }
+    #stars::before { background-image:radial-gradient(1px 1px at 20px 30px,#fff,transparent),radial-gradient(1px 1px at 40px 70px,#ffe,transparent),radial-gradient(1.5px 1.5px at 50px 160px,#fff,transparent),radial-gradient(1px 1px at 90px 40px,#ffe,transparent),radial-gradient(1px 1px at 130px 80px,#fff,transparent),radial-gradient(1.5px 1.5px at 160px 120px,#ffe,transparent); animation-delay:0s,0s; }
+    #stars::after { background-image:radial-gradient(1px 1px at 10px 50px,#fff,transparent),radial-gradient(1.5px 1.5px at 60px 10px,#ffe,transparent),radial-gradient(1px 1px at 100px 90px,#fff,transparent),radial-gradient(1px 1px at 150px 150px,#ffe,transparent),radial-gradient(1.5px 1.5px at 180px 60px,#fff,transparent); animation-delay:2.5s,0s; background-size:250px 250px; }
+    @keyframes twinkle { 0%,100%{opacity:0.6;} 50%{opacity:1;} }
+    @keyframes starsMove { 0%{background-position:0 0;} 25%{background-position:500px -300px;} 50%{background-position:-300px 400px;} 75%{background-position:600px 200px;} 100%{background-position:0 0;} }
 
-    .bg-animate {
+    .bg-overlay {
       position: fixed;
       inset: 0;
       z-index: 0;
       pointer-events: none;
-      background:
-        conic-gradient(from 180deg at 50% 50%, rgba(255,255,255,0.03), rgba(255,255,255,0)),
-        repeating-linear-gradient(45deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 2px, transparent 2px, transparent 60px);
-      mix-blend-mode: overlay;
-      opacity: 0.7;
-      animation: spin 30s linear infinite;
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(2px);
     }
 
     .bg-glow {
@@ -148,23 +138,24 @@
       z-index: 2;
     }
     .card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05));
       padding: 16px;
       border-radius: 14px;
-      box-shadow: 0 12px 32px rgba(2,6,23,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.08);
-      backdrop-filter: blur(6px);
+      box-shadow: 0 12px 32px rgba(2,6,23,0.35), inset 0 1px 0 rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(4px);
     }
 
     h1 {
       margin-bottom: 12px;
       font-size: 1.8rem;
+      color: #f97316;
     }
 
     .status {
       margin-bottom: 16px;
       font-size: 1rem;
-      color: #e5e7eb;
+      color: #f97316;
     }
 
     .menu {
@@ -229,8 +220,8 @@
     .selected { background: var(--selected) !important; }
     .legal { background: var(--legal) !important; }
     .piece { text-shadow: 0 1px 0 rgba(255,255,255,0.22), 1px 1px 2px rgba(0,0,0,0.35); }
-    .piece.white-piece { color: #fafafa; -webkit-text-stroke: 1.1px #1f2937; text-shadow: 0 1px 1px rgba(0,0,0,0.45); }
-    .piece.black-piece { color: #111827; -webkit-text-stroke: 1.1px #f8fafc; text-shadow: 0 1px 1px rgba(0,0,0,0.25); }
+    .piece.white-piece { color: #ffffff; -webkit-text-stroke: 1.2px #ffffff; text-shadow: 0 1px 1px rgba(0,0,0,0.35); }
+    .piece.black-piece { color: #1f2937; -webkit-text-stroke: 1.1px #374151; text-shadow: 0 1px 1px rgba(0,0,0,0.45); }
     .piece.dragging-origin { opacity: 0.25; }
     .coord { position: absolute; top: 4px; left: 4px; font-size: 9px; color: rgba(0,0,0,0.35); }
 
@@ -247,10 +238,10 @@
     .hint {
       margin-top: 12px;
       font-size: 0.95rem;
-      color: #cbd5e1;
+      color: #f97316;
     }
     /* buttons */
-    button { background: #111827; color: #e6eef8; border: 0; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+    button { background: #f97316; color: #ffffff; border: 0; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
     button:hover{ transform: translateY(-2px); }
     select { background: rgba(255,255,255,0.03); color: #e6eef8; border: 1px solid rgba(255,255,255,0.04); padding:6px 8px; border-radius:8px; }
 
@@ -263,6 +254,7 @@
   </style>
 </head>
 <body>
+  <div id="stars"></div>
   <div class="bg-animate" aria-hidden="true"></div>
   <div class="bg-glow" aria-hidden="true"></div>
   <div class="blob blob-1" aria-hidden="true"></div>
@@ -280,9 +272,7 @@
   <div class="chess-bg-piece" style="right:3%; top:42%; font-size:55px; animation: floatA 19s ease-in-out infinite;" aria-hidden="true">♗</div>
 
   <div class="container">
-    <div style="position: absolute; top: 12px; right: 12px; z-index: 10;">
-      <button onclick="window.location.href='index.html'" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">Inicio</button>
-    </div>
+    <button id="btnInicio" onclick="window.location.href='index.html'" style="position:fixed; top:14px; left:14px; z-index:99; padding: 8px 16px; background: rgba(0,0,0,0.45); color: #EAF2F5; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; font-size: 13px; cursor: pointer;">⬅️ Inicio</button>
     <div class="card">
       <h1>♟️ Ajedrez interactivo</h1>
       <div class="status" id="status">Juegas con las negras contra la IA</div>
@@ -359,9 +349,11 @@
     const menuElement = document.getElementById('menu');
     const hintElement = document.getElementById('hint');
 
-    // Siempre: el jugador humano es blancas, la IA es negras
-    const gameMode = 'ai';
+    // Siempre: el jugador humano es negras, la IA es blancas
+    let gameMode = 'ai'; // 'pvp' | 'ai'
+    const humanSide = 'b';
     const aiSide = 'w';
+    let aiThinking = false;
     // El tablero no está activo hasta que se pulsa "Jugar"
     let gameActive = false;
     const resultBackdrop = document.getElementById('resultBackdrop');
@@ -414,18 +406,8 @@
 
     function getPieceSymbol(piece) {
       const symbols = {
-        p: '♟',
-        r: '♜',
-        n: '♞',
-        b: '♝',
-        q: '♛',
-        k: '♚',
-        P: '♙',
-        R: '♖',
-        N: '♘',
-        B: '♗',
-        Q: '♕',
-        K: '♔'
+        p: '♟', r: '♜', n: '♞', b: '♝', q: '♛', k: '♚',
+        P: '♟', R: '♜', N: '♞', B: '♝', Q: '♛', K: '♚'
       };
       return symbols[piece] || '';
     }
@@ -618,12 +600,12 @@
       if (!piece) return false;
       const side = isWhite(piece) ? 'w' : 'b';
       const isMyTurn = (side === turn);
-      const aiControlsThis = (gameMode === 'ai' && side === aiSide);
-      return isMyTurn && !aiControlsThis;
+      if (gameMode === 'ai') return isMyTurn && side === humanSide && !aiThinking;
+      return isMyTurn;
     }
 
     function onSquarePointerDown(e, r, c) {
-      if (!gameActive) return;
+      if (!gameActive || aiThinking) return;
       const piece = board[r][c];
 
       if (piece && canControlPiece(piece)) {
@@ -637,8 +619,6 @@
         return;
       }
 
-      // No se puede arrastrar esta casilla (no es tu turno o no es tu pieza):
-      // usar la lógica de toque normal (mover si ya había una pieza seleccionada, o deseleccionar)
       handleClick(r, c);
     }
 
@@ -683,6 +663,7 @@
     }
 
     function attemptMove(fr, fc, tr, tc) {
+      if (aiThinking) return;
       const movingPiece = board[fr][fc];
       // Salvaguarda: la pieza de origen debe existir y pertenecer al jugador en turno
       if (!movingPiece || !canControlPiece(movingPiece)) {
@@ -707,11 +688,17 @@
       render();
       const over = checkGameOver();
       if (over) return showResult(over);
-      if (gameMode === 'ai' && turn === aiSide) setTimeout(aiMove, 420);
+      if (gameMode === 'ai' && turn === aiSide) {
+        aiThinking = true;
+        setTimeout(() => {
+          aiThinking = false;
+          aiMove();
+        }, 420);
+      }
     }
 
     function handleClick(r, c) {
-      if (!gameActive) return;
+      if (!gameActive || aiThinking) return;
       const piece = board[r][c];
 
       if (selected) {
@@ -744,7 +731,7 @@
 
     // AI: simple move chooser (prefers captures)
     function aiMove() {
-      if (!gameActive) return;
+      if (!gameActive) { aiThinking = false; return; }
       const side = aiSide;
       const moves = [];
       for (let r=0;r<8;r++){
@@ -757,7 +744,7 @@
           }
         }
       }
-      if (moves.length===0) { gameActive=false; return showResult('Empate'); }
+      if (moves.length===0) { gameActive=false; aiThinking=false; return showResult('Empate'); }
       // prefer captures
       const captures = moves.filter(m=>m.capture);
       const choice = (captures.length?captures[mRand(captures.length)]:moves[mRand(moves.length)]);
@@ -769,9 +756,13 @@
       statusElement.textContent = `Turno de las ${turn === 'w' ? 'blancas' : 'negras'}`;
       render();
       const over = checkGameOver();
-      if (over) return showResult(over);
+      if (over) { aiThinking = false; return showResult(over); }
+      aiThinking = false;
       // if next is AI again (e.g., AI plays both sides) chain
-      if (gameMode === 'ai' && turn === aiSide) setTimeout(aiMove, 420);
+      if (gameMode === 'ai' && turn === aiSide) {
+        aiThinking = true;
+        setTimeout(aiMove, 420);
+      }
     }
 
     function mRand(n){ return Math.floor(Math.random()*n); }
@@ -780,15 +771,19 @@
       getAudioCtx();
       resetBoard();
       gameActive = true;
+      aiThinking = false;
       hideMenu();
       statusElement.textContent = `Turno de las ${turn === 'w' ? 'blancas' : 'negras'}`;
-      if (gameMode === 'ai' && turn === aiSide) setTimeout(aiMove, 500);
+      if (gameMode === 'ai' && turn === aiSide) {
+        aiThinking = true;
+        setTimeout(aiMove, 500);
+      }
     }
 
     function resetBoard(){
       // deep copy START_POS
       for (let r=0;r<8;r++) for (let c=0;c<8;c++) board[r][c]=START_POS[r][c];
-      selected = null; turn='w'; render();
+      selected = null; turn='w'; aiThinking=false; render();
     }
 
     render();
@@ -836,18 +831,5 @@
       return null;
     }
   </script>
-  <script src="bonus.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-

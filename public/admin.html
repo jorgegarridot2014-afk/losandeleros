@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +9,7 @@
 body {
   margin: 0;
   font-family: 'Courier New', monospace;
-  background: linear-gradient(135deg, #0a0a0a 0%, #050505 100%);
+  background: linear-gradient(135deg, #000000 0%, #000000 100%);
   color: white;
   display: flex;
   justify-content: center;
@@ -151,11 +151,18 @@ body {
 .status.connected {
   opacity: 1;
 }
+  #stars { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; overflow:hidden; }
+  #stars::before,#stars::after { content:""; position:absolute; top:0; left:0; width:100%; height:100%; background-repeat:repeat; background-size:200px 200px; animation:twinkle 5s ease-in-out infinite, starsMove 80s linear infinite; }
+  #stars::before { background-image:radial-gradient(1px 1px at 20px 30px,#fff,transparent),radial-gradient(1px 1px at 40px 70px,#ffe,transparent),radial-gradient(1.5px 1.5px at 50px 160px,#fff,transparent),radial-gradient(1px 1px at 90px 40px,#ffe,transparent),radial-gradient(1px 1px at 130px 80px,#fff,transparent),radial-gradient(1.5px 1.5px at 160px 120px,#ffe,transparent); animation-delay:0s,0s; }
+  #stars::after { background-image:radial-gradient(1px 1px at 10px 50px,#fff,transparent),radial-gradient(1.5px 1.5px at 60px 10px,#ffe,transparent),radial-gradient(1px 1px at 100px 90px,#fff,transparent),radial-gradient(1px 1px at 150px 150px,#ffe,transparent),radial-gradient(1.5px 1.5px at 180px 60px,#fff,transparent); animation-delay:2.5s,0s; background-size:250px 250px; }
+  @keyframes twinkle { 0%,100%{opacity:0.6;} 50%{opacity:1;} }
+  @keyframes starsMove { 0%{background-position:0 0;} 25%{background-position:500px -300px;} 50%{background-position:-300px 400px;} 75%{background-position:600px 200px;} 100%{background-position:0 0;} }
 </style>
+
 </head>
 
 <body>
-
+<div id="stars"></div>
 <div class="box">
 
   <h1 class="glow">🛠 PANEL ADMIN</h1>
@@ -187,8 +194,24 @@ body {
     <br><br>
     <button id="hackerMode" onclick="activarModoHacker()" style="background:#111; color:#ff0033; border:2px solid #ff0033; padding:12px 20px; font-size:16px; border-radius:10px; cursor:pointer; font-weight:bold; box-shadow:0 0 15px #ff003355; letter-spacing:1px;">MODO HACKER</button>
     <br><br>
+    <button id="btnMantenimiento" onclick="toggleMantenimiento()" style="background:#111; color:#ff9900; border:2px solid #ff9900; padding:12px 20px; font-size:16px; border-radius:10px; cursor:pointer; font-weight:bold; box-shadow:0 0 15px #ff990055; letter-spacing:1px;">🔧 MANTENIMIENTO: OFF</button>
+    <br><br>
+    <button id="btnRestriccionIA" onclick="toggleRestriccionIA()" style="background:#111; color:#ff6600; border:2px solid #ff6600; padding:12px 20px; font-size:16px; border-radius:10px; cursor:pointer; font-weight:bold; box-shadow:0 0 15px #ff660055; letter-spacing:1px;">RESTRINGIR IA: OFF</button>
+    <br><br>
+    <button id="btnPuntos40" onclick="otorgarPuntos40()" style="background:#111; color:#00ff99; border:2px solid #00ff99; padding:12px 20px; font-size:16px; border-radius:10px; cursor:pointer; font-weight:bold; box-shadow:0 0 15px #00ff9955; letter-spacing:1px;">💰 OTORGAR +40% PUNTOS</button>
+    <br><br>
+    <button id="btnBanear" onclick="mostrarCuentasABanear()" style="background:#111; color:#ff0033; border:2px solid #ff0033; padding:12px 20px; font-size:16px; border-radius:10px; cursor:pointer; font-weight:bold; box-shadow:0 0 15px #ff003355; letter-spacing:1px;">🚫 BANEAR</button>
+
+    <br><br>
     <button onclick="volver()" style="background:#333; color:#aaa;">VOLVER</button>
     <div id="status" class="status">Conectado</div>
+  </div>
+
+  <div id="banearSection" style="display:none; max-height:500px; overflow-y:auto;">
+    <h3 style="color:#ff0033; margin-bottom:15px; letter-spacing:2px;">CUENTAS DE LOS ANDELEROS</h3>
+    <div id="cuentasList" style="display:flex; flex-direction:column; gap:10px;"></div>
+    <br>
+    <button onclick="ocultarCuentasABanear()" style="background:#333; color:#aaa; margin-top:15px;">VOLVER</button>
   </div>
 
 </div>
@@ -261,11 +284,119 @@ function activarModoHacker() {
   socket.emit("admin-hackermode");
 }
 
+let mantenimientoActivoLocal = false;
+socket.on("mantenimiento", (data) => {
+  mantenimientoActivoLocal = data.activo;
+  const btn = document.getElementById("btnMantenimiento");
+  if (btn) {
+    btn.textContent = "🔧 MANTENIMIENTO: " + (mantenimientoActivoLocal ? "ON" : "OFF");
+    btn.style.background = mantenimientoActivoLocal ? "#ff9900" : "#111";
+    btn.style.color = mantenimientoActivoLocal ? "#fff" : "#ff9900";
+    btn.style.borderColor = mantenimientoActivoLocal ? "#ff9900" : "#ff9900";
+    btn.style.boxShadow = mantenimientoActivoLocal ? "0 0 20px #ff9900" : "0 0 15px #ff990055";
+  }
+});
+
+function toggleMantenimiento() {
+  socket.emit("admin-mantenimiento");
+}
+
+let iaRestringidaLocal = false;
+socket.on("ia-restringida", (data) => {
+  iaRestringidaLocal = data.activa;
+  const btn = document.getElementById("btnRestriccionIA");
+  if (btn) {
+    btn.textContent = "RESTRINGIR IA: " + (iaRestringidaLocal ? "ON" : "OFF");
+    btn.style.background = iaRestringidaLocal ? "#ff6600" : "#111";
+    btn.style.color = iaRestringidaLocal ? "#fff" : "#ff6600";
+    btn.style.boxShadow = iaRestringidaLocal ? "0 0 20px #ff6600" : "0 0 15px #ff660055";
+  }
+});
+
+function toggleRestriccionIA() {
+  socket.emit("admin-restringir-ia");
+}
+
+function otorgarPuntos40() {
+  if (!confirm("¿Otorgar +40% de puntos a TODAS las cuentas?")) return;
+  socket.emit("admin-puntos-40");
+  console.log("📊 Solicitando +40% puntos a todas las cuentas");
+}
+
 document.getElementById("messageInput").addEventListener("keypress", (e) => {
   if (e.key === "Enter") {
     sendBroadcast();
   }
 });
+
+socket.on("cuenta-baneada", (data) => {
+  console.log("👮 Cuenta baneada/desbaneada en tiempo real:", data);
+});
+
+socket.on("admin-puntos-40-ok", (data) => {
+  alert("✅ +40% puntos otorgados a " + data.count + " cuentas");
+});
+socket.on("admin-puntos-40-error", (data) => {
+  alert("❌ Error: " + (data.error || "no se pudieron otorgar los puntos"));
+});
+
+async function mostrarCuentasABanear(){
+  document.getElementById("messageSection").style.display = "none";
+  document.getElementById("banearSection").style.display = "block";
+  const list = document.getElementById("cuentasList");
+  list.innerHTML = "<p style='color:#888; font-size:13px;'>Cargando cuentas...</p>";
+  try {
+    const res = await fetch("/cuentas");
+    const cuentas = await res.json();
+    list.innerHTML = "";
+    if(!cuentas || cuentas.length === 0){
+      list.innerHTML = "<p style='color:#888; font-size:13px;'>No hay cuentas registradas.</p>";
+      return;
+    }
+    cuentas.forEach(acc => {
+      const div = document.createElement("div");
+      const baneada = acc.baneada === true;
+      div.style.cssText = "background:rgba(255,255,255,0.05); border:1px solid " + (baneada ? "#ff003355" : "#00ffff55") + "; border-radius:10px; padding:12px; display:flex; align-items:center; justify-content:space-between; gap:10px;";
+      div.innerHTML = "<div style='flex:1;'><div style='font-weight:bold; color:" + (baneada ? "#ff0033" : "#00ffff") + "; font-size:14px;'>" + acc.apodo + "</div><div style='font-size:11px; color:#666; opacity:0.7;'>ID: " + acc.ide + "</div></div>";
+      const btn = document.createElement("button");
+      btn.style.cssText = "background:" + (baneada ? "#ff0033" : "#111") + "; color:#fff; border:2px solid " + (baneada ? "#ff0033" : "#00ffff55") + "; padding:8px 14px; font-size:13px; border-radius:8px; cursor:pointer; font-weight:bold; white-space:nowrap;";
+      btn.textContent = baneada ? "🔓 Desbanear" : "🚫 Banear";
+      btn.onclick = () => toggleBan(acc.ide, acc.apodo, !baneada);
+      div.appendChild(btn);
+      list.appendChild(div);
+    });
+  } catch(e){
+    list.innerHTML = "<p style='color:#ff0033;'>Error cargando cuentas.</p>";
+    console.error("Error cargando cuentas:", e);
+  }
+}
+
+function ocultarCuentasABanear(){
+  document.getElementById("banearSection").style.display = "none";
+  document.getElementById("messageSection").style.display = "block";
+}
+
+async function toggleBan(ide, apodo, banear){
+  const accion = banear ? "banear" : "desbanear";
+  if(!confirm(`¿${banear ? "Banear" : "Desbanear"} a "${apodo}" (${ide})?`)) return;
+  try {
+    const res = await fetch(`/ban/${encodeURIComponent(ide)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ baneada: banear })
+    });
+    const data = await res.json();
+    if(res.ok && data.ok){
+      alert(`${banear ? "✅ Cuenta baneada" : "✅ Cuenta desbaneada"}: ${apodo} (${ide})`);
+      mostrarCuentasABanear();
+    } else {
+      alert("❌ Error: " + (data.error || "no se pudo completar la acción"));
+    }
+  } catch(e){
+    alert("❌ Error de conexión");
+    console.error("Error toggle ban:", e);
+  }
+}
 
 function volver(){
   window.location.href = "index.html";

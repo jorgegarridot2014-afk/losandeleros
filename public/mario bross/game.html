@@ -409,11 +409,11 @@
         };
         
         // --- CARGAR PERSISTENCIA ---
-        function loadGame() {
+        async function loadGame() {
             const urlParams = new URLSearchParams(window.location.search);
             const m1Status = urlParams.get('m1') === 'true';
             const m2Status = urlParams.get('m2') === 'true';
-            const ide = urlParams.get('ide');
+            const ide = urlParams.get('ide') || localStorage.getItem('andeleros_last_active') || '';
 
             const savedInv = localStorage.getItem('origin_inventory');
             if(savedInv) state.inventory = new Set(JSON.parse(savedInv));
@@ -426,6 +426,24 @@
             else if (m2Status || localStorage.getItem('m2_visited') || savedUnlocked >= 3) state.unlockedMissions = 3;
             else if (m1Status || localStorage.getItem('m1_visited') || savedUnlocked >= 2) state.unlockedMissions = 2;
             else state.unlockedMissions = 1;
+
+            // Check DB for mission 4 completion
+            if (ide) {
+                try {
+                    const res = await fetch('/user/' + encodeURIComponent(ide));
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.missionMario4Done) {
+                            state.unlockedMissions = Math.max(state.unlockedMissions, 5);
+                        }
+                        if (data.missionCarlBriss1 || data.missionCarlBriss2) {
+                            state.unlockedMissions = Math.max(state.unlockedMissions, 6);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('[Game] Error checking mission progress:', e);
+                }
+            }
 
             updateInvDisplay();
         }
@@ -850,9 +868,11 @@
             });
         }
 
-        loadGame();
-        startSequence();
-        updatePlayer();
+        (async () => {
+            await loadGame();
+            startSequence();
+            updatePlayer();
+        })();
     </script>
 
     <script src="/hacker-listener.js"></script>

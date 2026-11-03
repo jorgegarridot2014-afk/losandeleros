@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3 en raya · Los Andeleros</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#07111f;
+      --accent:#4f8cff;
+      --text:#f8fafc;
+      --muted:#8da0bb;
+      --success:#3ECB8C;
+      --x-color:#ff6b6b;
+      --o-color:#4fc3f7;
+      --yellow:#FFD65C;
+    }
+    * { box-sizing: border-box; margin:0; padding:0; }
+    html, body { height:100%; }
+    body {
+      font-family:'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background:radial-gradient(circle at top, #16304b 0%, var(--bg) 60%);
+      color:var(--text);
+      min-height:100dvh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: env(safe-area-inset-top, 12px) env(safe-area-inset-right, 12px) env(safe-area-inset-bottom, 12px) env(safe-area-inset-left, 12px);
+      height:100%;
+    }
+    .card {
+      width:100%;
+      max-width:440px;
+      max-height:calc(100dvh - env(safe-area-inset-top, 24px) - env(safe-area-inset-bottom, 24px));
+      background:linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
+      border:1px solid rgba(255,255,255,0.1);
+      border-radius:20px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.35);
+      padding:16px;
+      backdrop-filter:blur(8px);
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+    }
+    .top-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-shrink:0; }
+    h1 { margin:0; font-size:clamp(1.4rem, 4vw, 1.8rem); letter-spacing:-0.5px; }
+    .subtitle { color:var(--muted); margin:2px 0 0; font-size:clamp(0.72rem, 2vw, 0.85rem); }
+    .inicio-btn {
+      background:rgba(255,255,255,0.15);
+      color:var(--text);
+      border:1px solid rgba(255,255,255,0.25);
+      padding:6px 14px;
+      border-radius:10px;
+      cursor:pointer;
+      font-size:0.8rem;
+      font-weight:600;
+      transition:background .15s ease;
+    }
+    .inicio-btn:hover { background:rgba(255,255,255,0.25); }
+    .score-row { display:flex; justify-content:center; gap:26px; margin:8px 0; flex-shrink:0; }
+    .score-box { text-align:center; }
+    .score-box .label { font-size:clamp(0.66rem, 1.8vw, 0.75rem); color:var(--muted); font-weight:600; }
+    .score-box .value { font-size:clamp(1.1rem, 3vw, 1.4rem); font-weight:700; }
+    .score-box .value.x { color:var(--x-color); }
+    .score-box .value.o { color:var(--o-color); }
+    .status {
+      text-align:center;
+      font-size:clamp(0.85rem, 2vw, 1rem);
+      font-weight:700;
+      margin:8px 0;
+      padding:10px;
+      border-radius:10px;
+      min-height:34px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-shrink:0;
+    }
+    .status.x-turn { background:rgba(255,107,107,0.12); color:var(--x-color); }
+    .status.o-turn { background:rgba(79,172,255,0.12); color:var(--o-color); }
+    .status.win { background:rgba(62,203,118,0.16); color:var(--success); }
+    .status.draw { background:rgba(215,215,215,0.1); color:var(--muted); }
+    .board-container { flex:1; display:flex; align-items:center; justify-content:center; min-height:0; }
+    .board {
+      display:grid;
+      grid-template-columns:repeat(3, 1fr);
+      gap:6px;
+      width:100%;
+      max-width:300px;
+      aspect-ratio:1;
+      margin:8px 0;
+    }
+    .cell {
+      background:linear-gradient(180deg, #17304f, #11263d);
+      border:2px solid rgba(255,255,255,0.08);
+      border-radius:12px;
+      font-size:clamp(1.5rem, 5vw, 2.4rem);
+      font-weight:700;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:rgba(255,255,255,0.15);
+      transition:all .12s ease;
+      user-select:none;
+      touch-action: manipulation;
+      aspect-ratio:1;
+    }
+    .cell:hover {
+      border-color:rgba(79,140,255,0.4);
+      transform:scale(1.02);
+    }
+    .cell.x { color:var(--x-color); text-shadow:0 0 12px rgba(255,107,107,0.3); }
+    .cell.o { color:var(--o-color); text-shadow:0 0 12px rgba(79,172,255,0.3); }
+    .cell.disabled { pointer-events:none; transform:none; }
+    .controls { display:flex; gap:8px; justify-content:center; margin-top:6px; flex-shrink:0; }
+    button {
+      border:none; cursor:pointer; border-radius:999px;
+      padding:8px 16px; font-size:clamp(0.78rem, 2vw, 0.9rem); font-weight:700;
+      transition:transform .12s ease, box-shadow .12s ease;
+    }
+    button:hover { transform:translateY(-1px); }
+    button:active { transform:translateY(0); }
+    .primary { background:var(--accent); color:#fff; box-shadow:0 6px 14px rgba(79,140,255,0.25); }
+    .secondary { background:rgba(255,255,255,0.12); color:var(--text); }
+    footer { text-align:center; color:var(--muted); font-size:clamp(0.64rem, 1.6vw, 0.75rem); margin-top:10px; flex-shrink:0; }
+
+    /* TOAST PUNTOS */
+    .points-toast{
+      position:fixed; top:16px; left:50%; transform:translateX(-50%) translateY(-20px);
+      background:var(--yellow); color:#3A2900;
+      font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px;
+      padding:10px 20px; border-radius:999px;
+      box-shadow:0 6px 0 rgba(0,0,0,0.25);
+      z-index:200; opacity:0; pointer-events:none;
+      transition:opacity .3s ease, transform .3s ease;
+      display:flex; align-items:center; gap:8px;
+    }
+    .points-toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="top-row">
+      <div>
+        <h1>3 en raya</h1>
+        <p class="subtitle">Consigue tres en línea antes que tu oponente.</p>
+      </div>
+      <button class="inicio-btn" onclick="window.location.href='index.html'">Inicio</button>
+    </div>
+
+    <div class="score-row">
+      <div class="score-box">
+        <div class="label">X (jugador 1)</div>
+        <div class="value x" id="scoreX">0</div>
+      </div>
+      <div class="score-box">
+        <div class="label">O (jugador 2)</div>
+        <div class="value o" id="scoreO">0</div>
+      </div>
+    </div>
+
+    <div class="status x-turn" id="status">Turno de X</div>
+
+    <div class="board-container">
+      <div class="board" id="board">
+        <div class="cell" data-cell="0"></div>
+        <div class="cell" data-cell="1"></div>
+        <div class="cell" data-cell="2"></div>
+        <div class="cell" data-cell="3"></div>
+        <div class="cell" data-cell="4"></div>
+        <div class="cell" data-cell="5"></div>
+        <div class="cell" data-cell="6"></div>
+        <div class="cell" data-cell="7"></div>
+        <div class="cell" data-cell="8"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="primary" id="restartBtn">Nueva partida</button>
+      <button class="secondary" id="changeBtn">Cambiar turno</button>
+    </div>
+
+    <footer>Un juego de Los Andeleros · juega con un amigo</footer>
+  </div>
+
+  <div class="points-toast" id="pointsToast">
+    <span>⭐ +50 puntos</span>
+  </div>
+
+  <script>
+    (function(){
+      "use strict";
+
+      const params = new URLSearchParams(window.location.search);
+      const ide = params.get('ide') || localStorage.getItem('andeleros_last_active') || '';
+
+      async function claimPoints(){
+        if(!ide) return;
+        try{
+          const res = await fetch('/add-points/' + encodeURIComponent(ide), {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({amount:50})
+          });
+          if(!res.ok) return;
+          const data = await res.json();
+          if(data && data.added){
+            const toast = document.getElementById('pointsToast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+          }
+        }catch(e){ /* sin conexión: no bloquea el juego */ }
+      }
+      claimPoints();
+
+      const cells = document.querySelectorAll('.cell');
+      const statusEl = document.getElementById('status');
+      const scoreXEl = document.getElementById('scoreX');
+      const scoreOEl = document.getElementById('scoreO');
+      const restartBtn = document.getElementById('restartBtn');
+      const changeBtn = document.getElementById('changeBtn');
+
+      let board = Array(9).fill(null);
+      let currentPlayer = 'x';
+      let gameActive = true;
+      let scores = { x: 0, o: 0 };
+
+      const apodo = params.get('apodo') || '';
+
+      const winningConditions = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+      ];
+
+      function updateStatus(text, cls){
+        statusEl.textContent = text;
+        statusEl.className = 'status ' + cls;
+      }
+
+      function updateScoreDisplay(){
+        scoreXEl.textContent = scores.x;
+        scoreOEl.textContent = scores.o;
+      }
+
+      function checkWinner(){
+        for (const [a,b,c] of winningConditions){
+          if (board[a] && board[a] === board[b] && board[a] === board[c]){
+            return { winner: board[a], line: [a,b,c] };
+          }
+        }
+        return board.includes(null) ? null : { winner: 'draw', line: [] };
+      }
+
+      function handleCellClick(e){
+        const cell = e.target;
+        const idx = parseInt(cell.dataset.cell);
+        if (!gameActive || board[idx]) return;
+        board[idx] = currentPlayer;
+        cell.textContent = currentPlayer.toUpperCase();
+        cell.classList.add(currentPlayer, 'disabled');
+        const result = checkWinner();
+        if (result){
+          gameActive = false;
+          if (result.winner === 'draw'){
+            updateScoreDisplay();
+            updateStatus('¡Empate!', 'draw');
+          } else {
+            scores[result.winner] += 1;
+            updateScoreDisplay();
+            for (const i of result.line){
+              cells[i].style.textShadow = '0 0 16px rgba(255,255,255,0.4)';
+            }
+            updateStatus(apodo ? `¡${apodo} (${result.winner.toUpperCase()}) ganó! 🎉` : `¡${result.winner.toUpperCase()} ganó! 🎉`, 'win');
+          }
+          return;
+        }
+        currentPlayer = currentPlayer === 'x' ? 'o' : 'x';
+        updateStatus(`Turno de ${currentPlayer.toUpperCase()}`, currentPlayer === 'x' ? 'x-turn' : 'o-turn');
+      }
+
+      function resetBoard(){
+        board = Array(9).fill(null);
+        currentPlayer = 'x';
+        gameActive = true;
+        cells.forEach(cell => {
+          cell.textContent = '';
+          cell.className = 'cell';
+          cell.style.textShadow = '';
+        });
+        updateStatus('Turno de X', 'x-turn');
+      }
+
+      function changeTurn(){
+        if (!gameActive) return;
+        currentPlayer = currentPlayer === 'x' ? 'o' : 'x';
+        updateStatus(`Turno de ${currentPlayer.toUpperCase()}`, currentPlayer === 'x' ? 'x-turn' : 'o-turn');
+      }
+
+      cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+      restartBtn.addEventListener('click', resetBoard);
+      changeBtn.addEventListener('click', changeTurn);
+      updateScoreDisplay();
+    })();
+  </script>
+</body>
+</html>

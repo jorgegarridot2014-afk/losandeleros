@@ -510,6 +510,7 @@ async function initAccount() {
     });
     if (res.ok) {
       currentUser = await res.json();
+      if (currentUser.bloqueada) { window.location.href = "index.html"; return; }
       document.getElementById("user-apodo").textContent = currentUser.apodo;
       document.getElementById("user-foto").src = currentUser.foto;
       document.getElementById("user-points").textContent = "⭐ " + (currentUser.points || 0);

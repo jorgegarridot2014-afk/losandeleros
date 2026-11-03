@@ -5,6 +5,67 @@
   box-sizing: border-box;
 }
 
+/* ================= STARS BACKGROUND ================= */
+#stars {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+#stars::before,
+#stars::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  animation: twinkle 5s ease-in-out infinite, starsMove 80s linear infinite;
+}
+
+#stars::before {
+  background-image:
+    radial-gradient(1px 1px at 20px 30px, #fff, transparent),
+    radial-gradient(1px 1px at 40px 70px, #ffe, transparent),
+    radial-gradient(1.5px 1.5px at 50px 160px, #fff, transparent),
+    radial-gradient(1px 1px at 90px 40px, #ffe, transparent),
+    radial-gradient(1px 1px at 130px 80px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 160px 120px, #ffe, transparent);
+  animation-delay: 0s, 0s;
+}
+
+#stars::after {
+  background-image:
+    radial-gradient(1px 1px at 10px 50px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 60px 10px, #ffe, transparent),
+    radial-gradient(1px 1px at 100px 90px, #fff, transparent),
+    radial-gradient(1px 1px at 150px 150px, #ffe, transparent),
+    radial-gradient(1.5px 1.5px at 180px 60px, #fff, transparent);
+  animation-delay: 2.5s, 0s;
+  background-size: 250px 250px;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes starsMove {
+  0% { background-position: 0 0; }
+  25% { background-position: 500px -300px; }
+  50% { background-position: -300px 400px; }
+  75% { background-position: 600px 200px; }
+  100% { background-position: 0 0; }
+}
+
 /* ================= BODY ================= */
 body {
   text-align: center;
@@ -12,24 +73,23 @@ body {
   min-height: 100vh;
   position: relative;
   padding-bottom: 80px;
-  background: url('playa.png') no-repeat center center fixed;
+  background: #000000;
   background-size: cover;
   scroll-behavior: smooth;
 }
 
 /* ================= MODOS ================= */
 body.oscuro {
-  background: url('playa.png') no-repeat center center fixed;
-  background-size: cover;
+  background: #000000;
+  color: white;
 }
 body.claro {
-  background: url('playa.png') no-repeat center center fixed;
-  background-size: cover;
-  color: #0f172a;
+  background: #000000;
+  color: white;
 }
 body.neon {
-  background: url('playa.png') no-repeat center center fixed;
-  background-size: cover;
+  background: #000000;
+  color: white;
   animation: neonPulse 4s ease-in-out infinite;
 }
 @keyframes neonPulse {
@@ -314,7 +374,7 @@ button:active {
 }
 
 /* ================= HIDDEN ================= */
-.hidden {
+.hidden, .d-none {
   display: none !important;
   pointer-events: none !important;
 }

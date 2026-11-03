@@ -10,7 +10,7 @@
     margin: 0;
     font-family: Arial, sans-serif;
     min-height: 100vh;
-    background: url('playa.png') no-repeat center center fixed;
+    background: #000000;
     background-size: cover;
     color: white;
     display: flex;
@@ -133,14 +133,32 @@
     background: rgba(0, 0, 0, 0.3);
     border-radius: 12px;
     margin-bottom: 10px;
-    cursor: pointer;
     transition: 0.2s;
   }
 
-  .user-card:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: scale(1.02);
-  }
+   .user-card:hover {
+     background: rgba(255, 255, 255, 0.1);
+     transform: scale(1.02);
+   }
+
+   .btn-chat {
+     background: rgba(0, 255, 204, 0.25) !important;
+     color: #00ffcc !important;
+     border: 2px solid #00ffcc !important;
+     width: auto !important;
+     padding: 8px 14px !important;
+     border-radius: 10px !important;
+     cursor: pointer !important;
+     font-size: 16px !important;
+     transition: all 0.2s !important;
+   }
+
+   .btn-chat:hover {
+     background: #00ffcc !important;
+     color: #000 !important;
+     box-shadow: 0 0 15px #00ffcc !important;
+     transform: scale(1.15);
+   }
 
   .user-card img {
     width: 50px;
@@ -263,6 +281,7 @@
 </style>
 </head>
 <body>
+  <div id="stars"></div>
   <a href="index.html" class="btn-inicio">Inicio</a>
 
   <div class="card">
@@ -299,13 +318,35 @@
         <button onclick="confirmarSolicitud()">Enviar</button>
       </div>
     </div>
-  </div>
+   </div>
 
-  <script>
+   <!-- Overlay chat -->
+   <div id="overlayChat" class="overlay">
+     <div class="overlay-card" style="max-width:500px; width:95%; text-align:left;">
+       <h3 style="color:#00ffcc; margin-bottom:15px; text-align:center;">💬 Chat con <span id="chatCon"></span></h3>
+        <div id="chatMensajes" style="height:280px; overflow-y:auto; background:rgba(255,255,255,0.05); border-radius:10px; padding:12px; margin-bottom:12px; font-family:'Courier New',monospace; font-size:14px; color:#ddd;">
+          <p id="chatPlaceholder" style="text-align:center; opacity:0.4; margin-top:120px;">Escribe un mensaje para comenzar...</p>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input type="text" id="chatInput" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') enviarMensaje()" style="flex:1; padding:12px 16px; border:1px solid rgba(0,255,204,0.3); border-radius:12px; background:rgba(0,0,0,0.5); color:#fff; font-size:14px; font-family:'Courier New',monospace; transition:0.2s;" onfocus="this.style.borderColor='#00ffcc';this.style.boxShadow='0 0 10px #00ffcc'" onblur="this.style.borderColor='rgba(0,255,204,0.3)';this.style.boxShadow='none'">
+          <button onclick="enviarMensaje()" title="Enviar" style="background:#00ffcc; color:#000; border:none; padding:8px 12px; border-radius:50%; cursor:pointer; font-weight:bold; font-size:16px; width:42px; height:42px; display:flex; align-items:center; justify-content:center;" onmouseover="this.style.boxShadow='0 0 15px #00ffcc'" onmouseout="this.style.boxShadow='none'">➤</button>
+        </div>
+       <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+         <button class="btn-secondary" onclick="cerrarChat()">Cerrar</button>
+       </div>
+     </div>
+   </div>
+
+   <script>
     const API_BASE = "";
     let currentUser = null;
     let selectedUser = null;
     let onlineUsers = [];
+    let chatConId = null;
+    let chatConApodo = null;
+    let misAmigosIdes = [];
+
+    const chatSocket = typeof io !== "undefined" ? io() : null;
 
     // Obtener usuario actual desde localStorage
     async function getCurrentUser() {
@@ -357,11 +398,21 @@
           card.innerHTML = `
             <img src="${user.foto || 'pfp/p1.svg'}" alt="foto">
             <div class="info">
-              <div class="apodo">${user.apodo} ${isOnline ? '<span class="online-dot"></span>' : ''}</div>
+              <div class="apodo">${user.apodo || 'Usuario'} ${isOnline ? '<span class="online-dot"></span>' : ''}</div>
               <div class="estado">${isOnline ? 'En línea' : 'Desconectado'}</div>
             </div>
           `;
+          const esAmigo = misAmigosIdes.includes(user.ide);
+          if (esAmigo) {
+            const btn = document.createElement("button");
+            btn.className = "btn-chat";
+            btn.title = "Chatear";
+            btn.textContent = "💬";
+            btn.onclick = () => abrirChat(user.ide, user.apodo || 'Usuario');
+            card.appendChild(btn);
+          }
           card.onclick = () => abrirSolicitud(user);
+          card.style.cursor = "pointer";
           resultados.appendChild(card);
         });
       } catch (err) {
@@ -379,6 +430,56 @@
     function cerrarOverlaySolicitud() {
       document.getElementById("overlaySolicitud").classList.remove("active");
       selectedUser = null;
+    }
+
+    function abrirChat(ide, apodo) {
+      chatConId = ide;
+      chatConApodo = apodo;
+      document.getElementById("chatCon").innerHTML = apodo + ' <span id="chatOnline" style="font-size:12px; opacity:0.6;"></span>';
+      document.getElementById("chatMensajes").innerHTML = '<p id="chatPlaceholder" style="text-align:center; opacity:0.4; margin-top:120px;">Escribe un mensaje para comenzar...</p>';
+      document.getElementById("chatInput").value = "";
+      actualizarEstadoOnlineChat();
+      document.getElementById("overlayChat").classList.add("active");
+      setTimeout(() => { document.getElementById("chatInput").focus(); }, 100);
+    }
+
+    function actualizarEstadoOnlineChat() {
+      const dot = document.getElementById("chatOnline");
+      if (dot) {
+        const isOnline = onlineUsers.includes(chatConId);
+        dot.innerHTML = isOnline ? '<span style="color:#22c55e;">● En línea</span>' : '<span style="color:#666;">● Desconectado</span>';
+      }
+    }
+
+    function cerrarChat() {
+      chatConId = null;
+      chatConApodo = null;
+      document.getElementById("overlayChat").classList.remove("active");
+    }
+
+    function agregarMensajeAChat(msg, apodo, esMio) {
+      const placeholder = document.getElementById("chatPlaceholder");
+      if (placeholder) placeholder.remove();
+      const div = document.createElement("div");
+      const align = esMio ? "flex-end" : "flex-start";
+      const bg = esMio ? "rgba(0,255,204,0.15)" : "rgba(255,255,255,0.05)";
+      const nombre = esMio ? "Tú" : apodo;
+      const ahora = new Date();
+      const hora = ahora.getHours().toString().padStart(2,'0') + ":" + ahora.getMinutes().toString().padStart(2,'0');
+      div.style.cssText = "margin-bottom:8px; text-align:" + align + ";";
+      div.innerHTML = '<div style="font-size:10px; color:#888; margin-bottom:2px;">' + nombre + ' <span style="opacity:0.5;">' + hora + '</span></div><div style="background:' + bg + '; color:#fff; padding:8px 12px; border-radius:10px; display:inline-block; font-size:14px; max-width:75%;">' + msg + '</div>';
+      document.getElementById("chatMensajes").appendChild(div);
+      document.getElementById("chatMensajes").scrollTop = document.getElementById("chatMensajes").scrollHeight;
+    }
+
+    function enviarMensaje() {
+      if (!currentUser || !chatConId) return;
+      const msg = document.getElementById("chatInput").value.trim();
+      if (!msg) return;
+      agregarMensajeAChat(msg, chatConApodo, true);
+      if (chatSocket) { chatSocket.emit("chat-message", { to: chatConId, from: currentUser.ide, message: msg }); }
+      document.getElementById("chatInput").value = "";
+      document.getElementById("chatInput").focus();
     }
 
     // Confirmar solicitud
@@ -421,17 +522,25 @@
         }
 
         container.innerHTML = "";
+        misAmigosIdes = [];
         amigos.forEach(amigo => {
+          misAmigosIdes.push(amigo.ide);
           const isOnline = onlineUsers.includes(amigo.ide);
           const card = document.createElement("div");
           card.className = "user-card";
           card.innerHTML = `
             <img src="${amigo.foto || 'pfp/p1.svg'}" alt="foto">
             <div class="info">
-              <div class="apodo">${amigo.apodo} ${isOnline ? '<span class="online-dot"></span>' : ''}</div>
+              <div class="apodo">${amigo.apodo || 'Amigo'} ${isOnline ? '<span class="online-dot"></span>' : ''}</div>
               <div class="estado">${isOnline ? 'En línea' : 'Desconectado'}</div>
             </div>
           `;
+          const btn = document.createElement("button");
+          btn.className = "btn-chat";
+          btn.title = "Chatear";
+          btn.textContent = "💬";
+          btn.onclick = () => abrirChat(amigo.ide, amigo.apodo || 'Amigo');
+          card.appendChild(btn);
           container.appendChild(card);
         });
       } catch (err) {
@@ -521,22 +630,33 @@
     }
 
     // Escuchar usuarios en línea y solicitudes
-    function escucharOnline() {
-      if (typeof io !== "undefined") {
-        const socket = io();
-        socket.on("online-users", (users) => {
-          onlineUsers = users;
-          cargarAmigos();
-          buscarAmigos();
-        });
-        socket.on("friend-request", (data) => {
-          if (currentUser && data.from !== currentUser.ide) {
-            cargarSolicitudes();
-            alert(`📨 ${data.apodo} te ha enviado una solicitud de amistad`);
-          }
-        });
-      }
-    }
+     function escucharOnline() {
+       if (typeof io !== "undefined" && chatSocket) {
+         chatSocket.emit("auth-user", currentUser && currentUser.ide);
+         chatSocket.on("online-users", (users) => {
+           onlineUsers = users;
+           cargarAmigos();
+           buscarAmigos();
+           if (chatConId) actualizarEstadoOnlineChat();
+         });
+         chatSocket.on("friend-request", (data) => {
+           if (currentUser && data.from !== currentUser.ide) {
+             cargarSolicitudes();
+             alert(`📨 ${data.apodo} te ha enviado una solicitud de amistad`);
+           }
+         });
+          chatSocket.on("chat-recibido", (data) => {
+            if (data.from !== chatConId) return;
+            agregarMensajeAChat(data.message, chatConApodo, false);
+            const input = document.getElementById("chatInput");
+            if (input) input.focus();
+          });
+          chatSocket.on("amigo-aceptado", (data) => {
+            cargarAmigos();
+            buscarAmigos();
+          });
+       }
+     }
 
     // Mostrar pestaña
     function mostrarTab(tab) {

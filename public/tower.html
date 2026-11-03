@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CIUDAD MODIFICADA</title>
 <style>
   :root{
@@ -16,9 +17,9 @@
     --parchment: #eef1f4;
     --ink: #1f2937;
     --ink-dim: #6b7684;
-    --gold: #e8b23d;
-    --red: #d24b3a;
-    --green-ok: #3d7a9e;
+    --gold: #f0b429;
+    --red: #e0574a;
+    --green-ok: #2f9e8f;
     --blue-ice: #5aa9c9;
     --sans: 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif;
     --serif: Georgia, 'Times New Roman', serif;
@@ -36,7 +37,7 @@
 
   #boardWrap{
     position:relative; background:var(--wood-dark);
-    border:6px solid var(--wood); border-radius:10px; padding:10px;
+    border:6px solid var(--wood); border-radius:18px; padding:10px;
     box-shadow: 0 8px 22px rgba(59,42,26,0.35);
     flex:1; min-width:0; min-height:0;
     display:flex; flex-direction:column;
@@ -49,13 +50,13 @@
   .hud-item{display:flex; align-items:center; gap:6px;}
   .hud-item b{color:#fff;}
   canvas{
-    display:block; border-radius:6px; background:var(--grass-a);
+    display:block; border-radius:12px; background:var(--grass-a);
     width:100%; height:100%; flex:1; min-height:0;
     aspect-ratio:800/560; object-fit:contain; margin:0 auto;
   }
   #sidebar{
     width:290px; flex-shrink:0; background:var(--parchment); border:6px solid var(--wood);
-    border-radius:10px; padding:16px; display:flex; flex-direction:column; gap:12px;
+    border-radius:18px; padding:16px; display:flex; flex-direction:column; gap:12px;
     box-shadow: 0 8px 22px rgba(59,42,26,0.25);
     height:100%; overflow-y:auto;
   }
@@ -66,14 +67,14 @@
   .sub{font-size:11.5px; color:var(--ink-dim); margin-bottom:2px;}
   .tower-btn{
     display:flex; align-items:center; gap:10px; padding:9px 10px;
-    background:#ffffff; border:2px solid #ccd2d8; border-radius:9px;
+    background:#ffffff; border:2px solid #ccd2d8; border-radius:14px;
     cursor:pointer; transition:border-color .15s, transform .1s;
   }
   .tower-btn:hover{border-color:var(--gold); transform:translateY(-1px);}
   .tower-btn.selected{border-color:var(--green-ok); box-shadow:0 0 0 2px rgba(61,122,158,0.25);}
   .tower-btn.disabled{opacity:0.4; cursor:not-allowed;}
   .tower-icon{
-    width:38px; height:38px; border-radius:8px; flex-shrink:0;
+    width:38px; height:38px; border-radius:12px; flex-shrink:0;
     display:flex; align-items:center; justify-content:center; font-size:19px;
     background:#e3e7eb; border:1px solid #ccd2d8;
   }
@@ -83,7 +84,7 @@
   .tower-cost{font-size:12px; color:var(--gold); font-weight:700;}
   button.action{
     font-family:var(--sans); font-size:13px; padding:10px 8px;
-    background:var(--green-ok); color:#fff; border:none; border-radius:8px; cursor:pointer;
+    background:var(--green-ok); color:#fff; border:none; border-radius:14px; cursor:pointer;
     font-weight:700; transition:filter .15s; box-shadow:0 2px 0 rgba(0,0,0,0.15);
   }
   button.action:hover{filter:brightness(1.08);}
@@ -96,7 +97,7 @@
   #waveRow{display:flex; gap:8px;}
   #waveRow button{flex:1;}
   #selectedPanel{
-    background:#ffffff; border:2px solid #ccd2d8; border-radius:9px;
+    background:#ffffff; border:2px solid #ccd2d8; border-radius:14px;
     padding:10px; font-size:12px; display:none; flex-direction:column; gap:8px;
   }
   #selectedPanel.show{display:flex;}
@@ -108,7 +109,7 @@
   }
   #overlay{
     position:absolute; inset:0; display:none; align-items:center; justify-content:center;
-    background:rgba(59,42,26,0.82); border-radius:8px; flex-direction:column; gap:10px; z-index:5;
+    background:rgba(59,42,26,0.82); border-radius:18px; flex-direction:column; gap:10px; z-index:5;
   }
   #overlay.show{display:flex;}
   #overlay h2{font-family:var(--serif); font-size:30px; margin:0; color:#fff;}
@@ -122,14 +123,14 @@
     background: linear-gradient(180deg, #2b3648 0%, #465773 55%, #7488a3 100%);
   }
   .sign{
-    background:var(--wood); border:8px solid var(--wood-dark); border-radius:14px;
+    background:var(--wood); border:8px solid var(--wood-dark); border-radius:22px;
     padding:40px 50px; text-align:center; box-shadow:0 14px 30px rgba(0,0,0,0.35);
     min-width:340px;
   }
   .sign h1{ color:#f4ecd8; font-size:34px; margin:0 0 6px 0; text-shadow:0 2px 0 rgba(0,0,0,0.3); }
   .sign .tagline{ color:#e6d9bd; font-size:13px; margin-bottom:22px; }
   .loading-bar-wrap{
-    width:100%; height:16px; background:#4a3018; border-radius:8px; overflow:hidden;
+    width:100%; height:16px; background:#4a3018; border-radius:10px; overflow:hidden;
     border:2px solid var(--wood-dark); margin-bottom:10px;
   }
   .loading-bar{ height:100%; width:0%; background:linear-gradient(90deg,#d99b1f,#f0c14b); transition:width .1s linear; }
@@ -140,7 +141,6 @@
 </style>
 </head>
 <body>
-<button id="btnInicio" onclick="window.location.href='/index.html'" style="position:fixed; top:12px; left:12px; z-index:9999; padding: 8px 16px; background: rgba(0,0,0,0.5); color: #f4ecd8; border: 2px solid var(--wood-dark); border-radius: 8px; font-family: var(--serif); font-size: 13px; cursor: pointer;">⬅️ Inicio</button>
 
 <div id="startScreen">
   <div class="sign">
@@ -150,7 +150,7 @@
     <div id="loadingLabel">Levantando rascacielos...</div>
     <div id="menuButtons">
       <button class="action" id="playBtn">▶ JUGAR</button>
-      <div class="menu-tip">Coloca torres-rascacielos junto a la avenida para detener a la fauna mutante antes de que llegue al centro de la ciudad. 15 oleadas te esperan.</div>
+      <div class="menu-tip">Coloca torres-rascacielos junto a la avenida para detener a la fauna mutante antes de que llegue al centro de la ciudad. Las oleadas no tienen fin — aguanta todo lo que puedas.</div>
     </div>
   </div>
 </div>
@@ -158,9 +158,10 @@
 <div id="app">
   <div id="boardWrap">
     <div id="hud">
-      <div class="hud-item">🏙️ OLEADA <b id="waveNum">0</b>/<span id="waveTotal">15</span></div>
+      <div class="hud-item">🏙️ OLEADA <b id="waveNum">0</b>/<span id="waveTotal">∞</span></div>
       <div class="hud-item">💰 <b id="goldVal">150</b></div>
       <div class="hud-item">❤️ <b id="livesVal">20</b></div>
+      <div class="hud-item">⭐ <b id="pointsVal">0</b> pts</div>
       <div class="hud-item">🐾 <b id="enemyCount">0</b></div>
       <div class="hud-item" style="font-weight:400; font-size:12px;" id="autoWaveRow">⏱️ <span id="autoWaveCountdown">-</span></div>
       <div style="flex:1"></div>
@@ -197,6 +198,7 @@
     <div id="waveRow">
       <button class="action" id="startWaveBtn">SOLTAR OLEADA</button>
       <button class="action secondary" id="speedBtn">×1</button>
+      <button class="action secondary" id="inicioBtn" style="flex:1;">🏠 Inicio</button>
     </div>
     <div class="sub" style="margin-top:-4px;">Clic en una torre construida para mejorarla o venderla.</div>
     <div id="log">Bienvenido a la ciudad. ¡Prepara tus rascacielos!</div>
@@ -350,7 +352,7 @@ const decorCells = new Set(decorations.map(d=>key(d.col,d.row)));
 let gold = 150;
 let lives = 20;
 let waveNum = 0;
-const TOTAL_WAVES = 15;
+let points = parseInt(localStorage.getItem('tower_points') || '0');
 let enemies = [];
 let towers = [];
 let projectiles = [];
@@ -518,17 +520,23 @@ const TOWER_DEFS = {
 
 // ============ ENEMY DEFS (animales reales) ============
 const ENEMY_DEFS = {
-  grunt:   {hp:40,  speed:60,  reward:5,  color:'#8d8d8d', armored:false, r:13, name:'Lobo',      emoji:'🐺'},
-  runner:  {hp:24,  speed:115, reward:6,  color:'#c9762e', armored:false, r:11, name:'Zorro',     emoji:'🦊'},
-  tank:    {hp:170, speed:34,  reward:14, color:'#6b4a2f', armored:false, r:18, name:'Oso',        emoji:'🐻'},
-  armored: {hp:90,  speed:52,  reward:11, color:'#5a4a3a', armored:true,  r:15, name:'Jabalí',     emoji:'🐗'},
-  boss:    {hp:900, speed:38,  reward:120,color:'#4a2f22', armored:true,  r:24, name:'Oso Alfa',   emoji:'🐻'}
+  grunt:   {hp:40,  speed:60,  reward:5,  color:'#8d8d8d', armored:false, r:13, name:'Lobo',            emoji:'🐺', lifeDamage:1},
+  runner:  {hp:24,  speed:115, reward:6,  color:'#c9762e', armored:false, r:11, name:'Zorro',           emoji:'🦊', lifeDamage:1},
+  tank:    {hp:170, speed:34,  reward:14, color:'#6b4a2f', armored:false, r:18, name:'Oso',             emoji:'🐻', lifeDamage:2},
+  armored: {hp:90,  speed:52,  reward:11, color:'#5a4a3a', armored:true,  r:15, name:'Jabalí',          emoji:'🐗', lifeDamage:2},
+  hyena:   {hp:55,  speed:95,  reward:7,  color:'#a67c52', armored:false, r:12, name:'Hiena',           emoji:'🐕', lifeDamage:1},
+  lynx:    {hp:75,  speed:82,  reward:9,  color:'#7a6a52', armored:true,  r:13, name:'Lince Mutante',   emoji:'🐈', lifeDamage:2},
+  spider:  {hp:65,  speed:74,  reward:10, color:'#4a3d52', armored:false, r:12, name:'Araña Gigante',   emoji:'🕷️', lifeDamage:3},
+  rhino:   {hp:280, speed:30,  reward:22, color:'#5a6b4a', armored:true,  r:21, name:'Rinoceronte Mutante', emoji:'🦏', lifeDamage:4},
+  boss:    {hp:900, speed:38,  reward:120,color:'#4a2f22', armored:true,  r:24, name:'Oso Alfa',        emoji:'🐻', lifeDamage:6},
+  titan:   {hp:1600,speed:32,  reward:200,color:'#3a2a3a', armored:true,  r:29, name:'Titán Mutante',   emoji:'🦖', lifeDamage:12}
 };
 
-// ============ WAVE GENERATION ============
+// ============ WAVE GENERATION (infinite — difficulty keeps climbing) ============
 function generateWave(n){
   const list = [];
   const scale = 1 + (n-1)*0.16;
+  const cn = Math.min(n, 40); // cap raw count growth so very late waves stay playable
   let t = 0;
   const addSeq = (arr, gapBetweenGroups)=>{
     for(const [type,count,gap] of arr){
@@ -539,23 +547,38 @@ function generateWave(n){
       t += gapBetweenGroups;
     }
   };
-  if(n % 5 === 0){
+  if(n % 10 === 0){
     addSeq([
-      ['grunt', 6+n, 0.5],
-      ['armored', 3+Math.floor(n/2), 0.7],
+      ['grunt', 6+cn, 0.5],
+      ['rhino', 2+Math.floor(cn/6), 0.9],
+      ['spider', 3+Math.floor(cn/5), 0.6],
+      ['titan', 1, 0]
+    ], 1.3);
+  } else if(n % 5 === 0){
+    addSeq([
+      ['grunt', 6+cn, 0.5],
+      ['armored', 3+Math.floor(cn/2), 0.7],
       ['boss', 1, 0]
     ], 1.2);
+  } else if(n % 7 === 0){
+    addSeq([
+      ['lynx', 4+Math.floor(cn/2), 0.4],
+      ['rhino', 1+Math.floor(cn/8), 1.0],
+      ['spider', 2+Math.floor(cn/4), 0.5]
+    ], 1.0);
   } else if(n % 3 === 0){
     addSeq([
-      ['runner', 5+n, 0.35],
-      ['armored', 2+Math.floor(n/3), 0.8],
+      ['runner', 5+cn, 0.35],
+      ['hyena', 3+Math.floor(cn/3), 0.4],
+      ['armored', 2+Math.floor(cn/3), 0.8],
       ['tank', 2, 1.2]
     ], 1.0);
   } else {
     addSeq([
-      ['grunt', 4+n, 0.5],
-      ['runner', Math.floor(n/2), 0.4],
-      ['tank', Math.floor(n/4), 1.3]
+      ['grunt', 4+cn, 0.5],
+      ['runner', Math.floor(cn/2), 0.4],
+      ['hyena', Math.floor(cn/3), 0.45],
+      ['tank', Math.floor(cn/4), 1.3]
     ], 1.0);
   }
   return {entries:list, scale};
@@ -563,7 +586,6 @@ function generateWave(n){
 let currentWaveScale = 1;
 
 function nextWavePreviewIcons(n){
-  if(n > TOTAL_WAVES) return '—';
   const w = generateWave(n);
   const counts = {};
   for(const e of w.entries) counts[e.type] = (counts[e.type]||0)+1;
@@ -1029,18 +1051,18 @@ function applyDamage(enemy, dmg, armorPierce, isDot){
   }
 }
 
-// ============ SPAWNING ============
+// ============ SPAWNING (infinite survival — waves never stop coming) ============
 function startWave(){
   if(!gameStarted || waveActive || gameOver || gameWon) return;
   waveNum++;
-  if(waveNum > TOTAL_WAVES){ waveNum = TOTAL_WAVES; return; }
   const w = generateWave(waveNum);
   currentWaveScale = w.scale;
   spawnQueue = w.entries.map(e => ({type:e.type, delay:e.delay}));
   spawnTimer = 0;
   waveActive = true;
   log(`Oleada ${waveNum} liberada en la ciudad.`);
-  showBanner('OLEADA '+waveNum, waveNum%5===0?'¡Jefe en camino!':null, '#e8c547');
+  const bossHint = waveNum%10===0 ? '¡Titán mutante en camino!' : (waveNum%5===0 ? '¡Jefe en camino!' : null);
+  showBanner('OLEADA '+waveNum, bossHint, '#e8c547');
   playAlarm();
   updateHud();
 }
@@ -1142,15 +1164,20 @@ document.getElementById('speedBtn').onclick = ()=>{
   speedMult = speedMult===1?2:(speedMult===2?4:1);
   document.getElementById('speedBtn').textContent = '×'+speedMult;
 };
+document.getElementById('inicioBtn').onclick = ()=>{
+  saveTowerDataToDB();
+  window.location.href = 'index.html';
+};
 
 function updateHud(){
   document.getElementById('goldVal').textContent = gold;
   document.getElementById('livesVal').textContent = lives;
-  document.getElementById('waveNum').textContent = Math.min(waveNum,TOTAL_WAVES);
+  document.getElementById('waveNum').textContent = waveNum;
+  document.getElementById('pointsVal').textContent = points;
   document.getElementById('enemyCount').textContent = enemies.filter(e=>!e.dead && !e.reachedEnd).length;
-  document.getElementById('startWaveBtn').disabled = waveActive || waveNum>=TOTAL_WAVES;
-  document.getElementById('startWaveBtn').textContent = waveActive ? 'OLEADA EN CURSO' : (waveNum>=TOTAL_WAVES? 'FIN' : 'SOLTAR OLEADA');
-  document.getElementById('nextWavePreviewInline').innerHTML = waveNum<TOTAL_WAVES ? nextWavePreviewIcons(waveNum+1) : '—';
+  document.getElementById('startWaveBtn').disabled = waveActive;
+  document.getElementById('startWaveBtn').textContent = waveActive ? 'OLEADA EN CURSO' : 'SOLTAR OLEADA';
+  document.getElementById('nextWavePreviewInline').innerHTML = nextWavePreviewIcons(waveNum+1);
   renderTowerList();
   renderSelectedPanel();
 }
@@ -1161,6 +1188,80 @@ function cellFromMouse(e){
   const x = (e.clientX-rect.left) * (canvas.width/rect.width);
   const y = (e.clientY-rect.top) * (canvas.height/rect.height);
   return {col: Math.floor(x/CELL), row: Math.floor(y/CELL)};
+}
+
+function getUserId(){
+  const params = new URLSearchParams(window.location.search);
+  const ide = params.get('ide') || localStorage.getItem('andeleros_last_active') || '';
+  if(!ide) console.warn('[Tower] No se encontro ID de usuario. Asegurate de haber iniciado sesion en andebrawl.');
+  return ide;
+}
+
+async function saveTowerDataToDB(){
+  const ide = getUserId();
+  if(!ide) return;
+  try{
+    const towerData = towers.map(t => ({
+      type: t.type,
+      name: t.def.name,
+      col: t.col,
+      row: t.row,
+      level: t.level,
+      damage: t.damage,
+      range: t.range,
+      rate: t.rate
+    }));
+    console.log('[Tower] Guardando en DB:', ide, { gold, lives, waveNum, points, towers: towerData.length });
+    const res = await fetch('/save-tower-data/' + encodeURIComponent(ide), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        gold: gold,
+        lives: lives,
+        waveNum: waveNum,
+        towers: towerData,
+        points: points
+      })
+    });
+    const data = await res.json();
+    console.log('[Tower] Respuesta guardado:', data);
+  }catch(e){ console.error('[Tower] Error guardando:', e); }
+}
+
+async function loadTowerDataFromDB(){
+  const ide = getUserId();
+  if(!ide) return;
+  try{
+    console.log('[Tower] Cargando desde DB:', ide);
+    const res = await fetch('/save-tower-data/' + encodeURIComponent(ide), {
+      method: 'GET'
+    });
+    if(!res.ok) return;
+    const data = await res.json();
+    console.log('[Tower] Respuesta carga:', data);
+    if(!data.towerData) return;
+    const td = data.towerData;
+    gold = td.gold || 150;
+    lives = td.lives || 20;
+    waveNum = td.waveNum || 0;
+    points = data.points || 0;
+    localStorage.setItem('tower_points', points);
+    towers = [];
+    if(Array.isArray(td.towers)){
+      td.towers.forEach(ts => {
+        const t = new Tower(ts.type, ts.col, ts.row);
+        t.level = ts.level || 1;
+        t.damage = ts.damage || t.def.damage;
+        t.range = ts.range || t.def.range;
+        t.rate = ts.rate || t.def.rate;
+        t.invested = t.def.cost;
+        towers.push(t);
+      });
+    }
+    updateHud();
+    renderTowerList();
+    console.log('[Tower] Datos cargados:', { gold, lives, waveNum, towers: towers.length });
+  }catch(e){ console.error('[Tower] Error cargando:', e); }
 }
 
 canvas.addEventListener('mousemove', (e)=>{ hoverCell = cellFromMouse(e); });
@@ -1223,21 +1324,18 @@ function step(dt){
     });
     if(spawnQueue.length===0 && enemies.every(e=>e.dead||e.reachedEnd)){
       waveActive = false;
-      if(waveNum >= TOTAL_WAVES){
-        gameWon = true;
-        playSound('win');
-        showOverlay('¡CIUDAD A SALVO!', 'Resististe las 15 oleadas.');
-      } else {
-        const bonus = 20 + waveNum*3;
-        gold += bonus;
-        log(`Oleada ${waveNum} superada. Bono: 💰${bonus}`);
-        showBanner('¡OLEADA SUPERADA!', '+'+bonus+' de oro', '#4c8c3a');
-        playSound('wave_clear');
-        autoWaveTimer = 7 + Math.random()*11; // next wave will show up on its own, at a random moment
-      }
+      const bonus = 20 + waveNum*3;
+      gold += bonus;
+      points += 100;
+      localStorage.setItem('tower_points', points);
+      log(`Oleada ${waveNum} superada. Bono: 💰${bonus} + ⭐100 pts`);
+      showBanner('¡OLEADA SUPERADA!', '+'+bonus+' de oro, +100 pts', '#4c8c3a');
+      playSound('wave_clear');
+      autoWaveTimer = 7 + Math.random()*11;
       updateHud();
+      saveTowerDataToDB();
     }
-  } else if(!gameOver && !gameWon && waveNum < TOTAL_WAVES){
+  } else if(!gameOver && !gameWon){
     autoWaveTimer -= dt;
     if(autoWaveTimer <= 0){
       startWave();
@@ -1246,7 +1344,7 @@ function step(dt){
   const cdEl = document.getElementById('autoWaveCountdown');
   if(cdEl){
     cdEl.textContent = waveActive ? 'en curso'
-      : (gameOver||gameWon || waveNum>=TOTAL_WAVES) ? '—'
+      : (gameOver||gameWon) ? '—'
       : Math.max(0, Math.ceil(autoWaveTimer))+'s';
   }
 
@@ -1254,7 +1352,7 @@ function step(dt){
   for(const e of enemies){
     if(e.reachedEnd && !e.counted){
       e.counted = true;
-      lives -= (e.type==='boss'?5:1);
+      lives -= e.def.lifeDamage;
       const bw = document.getElementById('boardWrap');
       bw.classList.add('flash');
       setTimeout(()=>bw.classList.remove('flash'), 400);
@@ -1644,13 +1742,22 @@ document.getElementById('playBtn').onclick = ()=>{
   document.getElementById('startScreen').style.display = 'none';
   gameStarted = true;
   playSound('build');
+  const ide = getUserId();
+  if(ide){
+    console.log('[Tower] ID de usuario:', ide);
+  }
   log('Bienvenido a la ciudad. ¡Prepara tus rascacielos!');
+  loadTowerDataFromDB();
 };
 
 // ============ INIT ============
 updateHud();
 renderTowerList();
 requestAnimationFrame(loop);
+
+setInterval(()=>{
+  saveTowerDataToDB();
+}, 60000);
 })();
 </script>
 </body>

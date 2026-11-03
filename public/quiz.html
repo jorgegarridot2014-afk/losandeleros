@@ -297,8 +297,9 @@ button:hover{
    </div>
  </div>
 
- <script src="/socket.io/socket.io.js"></script>
-  <script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/mantenimiento-listener.js"></script>
+   <script>
  const socket = io();
 socket.on("admin-broadcast", (data) => {
   alert(data.user + ": " + data.message);

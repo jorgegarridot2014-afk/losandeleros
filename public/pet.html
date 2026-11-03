@@ -1,0 +1,2705 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pet Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #241b36;
+    --bg-2: #2f2347;
+    --panel: #352a4d;
+    --panel-2: #40325c;
+    --line: #4a3c68;
+    --text: #f1ecff;
+    --text-dim: #b8aed6;
+    --pink: #ff6fae;
+    --mint: #6be8c2;
+    --gold: #ffc24b;
+    --red: #ff6b6b;
+
+    --c-common: #b8b8c2;
+    --c-uncommon: #6be8a6;
+    --c-rare: #5cb0ff;
+    --c-epic: #c98bff;
+    --c-legendary: #ffc24b;
+    --c-mythical: #ff5c7a;
+    --c-secret: #2b2436;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at 20% -10%, #4a2f66 0%, transparent 55%),
+      radial-gradient(ellipse at 90% 10%, #2f4a5e 0%, transparent 45%),
+      var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    padding: 28px 16px 60px;
+  }
+
+  h1,h2,h3, .display{ font-family:'Baloo 2', sans-serif; }
+
+  .wrap{ max-width: 880px; margin: 0 auto; }
+
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap: wrap; gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .title{
+    display:flex; align-items:center; gap:12px;
+  }
+  .title .egg-icon{ font-size: 34px; filter: drop-shadow(0 4px 10px rgba(255,194,75,.35)); }
+  .title h1{ font-size: 26px; font-weight:800; margin:0; letter-spacing: .3px; }
+  .title p{ margin:2px 0 0; color: var(--text-dim); font-size: 13px; }
+
+  .stats{
+    display:flex; gap:10px; flex-wrap: wrap;
+  }
+  .stat-pill{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 8px 16px;
+    display:flex; align-items:center; gap:8px;
+    font-weight:600; font-size: 14px;
+  }
+  .stat-pill .n{ font-family:'Baloo 2'; font-weight:700; color: var(--gold); }
+  .stat-pill.reb .n{ color: var(--pink); }
+
+  nav.tabs{
+    display:flex; gap:6px; margin-bottom: 18px;
+    background: var(--bg-2); padding:6px; border-radius: 14px;
+    border:1px solid var(--line);
+  }
+  nav.tabs button{
+    flex:1; padding: 10px 8px; border:none; border-radius: 10px;
+    background: transparent; color: var(--text-dim);
+    font-family:'Baloo 2'; font-weight:700; font-size:15px;
+    cursor:pointer; transition: .15s;
+  }
+  nav.tabs button.active{
+    background: var(--panel-2); color: var(--text);
+    box-shadow: 0 2px 0 rgba(0,0,0,.15) inset, 0 4px 14px rgba(0,0,0,.25);
+  }
+  nav.tabs button:hover:not(.active){ color: var(--text); }
+
+  section.page{ display:none; animation: fade .25s ease; }
+  section.page.active{ display:block; }
+  @keyframes fade{ from{opacity:0; transform: translateY(4px);} to{opacity:1; transform:none;} }
+
+  .grid{ display:grid; grid-template-columns: 1fr; gap: 14px; }
+  @media(min-width: 620px){ .grid{ grid-template-columns: 1fr 1fr; } }
+
+  .card{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px;
+    position: relative;
+    overflow:hidden;
+  }
+  .card.locked{ opacity:.55; filter: grayscale(.4); }
+
+  .card .egg-badge{
+    font-size: 40px; line-height:1;
+    display:inline-block; margin-bottom: 8px;
+  }
+  .card h3{ margin: 0 0 4px; font-size: 18px; }
+  .card .sub{ color: var(--text-dim); font-size: 12.5px; margin-bottom: 12px; }
+
+  .odds{ display:flex; flex-wrap:wrap; gap:5px; margin-bottom:14px; }
+  .odds span{
+    font-size: 10.5px; font-weight:700; padding: 3px 8px; border-radius: 999px;
+    background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08);
+  }
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    border:none; border-radius: 10px; padding: 11px 16px;
+    font-family:'Baloo 2'; font-weight:700; font-size:14.5px;
+    cursor:pointer; color:#1c1428; transition: transform .1s;
+    width:100%;
+  }
+  .btn:active{ transform: scale(.97); }
+  .btn:disabled{ cursor:not-allowed; opacity:.45; }
+  .btn.hatch{ background: linear-gradient(180deg, #ffd166, var(--gold)); }
+  .btn.equip{ background: linear-gradient(180deg, #7ff0cf, var(--mint)); }
+  .btn.unequip{ background: linear-gradient(180deg, #ff9aa8, var(--red)); color:#fff; }
+  .btn.rebirth{ background: linear-gradient(180deg, #d9a6ff, #b876ff); color:#1c1428; }
+
+  /* Inventory */
+  .pet-row{
+    display:flex; align-items:center; gap:12px;
+    background: var(--panel); border:1px solid var(--line);
+    border-radius: 14px; padding: 12px 14px; margin-bottom: 10px;
+  }
+  .pet-row .icon{
+    font-size: 30px; width:48px; height:48px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    background: var(--bg-2); border-radius: 12px;
+  }
+  .pet-row .info{ flex:1; min-width:0; }
+  .pet-row .info .name{ font-weight:700; font-size:14.5px; }
+  .pet-row .info .tag{
+    display:inline-block; margin-top:4px; font-size:10.5px; font-weight:700;
+    padding:2px 8px; border-radius:999px; color:#1c1428;
+  }
+  .pet-row .info .mult{ color: var(--text-dim); font-size:12px; margin-left:6px; }
+  .pet-row button{ flex-shrink:0; width: auto; padding: 9px 14px; font-size:13px; }
+
+  .empty{ text-align:center; color: var(--text-dim); padding: 40px 10px; font-size:14px; }
+  .empty .big{ font-size:38px; display:block; margin-bottom:8px; }
+
+  .slots-bar{
+    display:flex; align-items:center; justify-content:space-between;
+    background: var(--bg-2); border:1px solid var(--line);
+    border-radius: 12px; padding: 12px 16px; margin-bottom: 14px;
+    font-size: 13.5px; color: var(--text-dim);
+  }
+  .slots-bar b{ color: var(--text); }
+
+  /* Rebirth page */
+  .rebirth-card{ text-align:center; padding: 30px 20px; }
+  .rebirth-card .big-icon{ font-size:54px; margin-bottom:10px; display:block; }
+  .rebirth-card p{ color: var(--text-dim); font-size: 14px; line-height:1.5; max-width:420px; margin: 0 auto 18px; }
+  .rebirth-card .cost{ font-family:'Baloo 2'; font-size: 22px; color: var(--gold); margin-bottom:16px; }
+  .rebirth-card .btn{ max-width: 240px; margin: 0 auto; }
+
+  /* Toast */
+  #toast-holder{
+    position: fixed; top: 18px; left:50%; transform: translateX(-50%);
+    display:flex; flex-direction:column; gap:8px; z-index: 999;
+    width: min(360px, 90vw);
+  }
+  .toast{
+    padding: 12px 16px; border-radius: 12px; font-size: 13.5px; font-weight:600;
+    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    animation: toastIn .2s ease;
+  }
+  .toast.ok{ background: linear-gradient(90deg, #2f7d5e, #245c46); color:#eafff5; border:1px solid #3d9c74; }
+  .toast.err{ background: linear-gradient(90deg, #7a2f3d, #5c2431); color:#ffe9ec; border:1px solid #9c3d4e; }
+  @keyframes toastIn{ from{ opacity:0; transform: translateY(-10px);} to{opacity:1; transform:none;} }
+
+  ::-webkit-scrollbar{ width:8px; }
+  ::-webkit-scrollbar-thumb{ background: var(--line); border-radius:8px; }
+
+  /* ============ Hatch modal (huevo rompiéndose) ============ */
+  .hatch-overlay{
+    position: fixed; inset:0; background: rgba(20,14,32,.78);
+    display:none; align-items:center; justify-content:center; z-index: 1200;
+    backdrop-filter: blur(3px);
+  }
+  .hatch-overlay.show{ display:flex; }
+  .hatch-stage{
+    position: relative; width: 260px; height: 260px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .hatch-glow{
+    position:absolute; width: 40px; height:40px; border-radius:50%;
+    background: radial-gradient(circle, rgba(255,255,255,.9), transparent 70%);
+    opacity:0; transform: scale(1);
+    filter: blur(2px);
+  }
+  .hatch-glow.burst{
+    animation: glowBurst .7s ease-out forwards;
+  }
+  @keyframes glowBurst{
+    0%{ opacity:0; transform: scale(.3); }
+    35%{ opacity:1; }
+    100%{ opacity:0; transform: scale(9); }
+  }
+  .egg-whole{ font-size: 90px; position:relative; z-index:2; display:inline-block; }
+  .egg-whole.shaking{ animation: eggShake .13s linear 6; }
+  @keyframes eggShake{
+    0%,100%{ transform: rotate(0deg) translateX(0); }
+    20%{ transform: rotate(-10deg) translateX(-4px); }
+    40%{ transform: rotate(9deg) translateX(4px); }
+    60%{ transform: rotate(-7deg) translateX(-3px); }
+    80%{ transform: rotate(7deg) translateX(3px); }
+  }
+  .egg-half{
+    position:absolute; top:50%; left:50%; font-size:90px;
+    transform: translate(-50%,-50%);
+    transition: transform .55s cubic-bezier(.3,.6,.4,1), opacity .55s ease;
+    z-index:3;
+  }
+  .egg-half.top{ clip-path: inset(0 0 52% 0); }
+  .egg-half.bottom{ clip-path: inset(48% 0 0 0); }
+  .egg-half.fly-top{ transform: translate(calc(-50% - 55px), calc(-50% - 90px)) rotate(-50deg); opacity:0; }
+  .egg-half.fly-bottom{ transform: translate(calc(-50% + 55px), calc(-50% + 90px)) rotate(45deg); opacity:0; }
+
+  .pet-reveal{
+    position:absolute; z-index:2; font-size: 84px;
+    opacity:0; transform: scale(.2);
+    transition: transform .5s cubic-bezier(.2,1.4,.4,1), opacity .35s ease;
+  }
+  .pet-reveal.show{ opacity:1; transform: scale(1); }
+
+  .hatch-text{
+    position:absolute; bottom:-64px; left:50%; transform: translateX(-50%);
+    width: 320px; text-align:center; opacity:0; transition: opacity .3s ease;
+  }
+  .hatch-text.show{ opacity:1; }
+  .hatch-text .pname{ font-family:'Baloo 2'; font-weight:800; font-size:20px; }
+  .hatch-text .prare{
+    display:inline-block; margin-top:6px; font-size:12px; font-weight:700;
+    padding:3px 12px; border-radius:999px; color:#1c1428;
+  }
+  .hatch-text .ptip{ margin-top:10px; font-size:12px; color: var(--text-dim); }
+
+  /* ============ Mapa ============ */
+  .map-wrap{
+    background: var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding: 14px; text-align:center;
+  }
+  .map-hint{
+    color: var(--text-dim); font-size: 12.5px; margin-bottom: 10px;
+  }
+  #mapCanvas{
+    width:100%; max-width: 680px; aspect-ratio: 4 / 2.6;
+    border-radius: 12px; border: 1px solid var(--line);
+    background:#4fae6c; cursor: grab; touch-action:none;
+  }
+  .map-controls{
+    display:flex; justify-content:center; gap:8px; margin-top:12px;
+  }
+  .map-controls .dpad{
+    display:grid; grid-template-columns: repeat(3,44px); grid-template-rows: repeat(3,44px);
+    gap:4px;
+  }
+  .map-controls button{
+    border:none; border-radius:10px; background: var(--panel-2); color:var(--text);
+    font-size:18px; cursor:pointer;
+  }
+  .map-controls button:active{ background: var(--mint); color:#1c1428; }
+  .map-pos{ font-size:12px; color: var(--text-dim); margin-top:8px; }
+
+  /* ============ Ranking ============ */
+  .rank-row{
+    display:flex; align-items:center; gap:12px;
+    background: var(--bg-2); border:1px solid var(--line);
+    border-radius: 12px; padding: 10px 14px; margin-bottom: 8px;
+  }
+  .rank-row.me{
+    border-color: var(--mint);
+    box-shadow: 0 0 0 1px var(--mint) inset;
+    background: rgba(107,232,194,.08);
+  }
+  .rank-pos{
+    width: 30px; text-align:center; font-family:'Baloo 2'; font-weight:700; font-size:16px;
+    color: var(--text-dim); flex-shrink:0;
+  }
+  .rank-avatar{
+    width:38px; height:38px; border-radius:50%; background: var(--panel-2);
+    display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0;
+  }
+  .rank-info{ flex:1; min-width:0; }
+  .rank-name{ font-weight:700; font-size:14px; }
+  .rank-sub{ font-size:11.5px; color: var(--text-dim); margin-top:2px; }
+  .rank-coins{ font-family:'Baloo 2'; font-weight:700; color: var(--gold); font-size:14px; white-space:nowrap; }
+
+  /* ============ Modal: crear personaje ============ */
+  .profile-overlay{
+    position: fixed; inset:0; background: rgba(20,14,32,.88);
+    display:none; align-items:center; justify-content:center; z-index: 1400;
+    backdrop-filter: blur(3px); padding: 20px;
+  }
+  .profile-overlay.show{ display:flex; }
+  .profile-card{
+    background: var(--panel); border:1px solid var(--line);
+    border-radius: 18px; padding: 24px; width: min(360px, 100%);
+    text-align:center;
+  }
+  .profile-card h2{ margin: 0 0 4px; font-size:22px; }
+  .profile-sub{ color: var(--text-dim); font-size:12.5px; margin: 0 0 14px; }
+  #previewCanvas{
+    background: var(--bg-2); border-radius: 14px; border:1px solid var(--line);
+    margin-bottom: 12px;
+  }
+  .profile-label{
+    display:block; text-align:left; font-size:12px; font-weight:700;
+    color: var(--text-dim); margin: 12px 0 6px;
+  }
+  #nameInput{
+    width:100%; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--bg-2); color: var(--text);
+    font-family:'Inter'; font-size:14px; outline:none;
+  }
+  #nameInput:focus{ border-color: var(--mint); }
+  .swatch-row{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .swatch{
+    width:30px; height:30px; border-radius:50%; cursor:pointer;
+    border: 3px solid transparent; transition: transform .1s;
+  }
+  .swatch:hover{ transform: scale(1.08); }
+  .swatch.selected{ border-color: var(--mint); transform: scale(1.1); }
+  #startGameBtn{ margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<div id="toast-holder"></div>
+
+<div class="profile-overlay" id="profileOverlay">
+  <div class="profile-card">
+    <h2>🐾 Crea tu personaje</h2>
+    <p class="profile-sub">Elige tu nombre y tu estilo antes de empezar a jugar</p>
+
+    <canvas id="previewCanvas" width="120" height="120"></canvas>
+
+    <label class="profile-label">Tu nombre</label>
+    <input type="text" id="nameInput" maxlength="14" placeholder="Ej: Sofía" autocomplete="off">
+
+    <label class="profile-label">Color de camiseta</label>
+    <div class="swatch-row" id="shirtSwatches"></div>
+
+    <label class="profile-label">Color de pelo</label>
+    <div class="swatch-row" id="hairSwatches"></div>
+
+    <label class="profile-label">Color de piel</label>
+    <div class="swatch-row" id="skinSwatches"></div>
+
+    <button class="btn hatch" id="startGameBtn">¡Empezar a jugar!</button>
+  </div>
+</div>
+
+<div class="hatch-overlay" id="hatchOverlay">
+  <div class="hatch-stage">
+    <div class="hatch-glow" id="hatchGlow"></div>
+    <span class="egg-whole" id="eggWhole">🥚</span>
+    <span class="egg-half top" id="eggTop">🥚</span>
+    <span class="egg-half bottom" id="eggBottom">🥚</span>
+    <span class="pet-reveal" id="petReveal"></span>
+    <div class="hatch-text" id="hatchText">
+      <div class="pname" id="hatchName"></div>
+      <span class="prare" id="hatchRarity"></span>
+      <div class="ptip">Toca en cualquier lado para continuar</div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <header>
+    <div class="title">
+      <span class="egg-icon">🥚</span>
+      <div>
+        <h1>Pet Simulator</h1>
+        <p>Abre huevos, colecciona mascotas y crece con cada rebirth</p>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat-pill">🪙 <span class="n" id="coinsDisplay">0</span></div>
+      <div class="stat-pill reb">✨ <span class="n" id="rebirthsDisplay">0</span></div>
+      <div class="stat-pill">⚡ <span class="n" id="cpsDisplay">0</span>/s</div>
+    </div>
+    <button class="btn rebirth" id="inicioBtn" style="font-size:12px;padding:6px 12px;width:auto;">🏠 Inicio</button>
+  </header>
+
+  <nav class="tabs">
+    <button data-page="eggs" class="active">🥚 Huevos</button>
+    <button data-page="inventory">🎒 Inventario</button>
+    <button data-page="map">🗺️ Mapa</button>
+    <button data-page="ranking">🏆 Ranking</button>
+    <button data-page="rebirth">✨ Rebirth</button>
+  </nav>
+
+  <section class="page active" id="page-eggs">
+    <div class="grid" id="eggsGrid"></div>
+  </section>
+
+  <section class="page" id="page-inventory">
+    <div class="slots-bar">
+      Slots equipados: <b id="slotsUsed">0</b> / <b id="slotsMax">3</b>
+    </div>
+    <div id="invList"></div>
+  </section>
+
+  <section class="page" id="page-map">
+    <div class="map-wrap">
+      <div class="map-hint">Muévete con las flechas o WASD · mapa de 1500×1500 · <span id="dayNightLabel">☀️ Día</span></div>
+      <canvas id="mapCanvas" width="680" height="442"></canvas>
+      <div class="map-controls">
+        <div class="dpad">
+          <span></span><button id="mUp">▲</button><span></span>
+          <button id="mLeft">◀</button><span></span><button id="mRight">▶</button>
+          <span></span><button id="mDown">▼</button><span></span>
+        </div>
+      </div>
+      <div class="map-pos">Posición: <b id="mapPos">750, 750</b></div>
+    </div>
+  </section>
+
+  <section class="page" id="page-ranking">
+    <div class="card" style="padding:16px;">
+      <h3 style="margin-top:0;">🏆 Ranking local</h3>
+      <div class="sub" style="margin-bottom:14px;">Se actualiza cada segundo según monedas y rebirths de todos (incluidos los bots).</div>
+      <div id="rankingList"></div>
+    </div>
+  </section>
+
+  <section class="page" id="page-rebirth">
+    <div class="card rebirth-card">
+      <span class="big-icon">✨</span>
+      <h2>Renacer</h2>
+      <p>Reinicia tus monedas a cambio de un bonus permanente a tu producción
+         y un slot extra para equipar mascotas. Tus mascotas NO se pierden.</p>
+      <div class="cost">Coste: <span id="rebirthCost">50,000</span> 🪙</div>
+      <button class="btn rebirth" id="rebirthBtn">Hacer Rebirth</button>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ============================================================
+   DATA DEL JUEGO
+   ============================================================ */
+const RARITIES = {
+  Common:    { color: 'var(--c-common)' },
+  Uncommon:  { color: 'var(--c-uncommon)' },
+  Rare:      { color: 'var(--c-rare)' },
+  Epic:      { color: 'var(--c-epic)' },
+  Legendary: { color: 'var(--c-legendary)' },
+  Mythical:  { color: 'var(--c-mythical)' },
+  Secret:    { color: 'var(--c-secret)' },
+};
+
+// bonus extra de monedas según el rango de la mascota: cuanto más rara,
+// más se multiplica su aporte de monedas por segundo (además de su x base)
+const RARITY_COIN_BONUS = {
+  Common: 1, Uncommon: 1.1, Rare: 1.25, Epic: 1.5, Legendary: 2, Mythical: 3, Secret: 5,
+};
+
+const SHIRT_COLORS = ['#ff6fae','#6be8c2','#5cb0ff','#ffc24b','#c98bff','#ff8b5c','#f4f4fb','#3b3552'];
+const HAIR_COLORS  = ['#6a4326','#2a2436','#c9a06a','#e8b4d8','#5cb0ff','#ff6fae','#dedede'];
+const SKIN_COLORS  = ['#f4d0b0','#d4a574','#c68642','#8d5524','#5c3310','#3b1e0e','#f5d0b0','#e8c4a0'];
+
+const PET_ICONS = {
+  'Perro':'🐶','Gato':'🐱','Conejo':'🐰','Zorro':'🦊','Dragón Bebé':'🐉',
+  'Mono':'🐒','Loro':'🦜','Jaguar':'🐆','Serpiente Dorada':'🐍','Espíritu de la Selva':'🌿',
+  'Salamandra':'🦎','Escorpión de Fuego':'🦂','Fénix':'🔥','Dragón de Magma':'🌋','Titán de Lava':'🗿',
+  'Gato Cósmico':'🌌','Devorador de Estrellas':'⭐',
+  'Cangrejo':'🦀','Pulpo':'🐙','Kraken Ancestral':'🦑',
+  'Camello':'🐫','Esfinge Dorada':'🗿',
+  'Pingüino':'🐧','Oso Polar':'🐻‍❄️','Dragón de Hielo':'🐲',
+  'Águila':'🦅','Grifo':'🦉','Fénix Celestial':'✨',
+  'Ardilla':'🐿️','Unicornio del Bosque':'🦄',
+  'Vaca':'🐄','Caballo Dorado':'🐴',
+  'Robot Lunar':'🤖','Agujero Negro Bebé':'🕳️','Alienígena Legendario':'👽',
+  'Gominola':'🍬','Rey Chocolate':'🍫',
+  'Fantasma':'👻','Esqueleto Bailarín':'💀',
+  'Androide':'⚙️','Mecha Titán':'🦾',
+  'Topo':'🐁','Golem de Piedra':'🪨',
+  'Rayo Vivo':'⚡','Dios de la Tormenta':'🌩️',
+  'Perro de Oro':'🐕','Fénix de Oro':'🔥','Titán Dorado':'🏆',
+  'Devorador de Galaxias':'🌌','Semilla del Big Bang':'💥'
+};
+
+const EGGS = {
+  BasicEgg: {
+    icon: '🥚', name: 'Huevo Básico', price: 0, reqRebirths: 0,
+    pool: [
+      { name:'Perro', rarity:'Common', mult:1, weight:60 },
+      { name:'Gato', rarity:'Common', mult:1.2, weight:50 },
+      { name:'Conejo', rarity:'Uncommon', mult:2, weight:25 },
+      { name:'Zorro', rarity:'Rare', mult:4, weight:10 },
+      { name:'Dragón Bebé', rarity:'Epic', mult:10, weight:2 },
+    ]
+  },
+  JungleEgg: {
+    icon: '🌴', name: 'Huevo de la Jungla', price: 2500, reqRebirths: 0,
+    pool: [
+      { name:'Mono', rarity:'Common', mult:1.5, weight:55 },
+      { name:'Loro', rarity:'Uncommon', mult:2.5, weight:35 },
+      { name:'Jaguar', rarity:'Rare', mult:5, weight:15 },
+      { name:'Serpiente Dorada', rarity:'Epic', mult:12, weight:4 },
+      { name:'Espíritu de la Selva', rarity:'Legendary', mult:30, weight:1 },
+    ]
+  },
+  LavaEgg: {
+    icon: '🌋', name: 'Huevo de Lava', price: 15000, reqRebirths: 1,
+    pool: [
+      { name:'Salamandra', rarity:'Uncommon', mult:3, weight:45 },
+      { name:'Escorpión de Fuego', rarity:'Rare', mult:6, weight:30 },
+      { name:'Fénix', rarity:'Epic', mult:15, weight:10 },
+      { name:'Dragón de Magma', rarity:'Legendary', mult:35, weight:3 },
+      { name:'Titán de Lava', rarity:'Mythical', mult:80, weight:0.5 },
+    ]
+  },
+  SecretEgg: {
+    icon: '🌌', name: 'Huevo Secreto', price: 100000, reqRebirths: 3,
+    pool: [
+      { name:'Gato Cósmico', rarity:'Mythical', mult:100, weight:5 },
+      { name:'Devorador de Estrellas', rarity:'Secret', mult:500, weight:0.1 },
+    ]
+  },
+  FarmEgg: {
+    icon: '🐓', name: 'Huevo de Granja', price: 1200, reqRebirths: 0,
+    pool: [
+      { name:'Vaca', rarity:'Common', mult:1.1, weight:70 },
+      { name:'Caballo Dorado', rarity:'Rare', mult:4.5, weight:20 },
+    ]
+  },
+  OceanEgg: {
+    icon: '🌊', name: 'Huevo del Océano', price: 5000, reqRebirths: 0,
+    pool: [
+      { name:'Cangrejo', rarity:'Common', mult:1.8, weight:65 },
+      { name:'Pulpo', rarity:'Rare', mult:5, weight:30 },
+      { name:'Kraken Ancestral', rarity:'Legendary', mult:32, weight:2 },
+    ]
+  },
+  ForestEgg: {
+    icon: '🌲', name: 'Huevo del Bosque', price: 6000, reqRebirths: 1,
+    pool: [
+      { name:'Ardilla', rarity:'Common', mult:1.4, weight:70 },
+      { name:'Unicornio del Bosque', rarity:'Epic', mult:14, weight:10 },
+    ]
+  },
+  DesertEgg: {
+    icon: '🏜️', name: 'Huevo del Desierto', price: 8000, reqRebirths: 1,
+    pool: [
+      { name:'Camello', rarity:'Common', mult:1.6, weight:70 },
+      { name:'Esfinge Dorada', rarity:'Rare', mult:6, weight:18 },
+    ]
+  },
+  CandyEgg: {
+    icon: '🍬', name: 'Huevo de Caramelo', price: 10000, reqRebirths: 1,
+    pool: [
+      { name:'Gominola', rarity:'Uncommon', mult:2.6, weight:60 },
+      { name:'Rey Chocolate', rarity:'Epic', mult:16, weight:10 },
+    ]
+  },
+  UndergroundEgg: {
+    icon: '⛏️', name: 'Huevo Subterráneo', price: 18000, reqRebirths: 2,
+    pool: [
+      { name:'Topo', rarity:'Uncommon', mult:2.8, weight:65 },
+      { name:'Golem de Piedra', rarity:'Rare', mult:7.5, weight:25 },
+    ]
+  },
+  IceEgg: {
+    icon: '❄️', name: 'Huevo de Hielo', price: 20000, reqRebirths: 2,
+    pool: [
+      { name:'Pingüino', rarity:'Uncommon', mult:3, weight:55 },
+      { name:'Oso Polar', rarity:'Rare', mult:7, weight:35 },
+      { name:'Dragón de Hielo', rarity:'Mythical', mult:85, weight:2 },
+    ]
+  },
+  HalloweenEgg: {
+    icon: '🎃', name: 'Huevo de Halloween', price: 25000, reqRebirths: 2,
+    pool: [
+      { name:'Fantasma', rarity:'Rare', mult:6.5, weight:50 },
+      { name:'Esqueleto Bailarín', rarity:'Epic', mult:19, weight:15 },
+    ]
+  },
+  SkyEgg: {
+    icon: '☁️', name: 'Huevo del Cielo', price: 30000, reqRebirths: 2,
+    pool: [
+      { name:'Águila', rarity:'Uncommon', mult:3.5, weight:55 },
+      { name:'Grifo', rarity:'Epic', mult:18, weight:20 },
+      { name:'Fénix Celestial', rarity:'Legendary', mult:40, weight:3 },
+    ]
+  },
+  StormEgg: {
+    icon: '⛈️', name: 'Huevo de Tormenta', price: 45000, reqRebirths: 3,
+    pool: [
+      { name:'Rayo Vivo', rarity:'Rare', mult:8, weight:50 },
+      { name:'Dios de la Tormenta', rarity:'Legendary', mult:38, weight:5 },
+    ]
+  },
+  RoboticEgg: {
+    icon: '🤖', name: 'Huevo Robótico', price: 55000, reqRebirths: 4,
+    pool: [
+      { name:'Androide', rarity:'Epic', mult:21, weight:40 },
+      { name:'Mecha Titán', rarity:'Legendary', mult:42, weight:8 },
+    ]
+  },
+  SpaceEgg: {
+    icon: '🚀', name: 'Huevo Espacial', price: 60000, reqRebirths: 4,
+    pool: [
+      { name:'Robot Lunar', rarity:'Rare', mult:9, weight:50 },
+      { name:'Agujero Negro Bebé', rarity:'Epic', mult:22, weight:20 },
+      { name:'Alienígena Legendario', rarity:'Mythical', mult:95, weight:3 },
+    ]
+  },
+  GoldenEgg: {
+    icon: '👑', name: 'Huevo Dorado', price: 80000, reqRebirths: 5,
+    pool: [
+      { name:'Perro de Oro', rarity:'Epic', mult:20, weight:50 },
+      { name:'Fénix de Oro', rarity:'Legendary', mult:45, weight:20 },
+      { name:'Titán Dorado', rarity:'Mythical', mult:110, weight:3 },
+    ]
+  },
+  CosmicEgg: {
+    icon: '🌠', name: 'Huevo Cósmico', price: 150000, reqRebirths: 6,
+    pool: [
+      { name:'Devorador de Galaxias', rarity:'Mythical', mult:150, weight:10 },
+      { name:'Semilla del Big Bang', rarity:'Secret', mult:700, weight:0.1 },
+    ]
+  }
+};
+
+const CONFIG = {
+  baseCps: 5,
+  startingCoins: 100,
+  baseSlots: 3,
+  slotsPerRebirth: 1,
+  maxSlots: 10,
+  rebirthBaseCost: 50000,
+  rebirthCostMult: 2.2,
+  rebirthCoinBonus: 0.5,
+};
+
+/* ============================================================
+   ESTADO — persistido en localStorage del navegador
+   ============================================================ */
+const SAVE_KEY = 'petSimulator_save_v1';
+
+function storageAvailable(){
+  try{
+    const t = '__petsim_test__';
+    localStorage.setItem(t, '1');
+    localStorage.removeItem(t);
+    return true;
+  }catch(e){ return false; }
+}
+const STORAGE_OK = storageAvailable();
+
+let state = {
+  coins: CONFIG.startingCoins,
+  rebirths: 0,
+  pets: {}, // uid -> {name, rarity, mult, equipped}
+  nextId: 1,
+};
+
+function saveGame(){
+  if(!STORAGE_OK) return;
+  try{
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      coins: state.coins,
+      rebirths: state.rebirths,
+      pets: state.pets,
+      nextId: state.nextId,
+    }));
+    savePetDataToDB();
+  }catch(e){ /* almacenamiento lleno o no disponible: ignorar */ }
+}
+
+function loadGame(){
+  if(!STORAGE_OK) return;
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return;
+    const data = JSON.parse(raw);
+    if(typeof data.coins === 'number') state.coins = data.coins;
+    if(typeof data.rebirths === 'number') state.rebirths = data.rebirths;
+    if(data.pets && typeof data.pets === 'object') state.pets = data.pets;
+    if(typeof data.nextId === 'number') state.nextId = data.nextId;
+  }catch(e){ /* save corrupto: seguir con el estado por defecto */ }
+}
+
+loadGame();
+window.addEventListener('beforeunload', ()=>{ saveGame(); savePetDataToDB(); });
+
+/* ============================================================
+   PERFIL DEL JUGADOR (nombre + colores del personaje)
+   Se guarda en localStorage aparte del progreso del juego.
+   ============================================================ */
+const PROFILE_KEY = 'petSimulator_profile_v1';
+const USER_IDE_KEY = 'andeleros_last_active';
+
+function saveProfile(p){
+  if(!STORAGE_OK) return;
+  try{ localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }catch(e){}
+}
+function loadProfile(){
+  if(!STORAGE_OK) return null;
+  try{
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if(!raw) return null;
+    const p = JSON.parse(raw);
+    if(p && typeof p.name === 'string' && p.shirt && p.hair && p.skin) return p;
+  }catch(e){}
+  return null;
+}
+
+function getUserId(){
+  const params = new URLSearchParams(window.location.search);
+  return params.get('ide') || localStorage.getItem(USER_IDE_KEY) || '';
+}
+
+async function savePetDataToDB(){
+  const ide = getUserId();
+  if(!ide) return;
+  try{
+    await fetch('/save-pet-data/' + encodeURIComponent(ide), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        coins: state.coins,
+        rebirths: state.rebirths,
+        pets: state.pets,
+        profile: profile
+      })
+    });
+  }catch(e){ console.error('Error saving pet data to DB:', e); }
+}
+
+let profile = loadProfile() || { name: 'Jugador', shirt: SHIRT_COLORS[0], hair: HAIR_COLORS[0], skin: SKIN_COLORS[0] };
+let selectedShirt = profile.shirt;
+let selectedHair = profile.hair;
+let selectedSkin = profile.skin;
+
+function setupProfileModal(){
+  const overlay = document.getElementById('profileOverlay');
+  const nameInput = document.getElementById('nameInput');
+  const shirtRow = document.getElementById('shirtSwatches');
+  const hairRow = document.getElementById('hairSwatches');
+  const previewCanvas = document.getElementById('previewCanvas');
+  const previewCtx = previewCanvas.getContext('2d');
+  const startBtn = document.getElementById('startGameBtn');
+
+  function drawPreview(){
+    previewCtx.clearRect(0,0,previewCanvas.width, previewCanvas.height);
+    paintPerson(previewCtx, 60, 78, { shirt: selectedShirt, hair: selectedHair, skin: selectedSkin, name: null });
+  }
+
+  function buildSwatches(row, colors, selected, onPick){
+    row.innerHTML = '';
+    colors.forEach(color=>{
+      const sw = document.createElement('div');
+      sw.className = 'swatch' + (color === selected ? ' selected' : '');
+      sw.style.background = color;
+      sw.addEventListener('click', ()=>{
+        row.querySelectorAll('.swatch').forEach(el=>el.classList.remove('selected'));
+        sw.classList.add('selected');
+        onPick(color);
+        drawPreview();
+      });
+      row.appendChild(sw);
+    });
+  }
+
+  buildSwatches(shirtRow, SHIRT_COLORS, selectedShirt, (c)=>{ selectedShirt = c; });
+  buildSwatches(hairRow, HAIR_COLORS, selectedHair, (c)=>{ selectedHair = c; });
+  buildSwatches(skinRow, SKIN_COLORS, selectedSkin, (c)=>{ selectedSkin = c; });
+
+  nameInput.value = (profile.name && profile.name !== 'Jugador') ? profile.name : '';
+  drawPreview();
+
+startBtn.addEventListener('click', ()=>{
+     const typed = nameInput.value.trim();
+     if(!typed){
+       toast('⚠️ Debes poner un nombre para iniciar el juego.', false);
+       nameInput.focus();
+       return;
+     }
+profile = {
+        name: typed.slice(0,14),
+        shirt: selectedShirt,
+        hair: selectedHair,
+        skin: selectedSkin,
+      };
+     saveProfile(profile);
+     overlay.classList.remove('show');
+     drawMap();
+     renderAll();
+     toast('🐾 ¡Datos guardados en localStorage!', true);
+   });
+
+  // si ya existe un perfil guardado, no mostramos el modal
+  if(loadProfile()){
+    overlay.classList.remove('show');
+  } else {
+    overlay.classList.add('show');
+  }
+}
+
+document.getElementById('inicioBtn').addEventListener('click', ()=>{
+  window.location.href = 'index.html';
+});
+
+function rollEgg(eggKey){
+  const egg = EGGS[eggKey];
+  const total = egg.pool.reduce((s,p)=>s+p.weight,0);
+  let roll = Math.random()*total;
+  for(const p of egg.pool){
+    roll -= p.weight;
+    if(roll <= 0) return p;
+  }
+  return egg.pool[egg.pool.length-1];
+}
+
+function getMaxSlots(){
+  return Math.min(CONFIG.baseSlots + state.rebirths*CONFIG.slotsPerRebirth, CONFIG.maxSlots);
+}
+function getEquippedCount(){
+  return Object.values(state.pets).filter(p=>p.equipped).length;
+}
+function getMultSum(){
+  const equipped = Object.values(state.pets).filter(p=>p.equipped);
+  if(equipped.length===0) return 1;
+  return equipped.reduce((s,p)=> s + p.mult * (RARITY_COIN_BONUS[p.rarity] || 1), 0);
+}
+function getRebirthCost(){
+  return Math.floor(CONFIG.rebirthBaseCost * Math.pow(CONFIG.rebirthCostMult, state.rebirths));
+}
+function getCps(){
+  return CONFIG.baseCps * getMultSum() * (1 + state.rebirths*CONFIG.rebirthCoinBonus);
+}
+
+/* ============================================================
+   TOASTS
+   ============================================================ */
+function toast(msg, ok=true){
+  const holder = document.getElementById('toast-holder');
+  const el = document.createElement('div');
+  el.className = 'toast ' + (ok?'ok':'err');
+  el.textContent = msg;
+  holder.appendChild(el);
+  setTimeout(()=>el.remove(), 2600);
+}
+
+/* ============================================================
+   RENDER: HUEVOS
+   ============================================================ */
+function renderEggs(){
+  const grid = document.getElementById('eggsGrid');
+  grid.innerHTML = '';
+  for(const key in EGGS){
+    const egg = EGGS[key];
+    const locked = state.rebirths < egg.reqRebirths;
+    const canAfford = state.coins >= egg.price;
+
+    const card = document.createElement('div');
+    card.className = 'card' + (locked ? ' locked' : '');
+
+    const oddsHtml = egg.pool.map(p=>{
+      return `<span style="color:${RARITIES[p.rarity].color}">${p.name} ${((p.weight/egg.pool.reduce((s,x)=>s+x.weight,0))*100).toFixed(1)}%</span>`;
+    }).join('');
+
+    card.innerHTML = `
+      <span class="egg-badge">${egg.icon}</span>
+      <h3>${egg.name}</h3>
+      <div class="sub">${egg.price===0 ? 'Gratis' : egg.price.toLocaleString('es')+' 🪙'} ${locked ? ' · Requiere '+egg.reqRebirths+' rebirths' : ''}</div>
+      <div class="odds">${oddsHtml}</div>
+      <button class="btn hatch" ${(locked||!canAfford) ? 'disabled' : ''}>${locked ? '🔒 Bloqueado' : 'Abrir huevo'}</button>
+    `;
+
+    const btn = card.querySelector('button');
+    btn.addEventListener('click', ()=> hatchEgg(key));
+
+    grid.appendChild(card);
+  }
+}
+
+function hatchEgg(key){
+  const egg = EGGS[key];
+  if(state.rebirths < egg.reqRebirths){ toast('Necesitas más rebirths para este huevo.', false); return; }
+  if(state.coins < egg.price){ toast('No tienes suficientes monedas.', false); return; }
+
+  state.coins -= egg.price;
+  const rolled = rollEgg(key);
+  const uid = 'pet_' + state.nextId++;
+  state.pets[uid] = { name: rolled.name, rarity: rolled.rarity, mult: rolled.mult, equipped:false };
+
+  renderHeader();
+  renderEggs();
+  saveGame();
+  playHatchAnimation(rolled);
+}
+
+/* ============================================================
+   ANIMACIÓN: HUEVO ROMPIÉNDOSE
+   ============================================================ */
+let hatchClosing = null;
+
+function playHatchAnimation(rolled){
+  const overlay = document.getElementById('hatchOverlay');
+  const eggWhole = document.getElementById('eggWhole');
+  const eggTop = document.getElementById('eggTop');
+  const eggBottom = document.getElementById('eggBottom');
+  const glow = document.getElementById('hatchGlow');
+  const petReveal = document.getElementById('petReveal');
+  const hatchText = document.getElementById('hatchText');
+  const hatchName = document.getElementById('hatchName');
+  const hatchRarity = document.getElementById('hatchRarity');
+
+  // reset de todas las clases/estados de la animación anterior
+  eggWhole.classList.remove('shaking');
+  eggTop.classList.remove('fly-top');
+  eggBottom.classList.remove('fly-bottom');
+  glow.classList.remove('burst');
+  petReveal.classList.remove('show');
+  hatchText.classList.remove('show');
+  eggWhole.style.display = 'inline-block';
+  eggTop.style.display = 'none';
+  eggBottom.style.display = 'none';
+
+  petReveal.textContent = PET_ICONS[rolled.name] || '🐾';
+  hatchName.textContent = rolled.name;
+  hatchRarity.textContent = rolled.rarity + '  ·  x' + rolled.mult;
+  hatchRarity.style.background = RARITIES[rolled.rarity].color;
+
+  overlay.classList.add('show');
+
+  // 1) el huevo tiembla
+  void eggWhole.offsetWidth; // forzar reflow
+  eggWhole.classList.add('shaking');
+
+  // 2) se rompe en dos mitades que salen volando + destello + mascota aparece
+  const t1 = setTimeout(()=>{
+    eggWhole.style.display = 'none';
+    eggTop.style.display = 'inline-block';
+    eggBottom.style.display = 'inline-block';
+    glow.classList.add('burst');
+    void eggTop.offsetWidth;
+    eggTop.classList.add('fly-top');
+    eggBottom.classList.add('fly-bottom');
+    petReveal.classList.add('show');
+  }, 780);
+
+  // 3) mostrar nombre/rareza
+  const t2 = setTimeout(()=>{
+    hatchText.classList.add('show');
+  }, 1250);
+
+  function closeModal(){
+    overlay.classList.remove('show');
+    overlay.removeEventListener('click', closeModal);
+    clearTimeout(t1); clearTimeout(t2);
+    renderAll();
+  }
+  hatchClosing = closeModal;
+  overlay.addEventListener('click', closeModal);
+}
+
+/* ============================================================
+   RENDER: INVENTARIO
+   ============================================================ */
+function renderInventory(){
+  document.getElementById('slotsUsed').textContent = getEquippedCount();
+  document.getElementById('slotsMax').textContent = getMaxSlots();
+
+  const list = document.getElementById('invList');
+  const uids = Object.keys(state.pets);
+
+  if(uids.length===0){
+    list.innerHTML = `<div class="empty"><span class="big">🕳️</span>Aún no tienes mascotas.<br>¡Abre un huevo para empezar!</div>`;
+    return;
+  }
+
+  // orden: equipadas primero, luego por rareza
+  const order = ['Secret','Mythical','Legendary','Epic','Rare','Uncommon','Common'];
+  uids.sort((a,b)=>{
+    const pa = state.pets[a], pb = state.pets[b];
+    if(pa.equipped !== pb.equipped) return pa.equipped ? -1 : 1;
+    return order.indexOf(pa.rarity) - order.indexOf(pb.rarity);
+  });
+
+  list.innerHTML = '';
+  uids.forEach(uid=>{
+    const pet = state.pets[uid];
+    const row = document.createElement('div');
+    row.className = 'pet-row';
+    row.innerHTML = `
+      <div class="icon">${PET_ICONS[pet.name]||'🐾'}</div>
+      <div class="info">
+        <div class="name">${pet.name}</div>
+        <span class="tag" style="background:${RARITIES[pet.rarity].color}">${pet.rarity}</span>
+        <span class="mult">x${pet.mult}</span>
+      </div>
+      <button class="btn ${pet.equipped ? 'unequip' : 'equip'}">${pet.equipped ? 'Quitar' : 'Equipar'}</button>
+    `;
+    row.querySelector('button').addEventListener('click', ()=>{
+      if(pet.equipped){
+        pet.equipped = false;
+      } else {
+        if(getEquippedCount() >= getMaxSlots()){
+          toast('No tienes slots libres. ¡Haz rebirth para conseguir más!', false);
+          return;
+        }
+        pet.equipped = true;
+      }
+      saveGame();
+      renderAll();
+    });
+    list.appendChild(row);
+  });
+}
+
+/* ============================================================
+   RENDER: REBIRTH
+   ============================================================ */
+function renderRebirth(){
+  const cost = getRebirthCost();
+  document.getElementById('rebirthCost').textContent = cost.toLocaleString('es');
+  const btn = document.getElementById('rebirthBtn');
+  btn.disabled = state.coins < cost;
+}
+
+document.getElementById('rebirthBtn').addEventListener('click', ()=>{
+  const cost = getRebirthCost();
+  if(state.coins < cost){ toast('Aún no tienes suficientes monedas.', false); return; }
+  state.coins -= cost;
+  state.rebirths += 1;
+  toast(`✨ ¡Rebirth #${state.rebirths} completado!`, true);
+  saveGame();
+  renderAll();
+});
+
+/* ============================================================
+   HEADER / LOOP
+   ============================================================ */
+function renderHeader(){
+  document.getElementById('coinsDisplay').textContent = Math.floor(state.coins).toLocaleString('es');
+  document.getElementById('rebirthsDisplay').textContent = state.rebirths;
+  document.getElementById('cpsDisplay').textContent = getCps().toFixed(1);
+}
+
+function renderAll(){
+  renderHeader();
+  renderEggs();
+  renderInventory();
+  renderRebirth();
+  renderRanking();
+}
+
+/* ============================================================
+   BOTS (competidores simulados localmente, para el ranking)
+   ============================================================ */
+const BOT_NAMES = [
+  { name:'Lucía', avatar:'👧' }, { name:'Mateo', avatar:'👦' },
+  { name:'PixelFox', avatar:'🦊' }, { name:'Nova_99', avatar:'🤖' },
+  { name:'Sofía', avatar:'👩' }, { name:'DragonKing', avatar:'🐲' },
+  { name:'Valentina', avatar:'🧑' }, { name:'ByteBeast', avatar:'👾' },
+  { name:'Rocío', avatar:'👩‍🦰' }, { name:'ShadowWolf', avatar:'🐺' },
+];
+
+const bots = BOT_NAMES.map(b => ({
+  name: b.name,
+  avatar: b.avatar,
+  coins: Math.floor(200 + Math.random()*3000),
+  rebirths: 0,
+  growth: 3 + Math.random()*10, // monedas base por segundo del bot
+  // x, y, targetX, targetY, color, hairColor, wspeed se rellenan más abajo,
+  // una vez que el mundo (lagos, etc.) ya está definido
+}));
+
+function updateBots(){
+  bots.forEach(bot=>{
+    const bonus = 1 + bot.rebirths*CONFIG.rebirthCoinBonus;
+    bot.coins += bot.growth * bonus;
+
+    const cost = Math.floor(CONFIG.rebirthBaseCost * Math.pow(CONFIG.rebirthCostMult, bot.rebirths));
+    // si al bot ya le alcanza, tiene una probabilidad por segundo de hacer rebirth
+    if(bot.coins >= cost && Math.random() < 0.15){
+      bot.coins = 0;
+      bot.rebirths += 1;
+      bot.growth *= 1.15 + Math.random()*0.4; // mejora sus mascotas al renacer
+    }
+  });
+}
+
+function rankScore(entry){
+  return entry.coins + entry.rebirths * 250000;
+}
+
+function renderRanking(){
+  const list = document.getElementById('rankingList');
+  if(!list) return;
+
+  const entries = [
+    { name:'Tú', avatar:'🧍', coins: state.coins, rebirths: state.rebirths, isPlayer:true },
+    ...bots.map(b=>({ name:b.name, avatar:b.avatar, coins:b.coins, rebirths:b.rebirths, isPlayer:false })),
+  ];
+  entries.sort((a,b)=> rankScore(b) - rankScore(a));
+
+  const medals = ['🥇','🥈','🥉'];
+  list.innerHTML = '';
+  entries.forEach((e, i)=>{
+    const row = document.createElement('div');
+    row.className = 'rank-row' + (e.isPlayer ? ' me' : '');
+    row.innerHTML = `
+      <div class="rank-pos">${medals[i] || (i+1)}</div>
+      <div class="rank-avatar">${e.avatar}</div>
+      <div class="rank-info">
+        <div class="rank-name">${e.name}${e.isPlayer ? ' (tú)' : ''}</div>
+        <div class="rank-sub">✨ ${e.rebirths} rebirths</div>
+      </div>
+      <div class="rank-coins">🪙 ${Math.floor(e.coins).toLocaleString('es')}</div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+setInterval(()=>{
+  state.coins += getCps();
+  updateBots();
+  renderHeader();
+  renderEggs();
+  renderRebirth();
+  renderRanking();
+}, 1000);
+
+setInterval(()=>{
+  savePetDataToDB();
+}, 30000);
+
+/* ============================================================
+   MAPA (mundo 1500x1500, cámara siguiendo al jugador)
+   ============================================================ */
+const WORLD_SIZE = 1500;
+const canvas = document.getElementById('mapCanvas');
+const ctx = canvas.getContext('2d');
+
+const mapPlayer = { x: 750, y: 750, speed: 260 };
+const keys = {};
+let mapActive = false;
+let lastFrame = null;
+
+// Elementos decorativos fijos del mundo (posiciones dentro de 0-1500)
+const LAKES = [
+  { x: 300, y: 260, rx: 130, ry: 85 },
+  { x: 1180, y: 420, rx: 160, ry: 100 },
+  { x: 520, y: 1180, rx: 110, ry: 75 },
+];
+const MOUNTAINS = [
+  { x: 200, y: 1050, s: 140 }, { x: 340, y: 1120, s: 110 }, { x: 90, y: 1180, s: 100 },
+  { x: 1250, y: 950, s: 150 }, { x: 1380, y: 1050, s: 120 },
+  { x: 700, y: 90, s: 100 }, { x: 830, y: 60, s: 130 },
+];
+const HOUSES = [
+  { x: 620, y: 640, color:'#ff9d6c' }, { x: 700, y: 700, color:'#8fc7ff' },
+  { x: 780, y: 630, color:'#ffd166' }, { x: 900, y: 800, color:'#ff9d6c' },
+  { x: 1000, y: 300, color:'#8fc7ff' }, { x: 950, y: 1250, color:'#c6a1ff' },
+  { x: 300, y: 850, color:'#ffd166' },
+];
+const TREES = [];
+for(let i=0;i<55;i++){
+  TREES.push({ x: Math.random()*WORLD_SIZE, y: Math.random()*WORLD_SIZE });
+}
+const GRASS_PATCHES = [];
+for(let i=0;i<70;i++){
+  GRASS_PATCHES.push({
+    x: Math.random()*WORLD_SIZE, y: Math.random()*WORLD_SIZE,
+    r: 30 + Math.random()*50,
+    tone: Math.random() < 0.5 ? 'light' : 'dark',
+  });
+}
+const FLOWERS = [];
+for(let i=0;i<60;i++){
+  FLOWERS.push({
+    x: Math.random()*WORLD_SIZE, y: Math.random()*WORLD_SIZE,
+    color: ['#ff8fc0','#ffe37a','#a3d8ff','#ffffff'][Math.floor(Math.random()*4)],
+  });
+}
+
+function isInWater(x,y){
+  for(const l of LAKES){
+    const dx = (x - l.x) / l.rx;
+    const dy = (y - l.y) / l.ry;
+    if(dx*dx + dy*dy <= 1) return true;
+  }
+  return false;
+}
+
+// ---- Coleccionables: monedas y huevos repartidos por el mapa ----
+function randomSpotOutsideWater(){
+  let x, y, tries = 0;
+  do{
+    x = 40 + Math.random()*(WORLD_SIZE-80);
+    y = 40 + Math.random()*(WORLD_SIZE-80);
+    tries++;
+  } while(isInWater(x,y) && tries < 30);
+  return {x,y};
+}
+
+// Ahora que el mundo (lagos, etc.) ya existe, damos a cada bot
+// una posición inicial, un color y un destino al que caminar.
+bots.forEach(bot=>{
+  const spot = randomSpotOutsideWater();
+  bot.x = spot.x; bot.y = spot.y;
+  bot.targetX = spot.x; bot.targetY = spot.y;
+  bot.color = SHIRT_COLORS[Math.floor(Math.random()*SHIRT_COLORS.length)];
+  bot.hairColor = HAIR_COLORS[Math.floor(Math.random()*HAIR_COLORS.length)];
+  bot.skinColor = SKIN_COLORS[Math.floor(Math.random()*SKIN_COLORS.length)];
+  bot.wspeed = 26 + Math.random()*38;
+});
+
+function updateBotPositions(dt){
+  bots.forEach(bot=>{
+    const dx = bot.targetX - bot.x, dy = bot.targetY - bot.y;
+    const dist = Math.hypot(dx,dy);
+    if(dist < 10){
+      const spot = randomSpotOutsideWater();
+      bot.targetX = spot.x; bot.targetY = spot.y;
+      return;
+    }
+    const newX = bot.x + (dx/dist)*bot.wspeed*dt;
+    const newY = bot.y + (dy/dist)*bot.wspeed*dt;
+    if(!isInWater(newX, bot.y)) bot.x = newX;
+    if(!isInWater(bot.x, newY)) bot.y = newY;
+  });
+}
+
+/* ============================================================
+   CICLO DE DÍA Y NOCHE
+   ============================================================ */
+const DAY_CYCLE_MS = 120000; // 2 minutos: día -> noche -> día completo
+const cycleStart = performance.now();
+
+function getDarkness(){
+  const t = ((performance.now() - cycleStart) % DAY_CYCLE_MS) / DAY_CYCLE_MS;
+  return (1 - Math.cos(t * 2 * Math.PI)) / 2; // 0 = mediodía, 1 = medianoche
+}
+
+/* ============================================================
+   MONSTRUOS — solo salen (y hacen daño) durante la noche
+   ============================================================ */
+const MONSTERS = [];
+for(let i=0;i<5;i++){
+  const spot = randomSpotOutsideWater();
+  MONSTERS.push({
+    x: spot.x, y: spot.y, targetX: spot.x, targetY: spot.y,
+    speed: 55 + Math.random()*35, cooldownUntil: 0,
+  });
+}
+const MONSTER_COIN_PENALTY = 100;
+const MONSTER_HIT_RADIUS = 26;
+
+function updateMonsters(dt, isNight){
+  if(!isNight) return;
+  MONSTERS.forEach(m=>{
+    const dx = m.targetX - m.x, dy = m.targetY - m.y;
+    const dist = Math.hypot(dx,dy);
+    if(dist < 10){
+      const spot = randomSpotOutsideWater();
+      m.targetX = spot.x; m.targetY = spot.y;
+      return;
+    }
+    const newX = m.x + (dx/dist)*m.speed*dt;
+    const newY = m.y + (dy/dist)*m.speed*dt;
+    if(!isInWater(newX, m.y)) m.x = newX;
+    if(!isInWater(m.x, newY)) m.y = newY;
+  });
+}
+
+function checkMonsterHits(isNight){
+  if(!isNight) return;
+  const now = performance.now();
+  MONSTERS.forEach(m=>{
+    if(now < m.cooldownUntil) return;
+    if(Math.hypot(mapPlayer.x-m.x, mapPlayer.y-m.y) < MONSTER_HIT_RADIUS){
+      m.cooldownUntil = now + 2500;
+      state.coins = Math.max(0, state.coins - MONSTER_COIN_PENALTY);
+      renderHeader();
+      saveGame();
+      toast(`👹 ¡Un monstruo te atrapó! -${MONSTER_COIN_PENALTY} monedas`, false);
+    }
+  });
+}
+
+function drawMonster(m){
+  ctx.save();
+  ctx.translate(m.x, m.y);
+  // sombra
+  ctx.fillStyle = 'rgba(0,0,0,.3)';
+  ctx.beginPath(); ctx.ellipse(0, 15, 13, 5, 0, 0, Math.PI*2); ctx.fill();
+  // cuerpo
+  ctx.fillStyle = '#4a2f57';
+  ctx.beginPath();
+  ctx.moveTo(-12, 11);
+  ctx.quadraticCurveTo(-15, -13, 0, -14);
+  ctx.quadraticCurveTo(15, -13, 12, 11);
+  ctx.closePath();
+  ctx.fill();
+  // pinchos
+  ctx.fillStyle = '#2f1d3d';
+  for(let i=-1;i<=1;i++){
+    ctx.beginPath();
+    ctx.moveTo(i*7-3, -12); ctx.lineTo(i*7, -21); ctx.lineTo(i*7+3, -12);
+    ctx.closePath(); ctx.fill();
+  }
+  // ojos brillantes
+  ctx.fillStyle = '#ff4d5e';
+  ctx.shadowColor = '#ff4d5e';
+  ctx.shadowBlur = 9;
+  ctx.beginPath(); ctx.arc(-4.2, -2, 2.4, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(4.2, -2, 2.4, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+const COIN_PICKUPS = [];
+for(let i=0;i<22;i++){
+  const spot = randomSpotOutsideWater();
+  COIN_PICKUPS.push({ x:spot.x, y:spot.y, amount: 50 + Math.floor(Math.random()*200), collected:false, respawnAt:0, spawnTime:performance.now() });
+}
+const EGG_PICKUPS = [];
+for(let i=0;i<18;i++){
+  const spot = randomSpotOutsideWater();
+  EGG_PICKUPS.push({ x:spot.x, y:spot.y, collected:false, respawnAt:0, spawnTime:performance.now() });
+}
+const COIN_RESPAWN_MS = 12000;
+const EGG_RESPAWN_MS = 40000;
+const PICKUP_RADIUS = 32;
+
+function popScale(spawnTime){
+  const age = performance.now() - spawnTime;
+  return Math.min(1, age / 260);
+}
+
+function drawCoinPickup(c){
+  if(c.collected) return;
+  const s = popScale(c.spawnTime);
+  ctx.save();
+  ctx.translate(c.x, c.y);
+  ctx.scale(s, s);
+  ctx.font = '26px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(255,194,75,.8)';
+  ctx.shadowBlur = 10;
+  ctx.fillText('🪙', 0, 0);
+  ctx.restore();
+}
+function drawEggPickup(e){
+  if(e.collected) return;
+  const s = popScale(e.spawnTime);
+  ctx.save();
+  ctx.translate(e.x, e.y);
+  ctx.scale(s, s);
+  ctx.font = '28px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(255,255,255,.8)';
+  ctx.shadowBlur = 10;
+  ctx.fillText('🥚', 0, 0);
+  ctx.restore();
+}
+
+function checkPickups(){
+  const now = performance.now();
+
+  for(const c of COIN_PICKUPS){
+    if(c.collected && now >= c.respawnAt){ c.collected = false; c.spawnTime = now; }
+    if(!c.collected && Math.hypot(mapPlayer.x-c.x, mapPlayer.y-c.y) < PICKUP_RADIUS){
+      c.collected = true;
+      c.respawnAt = now + COIN_RESPAWN_MS;
+      state.coins += c.amount;
+      renderHeader();
+      toast(`🪙 +${c.amount} monedas`, true);
+    }
+  }
+
+  for(const e of EGG_PICKUPS){
+    if(e.collected && now >= e.respawnAt){ e.collected = false; e.spawnTime = now; }
+    if(!e.collected && Math.hypot(mapPlayer.x-e.x, mapPlayer.y-e.y) < PICKUP_RADIUS){
+      e.collected = true;
+      e.respawnAt = now + EGG_RESPAWN_MS;
+      const rolled = rollEgg('BasicEgg');
+      const uid = 'pet_' + state.nextId++;
+      state.pets[uid] = { name: rolled.name, rarity: rolled.rarity, mult: rolled.mult, equipped:false };
+      playHatchAnimation(rolled);
+    }
+  }
+}
+
+function drawLake(l){
+  ctx.save();
+  ctx.translate(l.x, l.y);
+  // orilla de arena
+  ctx.fillStyle = '#e8d9a8';
+  ctx.beginPath();
+  ctx.ellipse(0,0,l.rx+10,l.ry+8,0,0,Math.PI*2);
+  ctx.fill();
+  // agua
+  ctx.fillStyle = '#3fa9e8';
+  ctx.beginPath();
+  ctx.ellipse(0,0,l.rx,l.ry,0,0,Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(20,90,150,.25)';
+  ctx.beginPath();
+  ctx.ellipse(l.rx*0.2,l.ry*0.25,l.rx*0.7,l.ry*0.55,0,0,Math.PI*2);
+  ctx.fill();
+  // brillo
+  ctx.fillStyle = 'rgba(255,255,255,.4)';
+  ctx.beginPath();
+  ctx.ellipse(-l.rx*0.25,-l.ry*0.3,l.rx*0.35,l.ry*0.2,0,0,Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawMountain(m){
+  ctx.save();
+  ctx.translate(m.x, m.y);
+  const grad = ctx.createLinearGradient(0,-m.s,0,0);
+  grad.addColorStop(0, '#9a8977');
+  grad.addColorStop(1, '#6f6152');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.moveTo(-m.s*0.6, 0);
+  ctx.lineTo(0, -m.s);
+  ctx.lineTo(m.s*0.6, 0);
+  ctx.closePath();
+  ctx.fill();
+  // sombra lateral
+  ctx.fillStyle = 'rgba(0,0,0,.12)';
+  ctx.beginPath();
+  ctx.moveTo(0,-m.s); ctx.lineTo(m.s*0.6,0); ctx.lineTo(m.s*0.25,0);
+  ctx.closePath(); ctx.fill();
+  // nieve
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.moveTo(-m.s*0.15, -m.s*0.62);
+  ctx.lineTo(0, -m.s);
+  ctx.lineTo(m.s*0.15, -m.s*0.62);
+  ctx.lineTo(0, -m.s*0.45);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawGrassPatch(g){
+  ctx.save();
+  ctx.fillStyle = g.tone === 'light' ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.06)';
+  ctx.beginPath();
+  ctx.arc(g.x, g.y, g.r, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawFlower(f){
+  ctx.save();
+  ctx.translate(f.x, f.y);
+  ctx.fillStyle = f.color;
+  for(let i=0;i<4;i++){
+    ctx.beginPath();
+    ctx.arc(Math.cos(i*Math.PI/2)*2.4, Math.sin(i*Math.PI/2)*2.4, 2.1, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.fillStyle = '#ffe37a';
+  ctx.beginPath(); ctx.arc(0,0,1.6,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+function drawHouse(h){
+  ctx.save();
+  ctx.translate(h.x, h.y);
+  // sombra
+  ctx.fillStyle = 'rgba(0,0,0,.15)';
+  ctx.beginPath();
+  ctx.ellipse(0, 26, 28, 8, 0, 0, Math.PI*2);
+  ctx.fill();
+  // cuerpo
+  ctx.fillStyle = '#fff8ec';
+  ctx.fillRect(-24, -6, 48, 32);
+  // techo
+  ctx.fillStyle = h.color;
+  ctx.beginPath();
+  ctx.moveTo(-30, -6);
+  ctx.lineTo(0, -34);
+  ctx.lineTo(30, -6);
+  ctx.closePath();
+  ctx.fill();
+  // puerta
+  ctx.fillStyle = '#a9744f';
+  ctx.fillRect(-7, 8, 14, 18);
+  // ventana
+  ctx.fillStyle = '#7ec8ff';
+  ctx.fillRect(10, 2, 10, 10);
+  ctx.restore();
+}
+
+function drawTree(t){
+  ctx.save();
+  ctx.translate(t.x, t.y);
+  ctx.fillStyle = '#7a5230';
+  ctx.fillRect(-3, 0, 6, 12);
+  ctx.fillStyle = '#4caf6b';
+  ctx.beginPath();
+  ctx.arc(0,-6,12,0,Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawMap(darkness, isNight){
+  darkness = darkness || 0;
+  const w = canvas.width, h = canvas.height;
+
+  // cámara centrada en el jugador, clamp para no salir del mundo
+  let camX = mapPlayer.x - w/2;
+  let camY = mapPlayer.y - h/2;
+  camX = Math.max(0, Math.min(WORLD_SIZE - w, camX));
+  camY = Math.max(0, Math.min(WORLD_SIZE - h, camY));
+
+  ctx.save();
+  ctx.fillStyle = '#5fbd7d';
+  ctx.fillRect(0,0,w,h);
+  ctx.translate(-camX, -camY);
+
+  // pasto con textura suave (rejilla ligera)
+  ctx.strokeStyle = 'rgba(255,255,255,.06)';
+  for(let gx=0; gx<=WORLD_SIZE; gx+=60){
+    ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,WORLD_SIZE); ctx.stroke();
+  }
+  for(let gy=0; gy<=WORLD_SIZE; gy+=60){
+    ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(WORLD_SIZE,gy); ctx.stroke();
+  }
+
+  // borde del mundo
+  ctx.strokeStyle = 'rgba(0,0,0,.25)';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(3,3,WORLD_SIZE-6,WORLD_SIZE-6);
+
+  TREES.forEach(drawTree);
+  GRASS_PATCHES.forEach(drawGrassPatch);
+  FLOWERS.forEach(drawFlower);
+  LAKES.forEach(drawLake);
+  MOUNTAINS.forEach(drawMountain);
+  HOUSES.forEach(drawHouse);
+  COIN_PICKUPS.forEach(drawCoinPickup);
+  EGG_PICKUPS.forEach(drawEggPickup);
+
+  // monstruos: solo aparecen (y son visibles) de noche
+  if(isNight){
+    MONSTERS.forEach(drawMonster);
+  }
+
+  // otros jugadores (bots)
+  bots.forEach(bot=>{
+    paintPerson(ctx, bot.x, bot.y, { shirt: bot.color, hair: bot.hairColor, skin: bot.skinColor || '#ffcda0', name: bot.name });
+  });
+
+  // jugador (con tu nombre y colores elegidos)
+  paintPerson(ctx, mapPlayer.x, mapPlayer.y, { shirt: profile.shirt, hair: profile.hair, skin: profile.skin, name: profile.name });
+
+  ctx.restore();
+
+  // tinte de noche (en espacio de pantalla, encima de todo lo anterior)
+  if(darkness > 0){
+    ctx.fillStyle = `rgba(10,10,45,${(darkness*0.72).toFixed(2)})`;
+    ctx.fillRect(0,0,w,h);
+  }
+
+  // indicador de sol/luna arriba a la derecha del canvas
+  ctx.save();
+  ctx.font = '20px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(isNight ? '🌙' : '☀️', w-26, 26);
+  ctx.restore();
+
+  const label = document.getElementById('dayNightLabel');
+  if(label) label.textContent = isNight ? '🌙 Noche · ¡cuidado con los monstruos!' : '☀️ Día';
+}
+
+function paintPerson(g, x, y, opts){
+  const shirt = (opts && opts.shirt) || '#ff6fae';
+  const hair  = (opts && opts.hair) || '#6a4326';
+  const skin  = (opts && opts.skin) || '#ffcda0';
+  const name  = opts && opts.name;
+
+  g.save();
+  g.translate(x, y);
+
+  // sombra
+  g.fillStyle = 'rgba(0,0,0,.2)';
+  g.beginPath(); g.ellipse(0, 17, 13, 5, 0, 0, Math.PI*2); g.fill();
+
+  // piernas
+  g.fillStyle = '#3b3552';
+  g.fillRect(-7, 6, 5, 11);
+  g.fillRect(2, 6, 5, 11);
+  // zapatos
+  g.fillStyle = '#241b36';
+  g.fillRect(-8, 15, 6, 3);
+  g.fillRect(2, 15, 6, 3);
+
+  // cuerpo (camiseta)
+  g.fillStyle = shirt;
+  g.beginPath();
+  g.moveTo(-9, 7);
+  g.quadraticCurveTo(-9, -9, 0, -9);
+  g.quadraticCurveTo(9, -9, 9, 7);
+  g.closePath();
+  g.fill();
+
+  // brazos
+  g.fillStyle = skin;
+  g.beginPath(); g.arc(-10, -1, 3.5, 0, Math.PI*2); g.fill();
+  g.beginPath(); g.arc(10, -1, 3.5, 0, Math.PI*2); g.fill();
+
+  // cabeza
+  g.fillStyle = skin;
+  g.beginPath(); g.arc(0, -15, 7.5, 0, Math.PI*2); g.fill();
+
+  // pelo
+  g.fillStyle = hair;
+  g.beginPath();
+  g.arc(0, -18, 7.5, Math.PI, 0);
+  g.fill();
+  g.fillRect(-7.5, -18, 15, 4);
+
+  // cara
+  g.fillStyle = '#2a2436';
+  g.beginPath(); g.arc(-2.6, -15, 1, 0, Math.PI*2); g.fill();
+  g.beginPath(); g.arc(2.6, -15, 1, 0, Math.PI*2); g.fill();
+  g.strokeStyle = '#2a2436';
+  g.lineWidth = 1;
+  g.beginPath(); g.arc(0, -12.5, 2, 0.15*Math.PI, 0.85*Math.PI); g.stroke();
+
+  // etiqueta con el nombre, encima de la cabeza
+  if(name){
+    g.font = "bold 11px 'Baloo 2', sans-serif";
+    g.textAlign = 'center';
+    const tw = g.measureText(name).width;
+    g.fillStyle = 'rgba(20,14,32,.6)';
+    g.beginPath();
+    g.roundRect ? g.roundRect(-tw/2-5, -37, tw+10, 15, 7) : g.rect(-tw/2-5, -37, tw+10, 15);
+    g.fill();
+    g.fillStyle = '#ffffff';
+    g.fillText(name, 0, -26);
+  }
+
+  g.restore();
+}
+
+function moveMapPlayer(dt){
+  let dx = 0, dy = 0;
+  if(keys['ArrowUp']||keys['w']) dy -= 1;
+  if(keys['ArrowDown']||keys['s']) dy += 1;
+  if(keys['ArrowLeft']||keys['a']) dx -= 1;
+  if(keys['ArrowRight']||keys['d']) dx += 1;
+
+  if(dx!==0 || dy!==0){
+    const len = Math.hypot(dx,dy);
+    dx/=len; dy/=len;
+
+    // movemos cada eje por separado para poder "deslizar" junto a la orilla
+    // en vez de quedarse pegado si solo un eje choca con el agua
+    const newX = Math.max(20, Math.min(WORLD_SIZE-20, mapPlayer.x + dx*mapPlayer.speed*dt));
+    if(!isInWater(newX, mapPlayer.y)) mapPlayer.x = newX;
+
+    const newY = Math.max(20, Math.min(WORLD_SIZE-20, mapPlayer.y + dy*mapPlayer.speed*dt));
+    if(!isInWater(mapPlayer.x, newY)) mapPlayer.y = newY;
+
+    document.getElementById('mapPos').textContent = Math.round(mapPlayer.x) + ', ' + Math.round(mapPlayer.y);
+  }
+
+  checkPickups();
+}
+
+function mapLoop(ts){
+  if(!mapActive) { lastFrame = null; return; }
+  if(lastFrame===null) lastFrame = ts;
+  const dt = Math.min((ts-lastFrame)/1000, 0.1);
+  lastFrame = ts;
+  const darkness = getDarkness();
+  const isNight = darkness > 0.55;
+  moveMapPlayer(dt);
+  updateBotPositions(dt);
+  updateMonsters(dt, isNight);
+  checkMonsterHits(isNight);
+  drawMap(darkness, isNight);
+  requestAnimationFrame(mapLoop);
+}
+
+window.addEventListener('keydown', (e)=>{
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key) && mapActive) e.preventDefault();
+  keys[e.key] = true;
+});
+window.addEventListener('keyup', (e)=>{ keys[e.key] = false; });
+
+function bindHold(btnId, key){
+  const btn = document.getElementById(btnId);
+  const start = (e)=>{ e.preventDefault(); keys[key]=true; };
+  const end = ()=>{ keys[key]=false; };
+  btn.addEventListener('mousedown', start);
+  btn.addEventListener('touchstart', start);
+  ['mouseup','mouseleave','touchend'].forEach(ev=>btn.addEventListener(ev, end));
+}
+bindHold('mUp','ArrowUp'); bindHold('mDown','ArrowDown');
+bindHold('mLeft','ArrowLeft'); bindHold('mRight','ArrowRight');
+
+/* ============================================================
+   TABS
+   ============================================================ */
+document.querySelectorAll('nav.tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('section.page').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('page-'+btn.dataset.page).classList.add('active');
+
+    if(btn.dataset.page === 'map'){
+      mapActive = true;
+      requestAnimationFrame(mapLoop);
+    } else {
+      mapActive = false;
+    }
+  });
+});
+
+renderAll();
+setupProfileModal();
+drawMap();
+
+function showAllDataOnEntry(){
+  const data = {
+    coins: state.coins,
+    rebirths: state.rebirths,
+    pets: Object.keys(state.pets).length,
+    profile: profile,
+    savedToLocalStorage: STORAGE_OK,
+  };
+  console.log('📦 Todos los datos guardados en localStorage:', data);
+  if(STORAGE_OK){
+    try{
+      const raw = localStorage.getItem(SAVE_KEY);
+      if(raw){
+        const parsed = JSON.parse(raw);
+        console.log('📂 Datos completos en localStorage:', parsed);
+      }
+    }catch(e){}
+  }
+  const petCount = Object.keys(state.pets).length;
+  toast('🐾 Datos: 🪙 '+Math.floor(state.coins).toLocaleString('es')+' monedas | ✨ '+state.rebirths+' rebirths | 🎒 '+petCount+' mascotas | 💾 Guardado en localStorage', true);
+}
+showAllDataOnEntry();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

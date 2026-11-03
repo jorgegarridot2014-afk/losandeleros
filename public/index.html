@@ -6,13 +6,40 @@
 <title>Los Andeleros</title>
 
 <!-- ✅ CSS separado -->
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="style.css?v=9">
 
 </head>
 
 <body>
 
-<h1>Gonjor presents Los Andeleros</h1>
+<!-- ================= COOKIES OVERLAY ================= -->
+<!-- OVERLAY SERVICIO NO DISPONIBLE -->
+<div id="overlayServicioND" style="position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:20000; display:none; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px; backdrop-filter: blur(5px);">
+  <div style="background:#1a1a1a; color:white; padding:30px; border-radius:20px; border:2px solid #fb923c; max-width:400px; box-shadow: 0 0 30px rgba(251,146,60,0.3);">
+    <h2 style="font-family:'Bebas Neue',sans-serif; color:#fb923c; font-size:24px; margin-bottom:15px; letter-spacing:1px;">Servicio no disponible</h2>
+    <p style="color:#ccc; margin-bottom:20px;">Este servicio no está disponible.</p>
+    <button onclick="document.getElementById('overlayServicioND').style.display='none'" style="background:#fb923c; color:black; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">Cerrar</button>
+  </div>
+</div>
+<div id="stars"></div>
+<div id="mantenimientoOverlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.98); z-index:99999; display:none; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px;">
+  <div style="max-width:480px;">
+    <div style="font-size:80px; margin-bottom:16px;">🔧</div>
+    <h1 style="font-family:'Bebas Neue',sans-serif; font-size:clamp(28px,6vw,40px); color:#fb923c; letter-spacing:4px; text-transform:uppercase; margin-bottom:20px; text-shadow:0 0 20px rgba(251,146,60,.5);">Página en mantenimiento</h1>
+    <p style="color:rgba(255,255,255,.7); font-size:clamp(0.9rem,2vw,1.1rem); line-height:1.6; margin-bottom:20px;">Estamos mejorando la web. Volveremos en breve.</p>
+    <p style="color:rgba(255,255,255,.5); font-size:clamp(0.7rem,1.2vw,0.8rem);">¡Gracias por tu paciencia!</p>
+  </div>
+</div>
+
+<!-- ================= SPLASH ================= -->
+<div id="splashOverlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.98); z-index:15000; display:flex; flex-direction:column; justify-content:center; align-items:center; opacity:1; transition:opacity 1s ease;">
+  <div style="text-align:center;">
+    <h1 style="font-size:42px; color:#fb923c; letter-spacing:3px; margin-bottom:10px; text-shadow:0 0 20px rgba(251,146,60,0.5);">Gonjor presents</h1>
+    <h2 style="font-size:36px; color:#00ffcc; letter-spacing:4px; text-shadow:0 0 30px rgba(0,255,204,0.5);">los andeleros</h2>
+  </div>
+</div>
+
+<h1 class="d-none">Gonjor presents Los Andeleros</h1>
 <h2 id="estado">No logueado</h2>
 
 <!-- ================= MENU ================= -->
@@ -119,9 +146,44 @@
   </div>
 
   <br>
+  <div id="cookiesSection" style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #888; margin-top: 10px;">
+    <p style="margin: 5px 0; color: #fff; font-size: 14px;"><b>🍪 Cookies / Auto-login</b> <span id="cookiesCircle" style="display:inline-block; width:14px; height:14px; border-radius:50%; background:#ef4444; vertical-align:middle; margin-left:8px; border:2px solid #fff;"></span></p>
+    <p id="cookiesStatus" style="margin: 5px 0; color: #aaa; font-size: 12px;">¿Quieres que se recuerde tu cuenta automáticamente?</p>
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button onclick="setCookies(true)" style="background:#00ffcc;color:#000;padding:6px 14px;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">Sí</button>
+      <button onclick="setCookies(false)" style="background:#ef4444;color:#fff;padding:6px 14px;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">No</button>
+    </div>
+  </div>
+  <br>
   <button onclick="logout()">Cerrar sesión</button>
   <button onclick="eliminarCuenta()">Eliminar cuenta</button>
   <button onclick="volver()">Volver</button>
+
+  <br><br>
+  <div id="andelerosPlusSection" style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; margin-top: 10px;">
+    <p style="margin: 5px 0; color: #00ffcc; font-size: 14px;"><b>⭐ Los Andeleros Plus</b></p>
+    <p style="margin: 5px 0; color: #aaa; font-size: 13px;">Pase de suscripción</p>
+    <p id="andelerosPlusStatus" style="margin: 5px 0; font-size: 13px; display: none;"></p>
+    <p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 15000 ⭐</p>
+    <p style="margin: 5px 0; color: #aaa; font-size: 12px;"><b>Ventajas:</b></p>
+    <p style="margin: 5px 0; color: #00ff99; font-size: 12px;">✅ 500 puntos diarios</p>
+    <p style="margin: 5px 0; color: #00ff99; font-size: 12px;">✅ Ventajas para compras</p>
+    <button id="btnComprarAndelerosPlus" onclick="comprarAndelerosPlus()" style="margin-top: 10px; background: #00ffcc; color: #000; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Comprar</button>
+  </div>
+
+  <br>
+  <div id="gonjorPlusSection" style="text-align: left; background: #111; padding: 15px; border-radius: 10px; border: 1px solid #fb923c; margin-top: 10px;">
+    <p style="margin: 5px 0; color: #fb923c; font-size: 14px;"><b>🧡 Gonjor Plus</b></p>
+    <p style="margin: 5px 0; color: #aaa; font-size: 13px;">Pase de suscripción premium</p>
+    <p id="gonjorPlusStatus" style="margin: 5px 0; font-size: 13px; display: none;"></p>
+    <p style="margin: 10px 0; color: #ffcc00;">💰 Precio: 20000 ⭐</p>
+    <p style="margin: 5px 0; color: #aaa; font-size: 12px;"><b>Ventajas:</b></p>
+    <p style="margin: 5px 0; color: #00ff99; font-size: 12px;">✅ Foto de perfil exclusiva</p>
+    <p style="margin: 5px 0; color: #00ff99; font-size: 12px;">✅ Objetos exclusivos en Roblox</p>
+    <p style="margin: 5px 0; color: #00ff99; font-size: 12px;">✅ Compras gratuitas</p>
+    <p style="margin: 5px 0; color: #00ff99; font-size: 12px;">✅ 1000 puntos diarios</p>
+    <button id="btnComprarGonjorPlus" onclick="comprarGonjorPlus()" style="margin-top: 10px; background: #fb923c; color: #000; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Comprar</button>
+  </div>
 
 </div>
 
@@ -139,9 +201,17 @@
   <button onclick="closePopup(); irVoxelcraft()">🧱 Voxelcraft</button>
   <button onclick="closePopup(); irTower()">🗼 Defensa Épica</button>
   <button onclick="closePopup(); irAjedrez()">Ajedrez</button>
-  <button onclick="closePopup(); irCristales()">Jugo de los cristales</button>
+  <button onclick="closePopup(); irCristales()">Juego de los cristales</button>
   <button onclick="closePopup(); irConecta10()">Conecta 10</button>
+  <button onclick="closePopup(); ir3EnRaya()">3 en raya</button>
+  <button onclick="closePopup(); irCode()">????</button>
   <button onclick="closePopup(); irVallesol()">Vallesol Tycoon</button>
+  <button onclick="closePopup(); irPetSimulator()">Pet Simulator</button>
+  <button onclick="closePopup(); window.location.href='https://www.roblox.com/es/communities/392647976/Gonjor-studios#!/about'">roblox</button>
+  <button onclick="closePopup(); window.location.href='risk.html'">Dominio Mundial</button>
+  <button onclick="mostrarServicioNoDisponible()">Storm Royale</button>
+  <button onclick="closePopup(); window.location.href='neon.html'">Neon District</button>
+
 
   <br><br>
   <button onclick="go()">Volver</button>
@@ -172,12 +242,33 @@
      <p><strong>¿Comprar acceso?</strong></p>
      <p>Accede al mundo de bloques por <strong>500 ⭐</strong>.</p>
      <div id="voxelcraftBalance" style="margin: 10px 0; font-size: 14px;"></div>
-     <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
-       <button id="btnPagarVoxelcraft" onclick="pagarVoxelcraft()" style="background: #4CAF50; color: white; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer;">Pagar 500 ⭐</button>
-     </div>
-     <button onclick="cerrarOverlayVoxelcraft()" style="margin-top: 10px; background: #222; color: #666; padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer;">Cerrar</button>
+      <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+        <button id="btnPagarVoxelcraft" onclick="pagarVoxelcraft()" style="background: #4CAF50; color: white; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer;">Pagar 500 ⭐</button>
+      </div>
+      <p style="margin-top: 10px; font-size: 13px; color: #aaa;">
+        Si no lo has comprado todavía:<br>
+        consigue un <strong>50% de descuento</strong> con <strong>Los Andeleros Plus</strong><br>
+        y <strong>gratis</strong> con <strong>Gonjor Plus</strong>
+      </p>
+      <button onclick="cerrarOverlayVoxelcraft()" style="margin-top: 10px; background: #222; color: #666; padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer;">Cerrar</button>
    </div>
  </div>
+
+<!-- OVERLAY CUENTA BANEADA POR ADMIN ================= -->
+<div id="baneadaBanner" style="position:fixed; inset:0; background:rgba(0,0,0,0.97); z-index:99999; display:none; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px;">
+  <div style="max-width:520px;">
+    <div style="font-size:80px; margin-bottom:16px;">🔨</div>
+    <h2 style="font-family:'Bebas Neue',sans-serif; font-size:clamp(28px,6vw,40px); color:#ef4444; letter-spacing:4px; text-transform:uppercase; text-shadow:0 0 20px rgba(239,68,68,.6); margin-bottom:16px;">Cuenta baneada</h2>
+    <p style="color:rgba(255,255,255,.85); font-size:clamp(1rem,2.2vw,1.15rem); line-height:1.6; margin-bottom:20px;">Tu cuenta ha sido <strong style="color:#ef4444;">baneada de los Andeleros</strong> por un administrador.</p>
+    <div style="background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3); border-radius:10px; padding:16px; margin-bottom:20px;">
+      <p style="color:rgba(255,255,255,.7); font-size:clamp(0.85rem,1.8vw,0.95rem); line-height:1.6; margin:0;">Esta cuenta ha sido bloqueada por un administrador. No tienes acceso a los Andeleros hasta que se resuelva el caso. Si crees que es un error, contacta con un administrador.</p>
+    </div>
+    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+      <button onclick="window.location.href='index.html'" style="padding:12px 28px; font-family:'Bebas Neue',sans-serif; font-size:clamp(0.9rem,2.2vw,1.05rem); font-weight:800; text-transform:uppercase; letter-spacing:2px; background:linear-gradient(45deg,#ef4444,#dc2626); color:#fff; border:none; border-radius:8px; cursor:pointer; box-shadow:0 0 20px rgba(239,68,68,.4); transition:all .2s;">Volver al inicio</button>
+      <button onclick="window.open('https://discord.gg/pzGBtKbWw','_blank')" style="padding:6px 14px; font-family:'Bebas Neue',sans-serif; font-size:clamp(0.65rem,1.4vw,0.75rem); font-weight:600; text-transform:uppercase; letter-spacing:1px; background:transparent; color:rgba(255,255,255,.6); border:1px solid rgba(255,255,255,.2); border-radius:6px; cursor:pointer; transition:all .2s;">Contactar admin</button>
+    </div>
+  </div>
+</div>
 
 <!-- ================= MODO NO DISPONIBLE ================= -->
 <div id="overlayModo" class="overlay hidden" style="z-index: 10000;">
@@ -206,11 +297,101 @@
 
   <button id="btnPerfil" style="display:none" onclick="verPerfil()">Perfil</button>
   <button id="btnNoti" style="display:none" onclick="abrirNoti()">Noti</button>
-  <button id="btnDiscord" style="display:none" onclick="window.open('https://discord.gg/pzGBtKbWw','_blank')">Discord</button>
+  <button id="btnDiscord" style="display:none" onclick="window.open('https://discord.gg/pzGBtKbWw','_blank')">discord</button>
   <button id="btnTienda" style="display:none" onclick="shop()">🏪 Tienda</button>
   <button id="btnRanking" style="display:none" onclick="abrirRanking()">Ranking</button>
   <button id="btnAmigos" style="display:none" onclick="irAmigos()">Amigos</button>
+  <button id="btnIA" style="display:none" onclick="abrirIA()">IA</button>
+  <button id="btnAdmin" style="display:none" onclick="window.location.href='admin.html'">Admin</button>
 </div>
+
+<!-- OVERLAY SALDO NEGATIVO (full-screen, no cerrable) -->
+<div id="negativoBanner" style="position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:99999; display:none; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px;">
+  <div style="max-width:480px;">
+    <h2 style="font-family:'Bebas Neue',sans-serif; font-size:clamp(24px,5vw,32px); color:#FFD700; letter-spacing:4px; text-transform:uppercase; text-shadow:0 0 20px rgba(255,215,0,.5); margin-bottom:16px;">Saldo en negativo</h2>
+    <p style="color:rgba(255,255,255,.7); font-size:clamp(0.85rem,2vw,1rem); line-height:1.6; margin-bottom:24px;">por <strong style="color:#FFD700;">Gonjor Studios</strong></p>
+    <p style="color:rgba(255,255,255,.4); font-size:clamp(0.7rem,1.5vw,0.8rem); line-height:1.5; margin-bottom:32px;">Si crees que es un error, el equipo lo está solucionando pacientemente.</p>
+    <p style="color:rgba(255,255,255,.3); font-size:clamp(0.6rem,1.2vw,0.7rem); margin-bottom:24px;">Error: Saldo en negativo</p>
+    <button onclick="window.location.href='/quizzes/quiz.html'" style="padding:12px 32px; font-family:'Bebas Neue',sans-serif; font-size:clamp(0.9rem,2.5vw,1.1rem); font-weight:800; text-transform:uppercase; letter-spacing:3px; background:linear-gradient(45deg,#FFD700,#ff8c00); color:#000; border:none; border-radius:8px; cursor:pointer; box-shadow:0 0 20px rgba(255,215,0,.4); transition:all .2s;">Conseguir puntos</button>
+  </div>
+</div>
+
+<!-- OVERLAY IA CHOICE -->
+<div id="overlayIA" style="position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:20000; display:none; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px; backdrop-filter: blur(5px);">
+  <div style="background:#1a1a1a; color:white; padding:30px; border-radius:20px; border:2px solid #fb923c; max-width:400px; box-shadow: 0 0 30px rgba(251,146,60,0.3);">
+    <h2 style="font-family:'Bebas Neue',sans-serif; color:#fb923c; font-size:24px; margin-bottom:20px; letter-spacing:1px;">Elige tu IA</h2>
+    <div style="display:flex; flex-direction:column; gap:10px; justify-content:center;">
+      <button onclick="window.location.href='ia.html'" style="background:#fb923c; color:black; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:bold; transition:0.2s;">Los Andeleros AI</button>
+      <button onclick="window.location.href='https://iaa-alvu.onrender.com'" style="background:#333; color:white; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:bold; transition:0.2s;">Gonjor AI más inteligente</button>
+    </div>
+    <button onclick="document.getElementById('overlayIA').style.display='none'" style="margin-top:15px; background:transparent; color:#aaa; border:none; cursor:pointer;">Cerrar</button>
+  </div>
+</div>
+<div id="iaBloqueadaBanner" style="position:fixed; inset:0; background:rgba(0,0,0,0.97); z-index:99999; display:none; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px;">
+  <div style="max-width:520px;">
+    <div style="font-size:80px; margin-bottom:16px;">🚫</div>
+    <h2 style="font-family:'Bebas Neue',sans-serif; font-size:clamp(28px,6vw,40px); color:#ef4444; letter-spacing:4px; text-transform:uppercase; text-shadow:0 0 20px rgba(239,68,68,.6); margin-bottom:16px;">Cuenta bloqueada por IA</h2>
+    <p style="color:rgba(255,255,255,.85); font-size:clamp(1rem,2.2vw,1.15rem); line-height:1.6; margin-bottom:20px;">Tu cuenta ha sido bloqueada por <strong style="color:#ef4444;">uso inapropiado de la inteligencia artificial</strong>.</p>
+    <div style="background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3); border-radius:10px; padding:16px; margin-bottom:20px;">
+      <p style="color:rgba(255,255,255,.7); font-size:clamp(0.85rem,1.8vw,0.95rem); line-height:1.6; margin:0;">Has solicitado contenido que viola nuestras normas: contenido sexual, desnudos, hackeos, violencia, drogas, racismo o cualquier material inapropiado. Por tu seguridad y la de los demás usuarios, no puedes usar la IA hasta que un administrador revise tu caso.</p>
+    </div>
+    <p style="color:rgba(255,255,255,.5); font-size:clamp(0.75rem,1.5vw,0.85rem); margin-bottom:24px;">Si crees que es un error, contacta con un administrador.</p>
+    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+      <button onclick="window.location.href='index.html'" style="padding:12px 28px; font-family:'Bebas Neue',sans-serif; font-size:clamp(0.9rem,2.2vw,1.05rem); font-weight:800; text-transform:uppercase; letter-spacing:2px; background:linear-gradient(45deg,#6366f1,#8b5cf6); color:#fff; border:none; border-radius:8px; cursor:pointer; box-shadow:0 0 20px rgba(99,102,241,.4); transition:all .2s;">Volver al inicio</button>
+      <button onclick="window.open('https://discord.gg/pzGBtKbWw','_blank')" style="padding:6px 14px; font-family:'Bebas Neue',sans-serif; font-size:clamp(0.65rem,1.4vw,0.75rem); font-weight:600; text-transform:uppercase; letter-spacing:1px; background:transparent; color:rgba(255,255,255,.6); border:1px solid rgba(255,255,255,.2); border-radius:6px; cursor:pointer; transition:all .2s;">Contactar admin</button>
+    </div>
+  </div>
+ </div>
+
+<!-- OVERLAY CUENTA BANEADA POR ADMIN (full-screen, no cerrable) -->
+<div id="baneadaBanner" style="position:fixed; inset:0; background:rgba(0,0,0,0.97); z-index:99999; display:none; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px;">
+  <div style="max-width:520px;">
+    <div style="font-size:80px; margin-bottom:16px;">🔨</div>
+    <h2 style="font-family:'Bebas Neue',sans-serif; font-size:clamp(28px,6vw,40px); color:#ef4444; letter-spacing:4px; text-transform:uppercase; text-shadow:0 0 20px rgba(239,68,68,.6); margin-bottom:16px;">Cuenta baneada</h2>
+    <p style="color:rgba(255,255,255,.85); font-size:clamp(1rem,2.2vw,1.15rem); line-height:1.6; margin-bottom:20px;">Tu cuenta ha sido <strong style="color:#ef4444;">baneada de los Andeleros</strong> por un administrador.</p>
+    <div style="background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3); border-radius:10px; padding:16px; margin-bottom:20px;">
+      <p style="color:rgba(255,255,255,.7); font-size:clamp(0.85rem,1.8vw,0.95rem); line-height:1.6; margin:0;">Esta cuenta ha sido bloqueada por un administrador. No tienes acceso a los Andeleros hasta que se resuelva el caso. Si crees que es un error, contacta con un administrador.</p>
+    </div>
+    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+      <button onclick="window.location.href='index.html'" style="padding:12px 28px; font-family:'Bebas Neue',sans-serif; font-size:clamp(0.9rem,2.2vw,1.05rem); font-weight:800; text-transform:uppercase; letter-spacing:2px; background:linear-gradient(45deg,#ef4444,#dc2626); color:#fff; border:none; border-radius:8px; cursor:pointer; box-shadow:0 0 20px rgba(239,68,68,.4); transition:all .2s;">Volver al inicio</button>
+      <button onclick="window.open('https://discord.gg/pzGBtKbWw','_blank')" style="padding:6px 14px; font-family:'Bebas Neue',sans-serif; font-size:clamp(0.65rem,1.4vw,0.75rem); font-weight:600; text-transform:uppercase; letter-spacing:1px; background:transparent; color:rgba(255,255,255,.6); border:1px solid rgba(255,255,255,.2); border-radius:6px; cursor:pointer; transition:all .2s;">Contactar admin</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function(){
+    const params = new URLSearchParams(window.location.search);
+    if(params.get('blockedIA') === '1' || localStorage.getItem('andeleros_blocked_ia') === '1'){
+      document.getElementById('iaBloqueadaBanner').style.display = 'flex';
+    }
+    if(params.get('baneada') === '1' || localStorage.getItem('andeleros_baneada') === '1'){
+      document.getElementById('baneadaBanner').style.display = 'flex';
+    }
+  });
+
+  function aceptarCookies() {
+    localStorage.setItem('cookies_aceptadas', 'true');
+    const co = document.getElementById('cookiesOverlay');
+    if (co) co.style.display = 'none';
+
+    // Guardar en DB si hay un usuario logueado
+    if (typeof socket !== 'undefined' && socket.connected && typeof user !== 'undefined' && user && user.ide) {
+      socket.emit('update-cookies', { ide: user.ide, aceptado: true });
+    } else if (typeof fetch !== 'undefined' && typeof user !== 'undefined' && user && user.ide) {
+      // Fallback mediante fetch si socket no está disponible pero hay usuario
+      fetch(`/update/${encodeURIComponent(user.ide)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cookiesAceptadas: true })
+      }).catch(err => console.error("Error guardando cookies en DB:", err));
+    }
+  }
+
+  function salirCookies() {
+    window.close();
+  }
+</script>
 
 <!-- SHOP POPUP -->
 <div id="popup" style="display:none;">
@@ -238,7 +419,7 @@
 
 <!-- ================= JS ================= -->
 <script src="/socket.io/socket.io.js"></script>
-<script src="login.js?v=12"></script>
+  <script src="login.js?v=20"></script>
 
 </body>
 </html>

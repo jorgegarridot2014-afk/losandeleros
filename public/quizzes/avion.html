@@ -521,7 +521,13 @@ function updatePointsUI(save){
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ points: points })
     }).then(r => {
-      if(r.ok) return r.json().then(d => { currentUser.points = d.points; });
+      if(r.ok) return r.json().then(d => {
+        currentUser.points = d.points;
+        if(currentUser.bloqueada && !d.bloqueada){
+          currentUser.bloqueada = false;
+          alert("✅ Puntos sincronizados. Cuenta desbloqueada.");
+        }
+      });
     }).catch(() => {});
   }
 }
@@ -668,7 +674,7 @@ function selectOption(i, btnEl){
     feedback.classList.add('show-incorrect');
   }
   document.getElementById('scoreNow').textContent = score;
-  updatePointsUI();
+  updatePointsUI(true);
   document.getElementById('nextBtn').classList.add('active');
 }
 

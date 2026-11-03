@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>????</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { height:100%; overflow:hidden; }
+    body {
+      font-family:'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background:#000;
+      min-height:100vh;
+      position:relative;
+      background-image:url('cir.png');
+      background-size:cover;
+      background-position:center;
+      background-attachment:fixed;
+    }
+
+    .overlay {
+      position:absolute; inset:0;
+      background:rgba(0,0,0,.55);
+      z-index:0;
+    }
+
+    .sticker-back {
+      position:absolute;
+      background:rgba(0,0,0,.7);
+      border:2px solid rgba(255,215,0,.3);
+      border-radius:4px;
+      box-shadow:
+        4px 4px 0 rgba(0,172,255,.3),
+        inset 0 0 14px rgba(255,255,255,.08),
+        0 0 20px rgba(255,215,0,.1);
+      z-index:-1;
+    }
+
+    .urb-sticker {
+      position:absolute;
+      top:50%;
+      left:50%;
+      transform:translate(-50%,-45%);
+      font-family:'Bebas Neue', sans-serif;
+      font-size:clamp(5rem, 18vw, 10rem);
+      font-weight:900;
+      letter-spacing:8px;
+      text-transform:uppercase;
+      background:linear-gradient(45deg, #FFD700 0%, #00A8E8 100%);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-clip:text;
+      text-shadow:
+        0 0 8px rgba(255,215,0,.6),
+        0 0 20px rgba(0,172,255,.5),
+        0 0 40px rgba(255,215,0,.3);
+      z-index:15;
+      opacity:0;
+      animation:urbAppear 1.2s ease-out forwards;
+      animation-delay:.5s;
+    }
+    @keyframes urbAppear {
+      0% { opacity:0; transform:translate(-50%,-60%) scale(.3) rotate(-5deg); text-shadow:0 0 5px rgba(255,215,0,.2); }
+      50% { transform:translate(-50%,-45%) scale(1.1) rotate(1deg); text-shadow:0 0 30px rgba(255,215,0,.7), 0 0 50px rgba(0,172,255,.5); }
+      100% { opacity:1; transform:translate(-50%,-45%) scale(1) rotate(0); }
+    }
+    .urb-sticker .sticker-back {
+      position:absolute;
+      top:50%; left:50%;
+      transform:translate(-50%,-50%) scale(1.2);
+      width:140%;
+      height:140%;
+    }
+
+    .urb-subtitle {
+      position:absolute;
+      top:68%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      font-family:'Bebas Neue', sans-serif;
+      font-size:clamp(1.2rem, 4vw, 2rem);
+      font-weight:700;
+      letter-spacing:6px;
+      text-transform:uppercase;
+      background:linear-gradient(45deg, #FFD700 0%, #00A8E8 100%);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-clip:text;
+      text-shadow:0 0 10px rgba(255,215,0,.6), 0 0 20px rgba(0,172,255,.4);
+      z-index:14;
+      opacity:0;
+      animation:urbAppear 1.2s ease-out forwards;
+      animation-delay:1s;
+    }
+
+    .title-sticker {
+      position:absolute;
+      top:12%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      font-size:clamp(1.2rem, 2vw, 1.8rem);
+      font-weight:600;
+      color:#fff9c4;
+      letter-spacing:.04em;
+      text-shadow:0 0 8px rgba(255,255,255,.4);
+      z-index:14;
+      opacity:0;
+      animation:fadeInDown .8s ease-in-out forwards;
+      animation-delay:.3s;
+    }
+    @keyframes fadeInDown { from{opacity:0; transform:translate(-50%,calc(-50% + 20px));} to{opacity:1; transform:translate(-50%,-50%);} }
+
+    .subtitle-sticker {
+      position:absolute;
+      bottom:10%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      font-size:clamp(0.8rem, 1.8vw, 1.1rem);
+      font-weight:500;
+      color:#00A8E8;
+      letter-spacing:.06em;
+      text-shadow:0 0 8px rgba(0,172,255,.5);
+      z-index:14;
+      opacity:0;
+      animation:fadeInUp .8s ease-in-out forwards;
+      animation-delay:1.2s;
+    }
+    @keyframes fadeInUp { from{opacity:0; transform:translate(-50%,calc(-50% - 20px));} to{opacity:1; transform:translate(-50%,-50%);} }
+
+    .btn-group {
+      position:absolute;
+      bottom:12%;
+      left:50%;
+      transform:translateX(-50%);
+      display:flex;
+      gap:16px;
+      z-index:20;
+    }
+    .btn {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(0.9rem, 2vw, 1.2rem);
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:2px;
+      padding:10px 24px;
+      border:none;
+      border-radius:4px;
+      cursor:pointer;
+      transition:all .2s ease;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .btn-saber {
+      background:linear-gradient(45deg, #00A8E8, #0066cc);
+      color:#fff;
+      box-shadow:0 0 15px rgba(0,172,255,.4);
+      border:1px solid rgba(255,255,255,.2);
+    }
+    .btn-saber:hover { box-shadow:0 0 25px rgba(0,172,255,.7); transform:translateY(-2px); }
+    .btn-inicio {
+      background:linear-gradient(45deg, #FFD700, #ff8c00);
+      color:#000;
+      box-shadow:0 0 15px rgba(255,215,0,.4);
+      border:1px solid rgba(255,255,255,.3);
+    }
+    .btn-inicio:hover { box-shadow:0 0 25px rgba(255,215,0,.7); transform:translateY(-2px); }
+
+    .points-toast{
+      position:fixed; top:16px; left:50%; transform:translateX(-50%) translateY(-24px);
+      background:#FFD700; color:#000;
+      font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px;
+      padding:10px 20px; border-radius:999px;
+      box-shadow:0 6px 0 rgba(0,0,0,0.25);
+      z-index:200; opacity:0; pointer-events:none;
+      transition:opacity .3s ease, transform .3s ease;
+      display:flex; align-items:center; gap:8px;
+    }
+    .points-toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+    .date-badge {
+      position:absolute;
+      top:8px;
+      right:12px;
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(0.7rem, 1.5vw, 0.9rem);
+      font-weight:700;
+      color:#FFD700;
+      background:rgba(0,172,255,.1);
+      border:1px solid rgba(255,215,0,.3);
+      border-radius:6px;
+      padding:5px 12px;
+      letter-spacing:2px;
+      text-transform:uppercase;
+      text-shadow:0 0 6px rgba(255,215,0,.4);
+      z-index:25;
+      white-space:nowrap;
+    }
+
+    .pay-btn {
+      position:absolute;
+      bottom:26%;
+      left:50%;
+      transform:translateX(-50%);
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(1rem, 2.5vw, 1.4rem);
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:3px;
+      padding:10px 28px;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+      background:linear-gradient(45deg, #FFD700, #ff8c00);
+      color:#000;
+      box-shadow:0 0 20px rgba(255,215,0,.4);
+      transition:all .2s ease;
+      z-index:20;
+    }
+    .pay-btn:hover { box-shadow:0 0 30px rgba(255,215,0,.7); transform:translate(-50%) scale(1.03); }
+    .pay-btn.reserved {
+      background:linear-gradient(45deg, #00A8E8, #0066cc);
+      color:#fff;
+      box-shadow:0 0 20px rgba(0,172,255,.4);
+    }
+    .pay-btn.reserved:hover { transform:translate(-50%) scale(1); }
+
+    .disclaimer {
+      position:absolute;
+      bottom:6px;
+      left:50%;
+      transform:translateX(-50%);
+      font-size:clamp(0.65rem, 1.2vw, 0.8rem);
+      color:rgba(255,255,255,.5);
+      text-align:center;
+      max-width:90%;
+      z-index:20;
+      line-height:1.4;
+    }
+
+    .info-modal {
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.85);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:50;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .3s ease;
+    }
+    .info-modal.show { opacity:1; pointer-events:all; }
+    .info-card {
+      position:relative;
+      background:rgba(10,10,20,.8);
+      border:1px solid rgba(255,215,0,.3);
+      border-radius:12px;
+      padding:32px 40px;
+      max-width:520px;
+      width:90%;
+      text-align:center;
+      box-shadow:0 0 30px rgba(255,215,0,.2), 0 0 40px rgba(0,172,255,.15);
+    }
+    .info-title {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(1.8rem,4vw,2.5rem);
+      color:#FFD700;
+      letter-spacing:3px;
+      text-transform:uppercase;
+      margin-bottom:20px;
+      text-shadow:0 0 15px rgba(255,215,0,.5), 0 0 30px rgba(0,172,255,.3);
+    }
+    .info-text {
+      color:#fff9c4;
+      font-size:clamp(0.85rem, 2vw, 1.1rem);
+      line-height:1.6;
+      margin-bottom:12px;
+      text-shadow:0 0 6px rgba(0,0,0,.5);
+    }
+    .info-close {
+      position:absolute;
+      top:8px; right:12px;
+      font-size:28px;
+      color:#00A8E8;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .info-close:hover { color:#FFD700; }
+  </style>
+</head>
+<body>
+  <div class="overlay"></div>
+
+  <div class="date-badge">Disponible el 1 de diciembre</div>
+
+  <div class="title-sticker" id="titleSticker">
+    Lanzamiento épico de la saga Los Andeleros
+  </div>
+
+  <div class="urb-sticker" id="urbSticker">
+    URB
+  </div>
+
+  <div class="urb-subtitle">URBAN DRIVE</div>
+
+  <div class="subtitle-sticker" id="subtitleSticker">
+    Creada por Gonjor Studios
+  </div>
+
+  <button class="pay-btn" id="payBtn" onclick="reserveGame()">Reservar ⭐</button>
+
+  <div class="btn-group">
+    <a href="#" onclick="showInfo(); return false;" class="btn btn-saber">Saber más</a>
+    <a href="index.html" class="btn btn-inicio">Inicio</a>
+  </div>
+
+  <div class="points-toast" id="pointsToast">
+    <span>⭐ +50 puntos</span>
+  </div>
+
+  <div class="disclaimer">
+    Este videojuego no permite descuentos con Gonjor Plus ni Los Andeleros Plus. Solo 50 unidades.
+  </div>
+
+  <div class="info-modal hidden" id="infoModal">
+    <div class="info-card">
+      <span class="info-close" onclick="hideInfo()">&times;</span>
+      <h2 class="info-title">URB</h2>
+      <p class="info-text">Es un juego con un extenso mapa libre de una ciudad ambientada en New York 3D.</p>
+      <p class="info-text">Es el 1er juego 3D de la saga Los Andeleros.</p>
+      <p class="info-text">El propósito es convertirte como un criminal, ganar dinero y comprarte coches.</p>
+      <p class="info-text">Todo esto dirigido por Gonjor Studios.</p>
+    </div>
+  </div>
+
+  <!-- Música de tensión -->
+  <audio id="tensionMusic" loop>
+    <source src="playa.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+      function showInfo(){ document.getElementById('infoModal').classList.add('show'); }
+      function hideInfo(){ document.getElementById('infoModal').classList.remove('show'); }
+
+      async function reserveGame(){
+        const btn = document.getElementById('payBtn');
+        if(btn.classList.contains('reserved')) return;
+        if(!ide){ alert('⚠️ Necesitas iniciar sesión.'); return; }
+        try{
+          const res = await fetch('/reserve/' + encodeURIComponent(ide), {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({})
+          });
+          if(!res.ok){
+            const err = await res.json();
+            alert(err.error || 'No se pudo reservar.');
+            return;
+          }
+          btn.classList.add('reserved');
+          btn.textContent = 'Reservado ✓';
+          const toast = document.getElementById('pointsToast');
+          toast.innerHTML = '<span>✅ Juego reservado</span>';
+          toast.classList.add('show');
+          setTimeout(() => { toast.classList.remove('show'); toast.innerHTML = '<span>⭐ +50 puntos</span>'; }, 2500);
+        }catch(e){ alert('Error de conexión.'); }
+      }
+
+       (function(){
+      "use strict";
+
+      const params = new URLSearchParams(window.location.search);
+      const ideParam = params.get('ide') || localStorage.getItem('andeleros_last_active') || '';
+      window.ide = ideParam;
+
+      async function checkBloqueada(){
+        if(!ideParam) return;
+        try{
+          const res = await fetch('/login', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({ide: ideParam})
+          });
+          if(!res.ok) return;
+          const data = await res.json();
+          if(data.bloqueada){ window.location.href = 'index.html'; }
+        }catch(e){}
+      }
+      checkBloqueada();
+
+      async function claimPoints(){
+        if(!ideParam) return;
+        try{
+          const res = await fetch('/add-points/' + encodeURIComponent(ideParam), {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({amount:50})
+          });
+          if(!res.ok) return;
+          const data = await res.json();
+          if(data && data.added){
+            const toast = document.getElementById('pointsToast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+          }
+        }catch(e){ /* sin conexión */ }
+      }
+      claimPoints();
+
+      const music = document.getElementById('tensionMusic');
+      music.volume = 0.4;
+      music.play().catch(() => {});
+    })();
+  </script>
+</body>
+</html>

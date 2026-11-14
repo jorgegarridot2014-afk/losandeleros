@@ -1,17 +1,16 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Amigos - Los Andeleros</title>
+<link rel="stylesheet" href="style.css">
 <style>
   * { box-sizing: border-box; }
   body {
     margin: 0;
     font-family: Arial, sans-serif;
     min-height: 100vh;
-    background: #000000;
-    background-size: cover;
     color: white;
     display: flex;
     justify-content: center;
@@ -403,14 +402,6 @@
             </div>
           `;
           const esAmigo = misAmigosIdes.includes(user.ide);
-          if (esAmigo) {
-            const btn = document.createElement("button");
-            btn.className = "btn-chat";
-            btn.title = "Chatear";
-            btn.textContent = "💬";
-            btn.onclick = () => abrirChat(user.ide, user.apodo || 'Usuario');
-            card.appendChild(btn);
-          }
           card.onclick = () => abrirSolicitud(user);
           card.style.cursor = "pointer";
           resultados.appendChild(card);
@@ -535,12 +526,6 @@
               <div class="estado">${isOnline ? 'En línea' : 'Desconectado'}</div>
             </div>
           `;
-          const btn = document.createElement("button");
-          btn.className = "btn-chat";
-          btn.title = "Chatear";
-          btn.textContent = "💬";
-          btn.onclick = () => abrirChat(amigo.ide, amigo.apodo || 'Amigo');
-          card.appendChild(btn);
           container.appendChild(card);
         });
       } catch (err) {

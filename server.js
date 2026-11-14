@@ -20,6 +20,16 @@ app.use(cors());
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
+function sanitizeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 /* ================= MANTENIMIENTO ================= */
 let mantenimientoActivo = false;
 let iaRestringida = false;
@@ -203,11 +213,12 @@ app.post("/crear", async (req,res)=>{
       return res.status(400).json({ error: "El apodo contiene palabras no permitidas" });
     }
 
+    const apodoLimpio = sanitizeHtml(req.body.apodo);
     const ide = await generarIDUnico();
     console.log("🆔 ID generado:", ide);
 
     const nueva = new User({
-      apodo: req.body.apodo,
+      apodo: apodoLimpio,
       ide,
       foto: normalizeFoto(req.body.foto),
       aceptado: req.body.aceptado === true,
@@ -312,7 +323,7 @@ app.put("/update/:ide", async (req,res)=>{
     if (gonjorPlus !== undefined) updateFields.gonjorPlus = gonjorPlus === true;
     if (lastDailyClaim !== undefined) updateFields.lastDailyClaim = new Date(lastDailyClaim);
     if (setup !== undefined) updateFields.setup = setup === true;
-    if (personaje && personaje.nombre && personaje.color) updateFields.personaje = personaje;
+    if (personaje && personaje.nombre && personaje.color) updateFields.personaje = { nombre: sanitizeHtml(personaje.nombre), color: sanitizeHtml(personaje.color) };
     if (controlType) updateFields.controlType = controlType;
 
     const user = await User.findOneAndUpdate(
@@ -529,6 +540,14 @@ function normalizeText(str){
 
 function isForbiddenRequest(message) {
   const lower = normalizeText(message);
+  return FORBIDDEN_KEYWORDS.some(word => {
+    const w = normalizeText(word);
+    return lower.includes(w);
+  });
+}
+
+function isResponseForbidden(text) {
+  const lower = normalizeText(text);
   return FORBIDDEN_KEYWORDS.some(word => {
     const w = normalizeText(word);
     return lower.includes(w);
@@ -870,14 +889,24 @@ function isImageRequest(msg){
 }
 
 function sanitizeAIResponse(text){
-  return String(text || "")
-    .replace(/<img\b[^>]*>/gi, "[imagen deshabilitada]")
-    .replace(/<picture\b[\s\S]*?<\/picture>/gi, "[imagen deshabilitada]")
-    .replace(/<svg\b[^>]*>[\s\S]*?<\/svg>/gi, "[imagen deshabilitada]")
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, "[imagen deshabilitada]")
-    .replace(/data:image\/[^\s"'<>]+/gi, "[imagen deshabilitada]")
-    .replace(/https?:\/\/[^\s"'<>]*pollinations\.ai[^\s"'<>]*/gi, "[imagen deshabilitada]")
-    .replace(/https?:\/\/[^\s"'<>]+\.(?:png|jpe?g|webp|gif|bmp|svg)(?:\?[^\s"'<>]*)?/gi, "[imagen deshabilitada]");
+  let cleaned = String(text || "");
+  // Eliminar tags HTML de imagen
+  cleaned = cleaned.replace(/<img\b[^>]*>/gi, "[imagen deshabilitada]");
+  cleaned = cleaned.replace(/<picture\b[\s\S]*?<\/picture>/gi, "[imagen deshabilitada]");
+  cleaned = cleaned.replace(/<svg\b[^>]*>[\s\S]*?<\/svg>/gi, "[imagen deshabilitada]");
+  // Eliminar markdown de imagen ![alt](url)
+  cleaned = cleaned.replace(/!\[[^\]]*\]\([^)]*\)/g, "[imagen deshabilitada]");
+  // Eliminar URLs de imágenes comunes
+  cleaned = cleaned.replace(/https?:\/\/[^\s"'<>]+\.(?:png|jpe?g|webp|gif|bmp|svg|ico)(?:\?[^\s"'<>]*)?/gi, "[imagen deshabilitada]");
+  // Eliminar data URIs de imagen
+  cleaned = cleaned.replace(/data:image\/[^\s"'<>]+/gi, "[imagen deshabilitada]");
+  // Eliminar URLs de servicios de imagen comunes
+  cleaned = cleaned.replace(/https?:\/\/[^\s"'<>]*\.(?:pollinations\.ai|image-generation|replicate|stability)/gi, "[imagen deshabilitada]");
+  // Eliminar referencias a "imagen" o "foto" seguidas de URLs
+  cleaned = cleaned.replace(/(?:imagen|foto|image|picture|photo)\s*:\s*https?:\/\/[^\s"'<>]+/gi, "[imagen deshabilitada]");
+  // Eliminar HTML blocks con src de imagen
+  cleaned = cleaned.replace(/<[^>]+\s+src\s*=\s*["'][^"']*\.(?:png|jpe?g|webp|gif|bmp|svg)[^"']*["'][^>]*>/gi, "[imagen deshabilitada]");
+  return cleaned;
 }
 
 async function getAIResponse(message, image){
@@ -905,6 +934,11 @@ async function getAIResponse(message, image){
     const imageMessage = messageText || "¿Qué ves en esta imagen?";
     const groqReply = await callGroq("[Imagen adjunta] " + imageMessage);
     if (groqReply) {
+      // Filtrar contenido inapropiado en la respuesta
+      if (isResponseForbidden(groqReply)) {
+        conversationHistory.push({ role: "user", content: "[Imagen] " + imageMessage });
+        return "🚫 Contenido inapropiado detectado. No puedo ayudar con esa solicitud.";
+      }
       const reply = sanitizeAIResponse(groqReply);
       conversationHistory.push({ role: "user", content: "[Imagen] " + imageMessage });
       conversationHistory.push({ role: "assistant", content: reply });
@@ -915,6 +949,11 @@ async function getAIResponse(message, image){
 
   const groqReply = await callGroq(messageText);
   if (groqReply) {
+    // Filtrar contenido inapropiado en la respuesta
+    if (isResponseForbidden(groqReply)) {
+      conversationHistory.push({ role: "user", content: messageText });
+      return "🚫 Contenido inapropiado detectado. No puedo ayudar con esa solicitud.";
+    }
     const reply = sanitizeAIResponse(groqReply);
     conversationHistory.push({ role: "user", content: messageText });
     conversationHistory.push({ role: "assistant", content: reply });

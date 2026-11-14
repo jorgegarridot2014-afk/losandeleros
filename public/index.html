@@ -71,7 +71,7 @@
 <div id="login" class="hidden">
   <input id="ide" placeholder="ID">
   <br><br>
-  <button onclick="loginCuenta()">Entrar</button>
+  <button id="btnLogin" onclick="loginCuenta()">Entrar</button>
   <button onclick="volver()">Volver</button>
 </div>
 
@@ -209,8 +209,8 @@
   <button onclick="closePopup(); irPetSimulator()">Pet Simulator</button>
   <button onclick="closePopup(); window.location.href='https://www.roblox.com/es/communities/392647976/Gonjor-studios#!/about'">roblox</button>
   <button onclick="closePopup(); window.location.href='risk.html'">Dominio Mundial</button>
-  <button onclick="mostrarServicioNoDisponible()">Storm Royale</button>
-  <button onclick="closePopup(); window.location.href='neon.html'">Neon District</button>
+  <button onclick="closePopup(); window.location.href='https://waww-8t1s.onrender.com'">Storm Royale</button>
+  <button onclick="closePopup(); irNeonDistrict()">Neon District (Versión Beta)</button>
 
 
   <br><br>
@@ -270,11 +270,26 @@
   </div>
 </div>
 
-<!-- ================= MODO NO DISPONIBLE ================= -->
-<div id="overlayModo" class="overlay hidden" style="z-index: 10000;">
-  <div class="card">
-    <p>Esta función no funciona temporalmente.</p>
-    <button onclick="cerrarOverlayModo()">Cerrar</button>
+<!-- ================= OVERLAY NEON DISTRICT ================= -->
+<div id="overlayNeonDistrict" class="overlay hidden" style="z-index: 10000;">
+  <div class="card" style="text-align: center;">
+    <h2 style="color: #00ffcc; margin-bottom: 15px;">Neon District</h2>
+    <p>Acceso exclusivo a la zona Neon.</p>
+    <p style="margin: 15px 0; color: #ffcc00; font-size: 18px;">💰 Precio: 1000 ⭐</p>
+
+    <div id="neonContent">
+      <button id="btnPagarNeon" onclick="pagarNeon()" style="background: #00ffcc; color: #000; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%;">Comprar Acceso</button>
+    </div>
+
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #444;">
+    <p style="font-size: 12px; color: #aaa;">¿Tienes un código de acceso?</p>
+    <div style="display: flex; gap: 5px; justify-content: center; margin-top: 10px;">
+      <input id="neonCodeInput" placeholder="Código..." style="padding: 8px; border-radius: 5px; border: 1px solid #555; background: #222; color: #fff; width: 60%;">
+      <button onclick="validarNeonCode()" style="padding: 8px 15px; border-radius: 5px; border: none; background: #444; color: #fff; cursor: pointer;">Canjear</button>
+    </div>
+
+    <br>
+    <button onclick="cerrarOverlayNeon()" style="background: #222; color: #666; padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px;">Cerrar</button>
   </div>
 </div>
 

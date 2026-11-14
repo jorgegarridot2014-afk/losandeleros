@@ -4,6 +4,9 @@ let modo = localStorage.getItem("modo") || "oscuro";
 const API_BASE = "";
 const LOCAL_ACCOUNT_KEY = "andeleros_account_";
 const LAST_ACTIVE_KEY = "andeleros_last_active";
+const LAST_LOGIN_ATTEMPT_KEY = "andeleros_last_login_attempt";
+const LOGIN_COOLDOWN_MS = 60000; // 1 minuto
+let loginCooldownInterval = null;
 const PALABRAS_PROHIBIDAS = ["tonto", "feo", "malo", "joder", "idiota"];
 const socket = typeof io !== "undefined" ? io() : null;
 if (socket) {
@@ -278,9 +281,57 @@ async function aceptarPrivacidad(){
   } catch(err){ console.error("Error en aceptación:", err); alert("Fallo al confirmar la cuenta: " + err.message); go(); }
 }
 function rechazarPrivacidad(){ alert("Debes aceptar la política de privacidad para crear una cuenta."); }
+function checkLoginCooldown() {
+  const lastAttempt = localStorage.getItem(LAST_LOGIN_ATTEMPT_KEY);
+  if (!lastAttempt) return true;
+  const elapsed = Date.now() - parseInt(lastAttempt, 10);
+  if (elapsed < LOGIN_COOLDOWN_MS) {
+    return false;
+  }
+  return true;
+}
+
+function recordLoginAttempt() {
+  localStorage.setItem(LAST_LOGIN_ATTEMPT_KEY, Date.now().toString());
+}
+
+function updateLoginButtonState() {
+  const btn = document.getElementById("btnLogin");
+  if (!btn) return;
+  if (checkLoginCooldown()) {
+    btn.disabled = false;
+    btn.style.opacity = "1";
+    btn.style.cursor = "pointer";
+    btn.textContent = "Entrar";
+  } else {
+    btn.disabled = true;
+    btn.style.opacity = "0.5";
+    btn.style.cursor = "not-allowed";
+    const lastAttempt = localStorage.getItem(LAST_LOGIN_ATTEMPT_KEY);
+    const remaining = LOGIN_COOLDOWN_MS - (Date.now() - parseInt(lastAttempt, 10));
+    const seconds = Math.ceil(remaining / 1000);
+    btn.textContent = `Espera ${seconds}s`;
+  }
+}
+
+function startLoginCooldownTimer() {
+  updateLoginButtonState();
+  const interval = setInterval(() => {
+    updateLoginButtonState();
+    const lastAttempt = localStorage.getItem(LAST_LOGIN_ATTEMPT_KEY);
+    if (!lastAttempt || Date.now() - parseInt(lastAttempt, 10) >= LOGIN_COOLDOWN_MS) {
+      updateLoginButtonState();
+      clearInterval(interval);
+      return;
+    }
+  }, 1000);
+}
+
 async function loginCuenta(){
   const ide = document.getElementById("ide").value.trim();
   if(!ide) return alert("Escribe ID");
+  if (!checkLoginCooldown()) return;
+  recordLoginAttempt();
   try {
     const res = await fetch(`${API_BASE}/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ide }) });
     const data = await res.json();
@@ -307,6 +358,15 @@ async function loginCuenta(){
     } else { abrirSetup(); }
   } catch(err){ console.error(err); alert("Error en login"); }
 }
+function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 function renderCuentas(){
   const div = document.getElementById("listaCuentas");
   if(!div) return;
@@ -326,7 +386,9 @@ function renderCuentas(){
     row.onmouseenter = () => row.style.background = "rgba(255,255,255,0.2)";
     row.onmouseleave = () => row.style.background = "rgba(255,255,255,0.1)";
     const img = document.createElement("img"); img.src = normalizeFoto(account.foto); img.width = 40; img.height = 40; img.style.borderRadius = "50%"; img.style.border = "2px solid var(--color-primario, #ccc)";
-    const info = document.createElement("div"); info.innerHTML = `<div style="font-weight:bold; font-size:14px;">${account.apodo}</div><div style="font-size:10px; opacity:0.6;">Toca para entrar</div>`;
+    const info = document.createElement("div");
+    info.innerHTML = `<div style="font-weight:bold; font-size:14px;"></div><div style="font-size:10px; opacity:0.6;">Toca para entrar</div>`;
+    info.querySelector("div").textContent = account.apodo || "";
     const btnOlvidar = document.createElement("div"); btnOlvidar.innerHTML = "&times;"; btnOlvidar.setAttribute("style", "margin-left:auto; font-size:20px; opacity:0.3; padding:5px; cursor:pointer;");
     btnOlvidar.onclick = (e) => { e.stopPropagation(); if(confirm(`¿Quitar a ${account.apodo} de este dispositivo?`)) { localStorage.removeItem(LOCAL_ACCOUNT_KEY + account.ide); if (localStorage.getItem(LAST_ACTIVE_KEY) === account.ide) localStorage.removeItem(LAST_ACTIVE_KEY); renderCuentas(); } };
     row.onclick = ()=>{ loginSavedAccount(account.ide); };
@@ -358,7 +420,7 @@ function verPerfil(){
   const pjEl = document.getElementById("pfPersonaje");
   if (pjEl) {
     if (user.personaje && user.personaje.nombre) {
-      pjEl.innerHTML = `🎮 Personaje: <b>${user.personaje.nombre}</b> <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${user.personaje.color};vertical-align:middle;border:2px solid #fff;"></span>`;
+      pjEl.innerHTML = `🎮 Personaje: <b>${escapeHtml(user.personaje.nombre)}</b> <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${escapeHtml(user.personaje.color)};vertical-align:middle;border:2px solid #fff;"></span>`;
       pjEl.style.display = "block";
     } else {
       pjEl.style.display = "none";
@@ -482,7 +544,7 @@ function toggleModo(){
   show("overlayModo");
 }
 function mostrarCrear(){ hideAll(); show("crear"); document.getElementById("apodo").value = ""; document.getElementById("apodo").focus(); }
-function mostrarLogin(){ hideAll(); show("login"); document.getElementById("ide").value = ""; document.getElementById("ide").focus(); }
+function mostrarLogin(){ hideAll(); show("login"); document.getElementById("ide").value = ""; document.getElementById("ide").focus(); updateLoginButtonState(); startLoginCooldownTimer(); }
 function volver(){ go(); }
 async function eliminarCuenta(){
   if(!user || !user.ide) return alert("No hay cuenta para eliminar");
@@ -708,7 +770,74 @@ function showPopup(text){
   if (popup) { popup.classList.remove("hidden"); popup.style.display = "flex"; }
 }
 function irAmigos(){ if(checkBloqueadoRedirect()) return; window.location.href = "amigos.html"; }
-function irPetSimulator(){ if(checkBloqueadoRedirect()) return; window.location.href = "pet.html"; }
+async function irNeonDistrict() {
+  if (!user || !user.ide) return alert("⚠️ Necesitas iniciar sesión para acceder a Neon District.");
+
+  if (user.neonDistrictPurchased) {
+    closePopup();
+    window.location.href = "https://groovy-neon-strike-district.base44.app";
+    return;
+  }
+
+  const overlay = document.getElementById("overlayNeonDistrict");
+  if (overlay) {
+    overlay.classList.remove("hidden");
+    overlay.style.display = "flex";
+  }
+}
+
+async function pagarNeon() {
+  const precio = 1000;
+  if (!user || !user.ide) return alert("⚠️ Inicia sesión primero.");
+
+  if ((user.points || 0) < precio) {
+    showPopup("❌ No tienes suficientes puntos. Necesitas 1000 ⭐.");
+    return;
+  }
+
+  user.points -= precio;
+  user.neonDistrictPurchased = true;
+  saveCurrentUserLocalData();
+  showPopup("✅ ¡Acceso comprado! Redirigiendo...");
+
+  try {
+    const res = await fetch(`${API_BASE}/update/${encodeURIComponent(user.ide)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ points: user.points, neonDistrictPurchased: true })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      user.points = data.points;
+    }
+  } catch(err) {
+    console.error("Error Neon District update:", err);
+  }
+
+  setTimeout(() => {
+    cerrarOverlayNeon();
+    window.location.href = "https://groovy-neon-strike-district.base44.app";
+  }, 1500);
+}
+
+function validarNeonCode() {
+  const code = document.getElementById("neonCodeInput").value.trim();
+  if (code === "izante") {
+    cerrarOverlayNeon();
+    window.location.href = "https://groovy-neon-strike-district.base44.app";
+  } else {
+    showPopup("❌ Código incorrecto.");
+  }
+}
+
+function cerrarOverlayNeon() {
+  const overlay = document.getElementById("overlayNeonDistrict");
+  if (overlay) {
+    overlay.classList.add("hidden");
+    overlay.style.display = "none";
+  }
+}
+
 
 function checkBloqueadoRedirect(){
   if(user && (user.bloqueada || user.baneada)){
